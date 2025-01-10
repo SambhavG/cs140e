@@ -1,0 +1,9 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     trojan-compiler2
+relocations:
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100003238, symSize: 0x3AC }
+  - { offsetInCU: 0x4D, offset: 0x4D, size: 0x8, addend: 0x0, symName: _buf, symObjAddr: 0x259B, symBinAddr: 0x1000080DD, symSize: 0x0 }
+  - { offsetInCU: 0x35F, offset: 0x35F, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100003238, symSize: 0x3AC }
+  - { offsetInCU: 0x55A, offset: 0x55A, size: 0x8, addend: 0x0, symName: _main.cold.1, symObjAddr: 0x3AC, symBinAddr: 0x1000035E4, symSize: 0x28 }
+...
