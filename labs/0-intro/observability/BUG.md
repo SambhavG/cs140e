@@ -11,7 +11,7 @@ r/pi framebuffer by:
 
   1. Filling in a message structe `cp`.
   2. After step 1 completes: send the message by setting assigning the
-     address of `cp`  to the mailbox `write` field.
+     address of `cp  to the mailbox `write` field.
      
 Why it works like this isn't that important, the main thing you need
 to understand is the sort-of obvious requirement that you shouldn't

@@ -4,6 +4,20 @@
   <img src="docs/recursive.jpg" width="450" />
 </p>
 
+------------------------------------------------------------------------
+### Clarifications for today
+
+Note:
+  - For quine-gen.c --- you can just statically allocate a large buffer.
+    We're just trying to build a quick and dirty solution to understand
+    the paper, not write robust code.
+
+  - For self replication at any step: you should *NOT* be dynamically
+    reading in a file using `fopen` etc and printing it out.  The
+    replication should be contained entirely within the program ---
+    though you can `#include` code statically if you want.
+
+------------------------------------------------------------------------
 
 Today is a fun lab; on the teaching evals it was generally
 the favorite of the quarter.  
@@ -59,6 +73,13 @@ For this lab you will write code to implement Thompson's hack in three
 steps: start with `code/step1` (easy), then `code/step2` (medium), 
 then `code/step3` (hardest).
 
+#### Checkoff
+
+We're piloting a new submission/check off process. Please
+- run `git clone https://github.com/dghosef/140e-dumb-autograder`
+- Follow the instructions here: https://github.com/dghosef/140e-dumb-autograder
+- Check the output in `checkoffs/<sunet>/lab1`. At the bottom, it should say that Ken successfully logged in. Don't worry if there are other errors above.
+
 Standard check-off:
   - When you type `make check` in `code/step3` the test passes.
 
@@ -81,6 +102,7 @@ Hard check-off (if you're exceptionally ambitious):
     the lab).
 
 Extensions:
+  - Do a version that uses `putchar` versus `printf`.
   - Redo everything in a different language (e.g., rust).
   - Inject attacks into a binary program rather than source code.
   - Attack a different program (this could be a minor or major extension
@@ -552,24 +574,26 @@ Note:
     be failing because there is non-determinism in compilation on MacOS
     M1's laptops.)
 
---------------------------------------------------------------------------
-### Submitting
+-----------------------------------------------------------------------
+#### A topical modern example
 
-We're piloting a new submission/check off process. `cd` into the code
-directory and run `make submit`. Then, upload the file `upload.zip` to the
-Gradescope Lab 2 assignment. Finally, once the results come back, come down
-and see a TA so that we can do a manual review for any errors and check you
-off.
+It looks like a not-exactly-identical-but-similar issue comes up when
+asking a GPT to discuss a paper that evaluates whether that GPT is evil
+or discusses how to prevent the GPT from being evil.
 
+<p align="center">
+  <img src="docs/ai-trust-trust.jpg" width="450" />
+</p>
 
 -----------------------------------------------------------------------
 #### Postscript
 
 You have now replicated Thompon's hack.  Startlingly, there seem to be
 only a few people that have ever done so, and most that believe they
-understand the paper woulnd't actually be able to write out the code.
+understand the paper wouldn't actually be able to write out the code.
 You can probably really stand out at parties by explaining what you did.
 
 <p align="center">
   <img src="docs/observe.jpg" width="450" />
 </p>
+

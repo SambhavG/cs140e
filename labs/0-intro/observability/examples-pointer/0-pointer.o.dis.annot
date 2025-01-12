@@ -4,21 +4,16 @@
 
 Disassembly of section .text:
 
-00000000 <foo>:
+00000000 <passthrough>:
+#include <stdio.h>
+#include <stdlib.h>
 
-// warm-up: what will the compiler do?
-void foo(void) {
-    int i = 0;
-    return;
+void baz(void);
+
+void passthrough(void) {
+   0:	e92d4010 	push	{r4, lr}
+    baz();
+   4:	ebfffffe 	bl	0 <baz>
 }
-   0:	e12fff1e 	bx	lr
-
-00000004 <bar>:
-    int y = 4;
-    int z = 5;
-    int w = 6;
-
-    return x*y+z*w;
-}
-   4:	e3a0002a 	mov	r0, #42	; 0x2a
-   8:	e12fff1e 	bx	lr
+   8:	e8bd4010 	pop	{r4, lr}
+   c:	e12fff1e 	bx	lr

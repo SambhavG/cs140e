@@ -28,8 +28,8 @@ check:  trojan-compiler2
     # the same output (e.g., no embedded time stamps etc).  if it succeeds
     # we know we have the same, but if it fails it doesn't mean we have
     # a problem --- the real test is the login.
-    # diff cc-attacked cc-attacked2
-	
+
+	diff cc-attacked cc-attacked2
 	@echo "success: trojan generated itself!"
 	@echo ""
 

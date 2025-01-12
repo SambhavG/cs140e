@@ -1,6 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void baz(void);
+
+void passthrough(void) {
+    baz();
+}
+
+#if 0
 // warm-up: what will the compiler do?
 void foo(void) {
     int i = 0;
@@ -17,12 +24,12 @@ int bar(void) {
     return x*y+z*w;
 }
 
-#if 0
 unsigned mul16(unsigned x) {
     return x * 16;
 }
+#endif
 
-
+#if 0
 unsigned switchx(unsigned x) {
     int v = 0;
 

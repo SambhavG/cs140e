@@ -27,4 +27,3 @@ diff cc-attacked cc-attacked2
 # mean we have a problem --- the real test is the login.
 ./cc-attacked2 ../step2/login.c -o login-attacked
 echo "ken\n" | ./login-attacked
-echo "success: check passed!"

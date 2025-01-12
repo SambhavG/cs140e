@@ -1,5 +1,12 @@
 ## CS140E: embedded operating systems (Engler, Winter, 2025)
 
+<p align="center">
+  <img src="labs/lab-memes/pi-intro.jpg" width="600" />
+</p>
+
+Tl;dr:
+  - It's a lab class, so [jump right to the labs](./labs/README.md).
+
 CS140E is an introductory operating systems course. It roughly covers
 the same high-level material as [CS 212][cs212] (formerly CS 140), but
 with a focus on embedded systems, interacting directly with hardware,
