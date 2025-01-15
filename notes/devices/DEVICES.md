@@ -416,7 +416,6 @@ do a few in cs240LX but that doesn't help us now.)
 ----------------------------------------------------------------
 #### Device memory + compiler optimization = bugs
 
-As discussed in the [COMPILE](../1-compile/volatile/README.md) note:
 The C compiler does not know about hardware devices nor does it know
 that device memory is "special" and can spontaneously change without
 visible any store in the program text. Thus, the compiler can (and

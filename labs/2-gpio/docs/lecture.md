@@ -1,4 +1,7 @@
 ### pi rules
+
+For today:
+  - power cycle after each test (until we get reboot()).
  
 Hardware rules:
   - UNPLUG: if pi gets hot.
@@ -16,6 +19,7 @@ Hardware rules:
     I was working on the outside tables outside last year.  They are silver
     metal tables.  Put my pi on the table to code.  No more pi.
 
+
 How to fix quick if pi stops working: 
 
   - quick check: make sure SD card all the way in.  Make sure USB cable 
@@ -25,6 +29,7 @@ How to fix quick if pi stops working:
 
 
   - if pi h/w doesn't work, plug in your partners.
+
   - if partner's pi doesn't work: laptop issue.  try different USB port.
     otherwise maybe software.
 
@@ -34,11 +39,15 @@ How to fix quick if pi stops working:
 
   - of course: these rules apply as we attach more hardware devices.
 
+  - we give software that you can quickly run (see staff-binaries)
+
+
 How to keep a working pi working:
 
   - don't mess with it.  don't constantly pull out SD card, USB cable,
     etc.  just leave it alone.  i've had setups that worked for years.
 
+-----------------------------------------------------------------------
 ### GPIO
 
 The game:
@@ -58,59 +67,35 @@ The game:
    device generally definitional passive voice.  that's just the 
    way it is.  big improvement: examples.
 
-   in general:
-            - find the weird addresses.
-            - find the weird values to set.
-            - see if any erratta.
+in general:
+    - find the weird addresses.
+    - find the weird values to set.
+    - see if any erratta.
 
-            0. dev barrier
-            1. initialize to known values [typically not RMW]
-            2. dev barrier
-            3. use
+    - dev barrier
+    - initialize to known values [typically not RMW]
 
-            we do so using PUT/GET
+    - make sure you know when RMW
 
-        make sure you know when RMW
-
-   - errata
-        they get right to it tho!
-
-   - basic idea:
+    - basic idea:
         - set to input/output/etc RMW: 3 bits.
         - GPIO_OUT for pin
         - GPIO_IN for reading
         - 
-
         - put PUT32/GET32
         - strip off bits
         - see whether you need to RMW or just W
         - why INPUT/OUTPUT different?
 
-  - easiest: swap sd cards.  works?  sd card corrupted or yours came 
-    loose.
-
-  - next: plug in a new pi into your pcb (w SD card).  if that works its pi 
-    issue.  if that does not work: make sure your partner can boot the 
-    same pi to catch mistake.
-
-  - next: swap pcb (these rarely seem to break).
-  - if that doesn't work not much left, let us know!
-
-    - we give software that you can quickly run.  if your PATH and bin
-      is setup, 4-checkoff should compile and run.
-
 
 ---------------------------------------------------------------------
-### revisit volatile mbox wait:
+### Unclassified
 
-few points we didn't discuss:
-
+Few points we didn't discuss:
   - shared state isn't just variables.
   - PUT32 as a way to fix.
   - during testing not much use, won't get triggered.
   - if it's in a different cache line can work.
-
-
 
 Example bugs:
     - if leave volatile off: won't set.  however default might already be.
@@ -126,3 +111,11 @@ Example bugs:
 TODO: 
   - type-based alias analysis.
   - how quickly can we get to a simple OS with processes and vm and equiv?
+
+Other extensions:
+  - write in assembly
+  - do different light intensity
+  - pwm as line drawing
+  - 240lx lab on dyanmic code generation.
+  - find the weirdness with the alignemnt?
+  - do the watchdog?
