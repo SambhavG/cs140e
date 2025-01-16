@@ -1,6 +1,7 @@
 {
   "files.associations": {
     "*.svelte": "svelte",
-    "stdio.h": "c"
+    "stdio.h": "c",
+    "rpi.h": "c"
   }
 }

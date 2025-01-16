@@ -6,7 +6,7 @@
 # a regular expression:
 #   PROG_SRC = $(wildcard [0-9]-*.c)
 # but we list them out explicitly to simplify things.
-PROG_SRC = 1-blink.c  2-blink.c 3-loopback.c 4-act-blink.c 
+PROG_SRC = 1-blink.c 1-blink-copy.c 2-blink.c 2-blink-copy.c 3-loopback.c 4-act-blink.c extension-partner.c
 
 # the object files each program depends on.
 objs := start.o gpio.o delay.o  mem-barrier.o
