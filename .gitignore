@@ -9,3 +9,5 @@ staff-*.c
 .gdb_history
 *.scratch
 staff
+
+*.d
