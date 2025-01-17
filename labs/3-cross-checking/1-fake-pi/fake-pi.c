@@ -25,11 +25,11 @@
 //  2. the main pi specific thing is what happens when you read/write
 //     gpio addresses.   given how simple these are, we can get awa
 //     with just treating them as memory, where the next read returns
-//     the value of the last write.  for fancier hardware, or for 
+//     the value of the last write.  for fancier hardware, or for
 //     a complete set of possible GPIO behaviors we would have to do
-//     something fancier.   
+//     something fancier.
 //
-//     NOTE: this problem of how to model devices accurately is a 
+//     NOTE: this problem of how to model devices accurately is a
 //     big challenge both for virtual machines and machine simulators.
 //
 // it's good to understand what is going on here.  both why it works,
@@ -54,29 +54,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 #include "fake-pi.h"
 
 /***********************************************************************
  * some macros to make error reporting easier.
  */
 
-
-
 // print output
 #define output(msg, args...) \
-    do { printf(msg, ##args ); fflush(stdout); } while(0)
+    do {                     \
+        printf(msg, ##args); \
+        fflush(stdout);      \
+    } while (0)
 
 // print output with file/function/line
-#define debug(msg...) do {                                           \
-    output("%s:%s:%d:", __FILE__, __FUNCTION__, __LINE__);          \
-    output(msg);                                                  \
-} while(0)
+#define debug(msg...)                                          \
+    do {                                                       \
+        output("%s:%s:%d:", __FILE__, __FUNCTION__, __LINE__); \
+        output(msg);                                           \
+    } while (0)
 
 // panic and die with an error message.
-#define panic(msg, args...) \
-    do { debug("PANIC:" msg, ##args); exit(1); } while(0)
-
+#define panic(msg, args...)          \
+    do {                             \
+        debug("PANIC:" msg, ##args); \
+        exit(1);                     \
+    } while (0)
 
 // emit a trace statement -- these are the outputs that you compare
 // run to run to see that the code doesn't change.
@@ -90,16 +93,16 @@ static inline void trace_on(void) { trace_on_p = 1; }
 static inline void trace_off(void) { trace_on_p = 0; }
 
 // if <trace_on_p> != 0, emit a trace statement
-#define trace(msg, args...) do {                                        \
-    if(trace_on_p) {                                                    \
-        output("TRACE:%d: " msg, trace_ops++, ##args);                                   \
-        if(ntrace++ >= max_trace) {                                     \
-            output("TRACE: exiting after %d trace statements\n", ntrace);\
-            fake_pi_exit();                                             \
-        }                                                               \
-    }                                                                   \
-} while(0)
-
+#define trace(msg, args...)                                                   \
+    do {                                                                      \
+        if (trace_on_p) {                                                     \
+            output("TRACE:%d: " msg, trace_ops++, ##args);                    \
+            if (ntrace++ >= max_trace) {                                      \
+                output("TRACE: exiting after %d trace statements\n", ntrace); \
+                fake_pi_exit();                                               \
+            }                                                                 \
+        }                                                                     \
+    } while (0)
 
 /***********************************************************************
  * a tiny fake simulator that traces all reads and writes to device
@@ -108,7 +111,7 @@ static inline void trace_off(void) { trace_on_p = 0; }
  * main pi-specific thing is a tiny model of device
  * memory: for each device address, what happens when you
  * read or write it?   in real life you would build this
- * model more succinctly with a map, but we write everything 
+ * model more succinctly with a map, but we write everything
  * out here for maximum obviousness.
  */
 
@@ -121,41 +124,63 @@ enum {
     gpio_fsel2 = (GPIO_BASE + 0x08),
     gpio_fsel3 = (GPIO_BASE + 0x0c),
     gpio_fsel4 = gpio_fsel3 + 4,
-    gpio_set0  = (GPIO_BASE + 0x1C),
-    gpio_clr0  = (GPIO_BASE + 0x28),
-    gpio_set1  = gpio_set0 + 4,
-    gpio_clr1  = gpio_clr0 + 4,
-    gpio_lev0  = (GPIO_BASE + 0x34)
+    gpio_set0 = (GPIO_BASE + 0x1C),
+    gpio_clr0 = (GPIO_BASE + 0x28),
+    gpio_set1 = gpio_set0 + 4,
+    gpio_clr1 = gpio_clr0 + 4,
+    gpio_lev0 = (GPIO_BASE + 0x34)
 };
 
 // the value for each location.
-static unsigned 
-        gpio_fsel0_v,
-        gpio_fsel1_v,
-        gpio_fsel2_v,
-        gpio_fsel3_v,
-        // do a hack to set initial value: don't use random.
-        gpio_fsel4_v = ~0,      
-        gpio_set0_v,
-        gpio_clr0_v,
-        gpio_set1_v,
-        gpio_clr1_v;
-
+static unsigned
+    gpio_fsel0_v,
+    gpio_fsel1_v,
+    gpio_fsel2_v,
+    gpio_fsel3_v,
+    // do a hack to set initial value: don't use random.
+    gpio_fsel4_v = ~0,
+    gpio_set0_v,
+    gpio_clr0_v,
+    gpio_set1_v,
+    gpio_clr1_v;
 
 // same, but takes <addr> as a uint32_t
 void PUT32(uint32_t addr, uint32_t v) {
-    if(!trace_on_p)
+    if (!trace_on_p)
         output("fake-pi: initializing PUT32(0x%x) = 0x%x\n", addr, v);
     trace("PUT32(0x%x) = 0x%x\n", addr, v);
-    switch(addr) {
-    case gpio_fsel0: gpio_fsel0_v = v;  break;
-    case gpio_fsel1: gpio_fsel1_v = v;  break;
-    case gpio_fsel2: gpio_fsel2_v = v;  break;
-    case gpio_fsel3: gpio_fsel3_v = v;  break;
-    case gpio_set0:  gpio_set0_v  = v;  break;
-    case gpio_clr0:  gpio_clr0_v  = v;  break;
-    case gpio_lev0:  panic("illegal write to gpio_lev0!\n");
-    default: panic("write to illegal address: %x\n", addr);
+    switch (addr) {
+        case gpio_fsel0:
+            gpio_fsel0_v = v;
+            break;
+        case gpio_fsel1:
+            gpio_fsel1_v = v;
+            break;
+        case gpio_fsel2:
+            gpio_fsel2_v = v;
+            break;
+        case gpio_fsel3:
+            gpio_fsel3_v = v;
+            break;
+        case gpio_fsel4:
+            gpio_fsel4_v = v;
+            break;
+        case gpio_set0:
+            gpio_set0_v = v;
+            break;
+        case gpio_set1:
+            gpio_set1_v = v;
+            break;
+        case gpio_clr0:
+            gpio_clr0_v = v;
+            break;
+        case gpio_clr1:
+            gpio_clr1_v = v;
+            break;
+        case gpio_lev0:
+            panic("illegal write to gpio_lev0!\n");
+        default:
+            panic("write to illegal address: %x\n", addr);
     }
 }
 // same as PUT32 but takes a pointer.
@@ -171,26 +196,40 @@ uint32_t DEV_VAL32(uint32_t x) {
 // same but takes <addr> as a uint32_t
 uint32_t GET32(uint32_t addr) {
     unsigned v;
-    switch(addr) {
-    case gpio_fsel0: v = gpio_fsel0_v; break;
-    case gpio_fsel1: v = gpio_fsel1_v; break;
-    case gpio_fsel2: v = gpio_fsel2_v; break;
-    case gpio_fsel3: v = gpio_fsel3_v; break;
-    // we don't allow reading these.
-    // case gpio_set0:  v = gpio_set0_v;  break;
-    // case gpio_clr0:  v = gpio_clr0_v;  break;
+    switch (addr) {
+        case gpio_fsel0:
+            v = gpio_fsel0_v;
+            break;
+        case gpio_fsel1:
+            v = gpio_fsel1_v;
+            break;
+        case gpio_fsel2:
+            v = gpio_fsel2_v;
+            break;
+        case gpio_fsel3:
+            v = gpio_fsel3_v;
+            break;
+        case gpio_fsel4:
+            v = gpio_fsel4_v;
+            break;
+        // we don't allow reading these.
+        // case gpio_set0:  v = gpio_set0_v;  break;
+        // case gpio_clr0:  v = gpio_clr0_v;  break;
 
-    // to fake a changing environment, we want gpio_lev0 to 
-    // change --- so we return a random value for (which
-    // will be roughly uniform random for a given bit).
-    // you could bias these as well or make them more 
-    // realistic by reading from a trace from a run on 
-    // the raw hardware, correlating with other pins or 
-    // time or ...
-    case gpio_lev0:  v = fake_random();  break;
-    default: panic("read of illegal address: %x\n", addr);
+        // to fake a changing environment, we want gpio_lev0 to
+        // change --- so we return a random value for (which
+        // will be roughly uniform random for a given bit).
+        // you could bias these as well or make them more
+        // realistic by reading from a trace from a run on
+        // the raw hardware, correlating with other pins or
+        // time or ...
+        case gpio_lev0:
+            v = fake_random();
+            break;
+        default:
+            panic("read of illegal address: %x\n", addr);
     }
-    trace("GET32(0x%x) = 0x%x\n", addr,v);
+    trace("GET32(0x%x) = 0x%x\n", addr, v);
     return v;
 }
 // same as GET32 but takes a pointer.
@@ -235,16 +274,15 @@ void uart_flush_tx(void) {
     fflush(stdout);
 }
 
-
 // initialize "device memory" and then call the pi program
 int main(int argc, char *argv[]) {
     void notmain(void);
 
-    if(argc == 1)  {
+    if (argc == 1) {
         fake_random_init();
-    } else if(argc == 2) {
+    } else if (argc == 2) {
         unsigned seed = atoi(argv[1]);
-        if(seed == 0)
+        if (seed == 0)
             panic("seed was <%s>: should be a non-zero number\n", argv[1]);
         output("TRACE: initializing fake_random to %x\n", seed);
         fake_random_seed(seed);
@@ -262,8 +300,8 @@ int main(int argc, char *argv[]) {
     PUT32(gpio_fsel2, fake_random());
     PUT32(gpio_fsel3, fake_random());
 
-    PUT32(gpio_set0,  fake_random());
-    PUT32(gpio_clr0,  fake_random());
+    PUT32(gpio_set0, fake_random());
+    PUT32(gpio_clr0, fake_random());
     trace_on();
 
     // extension: run in a subprocess to isolate
