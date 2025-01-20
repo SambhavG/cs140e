@@ -1,8 +1,43 @@
 ### Lab: automatically cross-check your GPIO code against everyone else's.
 
-***NOTE:
- - first things first: make sure that `make` in `00-hello` works
-   as a way to check your setup!***
+----------------------------------------------------------
+***Errata***:
+***Errata***:
+***Errata***:
+***Errata***:
+
+  - `2-trace`: this `Makefile` has issues, so you may need
+    to run `make` in `2-trace` and then inside `2-trace/test`
+    this won't be true for the rest of the quarter.  I forgot
+    to fix a problem from last year.
+    
+  - if your tracing just hangs this is b/c there is an
+    infinite loop from printing: `printk` will call the
+    UART driver, which will then call `put32` and `get32`
+    which you will then call `printk` for etc.  this is
+    a pretty common issue when writing low level monitor
+    code. soln: don't trace when you've called `printk`.
+
+  - don't check for 47 in `gpio_read` do:
+
+            int gpio_read(unsigned pin) {
+                if(pin >= 32)
+                    return -1;
+                ...
+                return DEV_VAL32(x);
+            }
+
+  - Please make sure your class path definition ends with
+    a `/`.  For example:
+
+        setenv CS140E_2025_PATH /home/engler/class/cs140e-25win/
+
+    Versus
+
+        setenv CS140E_2025_PATH /home/engler/class/cs140e-25win
+
+
+----------------------------------------------------------
 
 A goal of this course is that you will write every single line of
 (interesting) low level code you use.  A good result of this approach
@@ -137,10 +172,7 @@ To checkoff:
 - Reclone the autograder from here: http://github.com/dghosef/140e-dumb-autograder. Or pull and fix the conflict
 - Modify the repo, sunet, and lab variables in `sender.py`. The lab one should be set to 'lab3'
 - Run `sender.py`. The output will be pushed to the checkoff directory of http://github.com/dghosef/140e-dumb-autograder
-- The output is pretty raw. You should check the TRACE statements are the same as a friend's. A quick way to do this would be:
-  - copy and paste the output of the autograder into a file
-  - run `grep -E "TRACE:PUT32|TRACE:GET32" < filename | cksum
-  - Ask a friend if they have the same cksum
+- Make sure the checksums make sense
  
 - Let Joe know if something isn't working
 
@@ -376,7 +408,7 @@ First things first:
 
 
             int gpio_read(unsigned pin) {
-                if(pin >= 32 && pin != 47)
+                if(pin >= 32)
                     return -1;
                 ...
                 return x;
@@ -385,7 +417,7 @@ First things first:
      Becomes
 
             int gpio_read(unsigned pin) {
-                if(pin >= 32 && pin != 47)
+                if(pin >= 32)
                     return -1;
                 ...
                 return DEV_VAL32(x);
