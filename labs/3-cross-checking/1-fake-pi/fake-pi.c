@@ -125,24 +125,30 @@ enum {
     gpio_fsel3 = (GPIO_BASE + 0x0c),
     gpio_fsel4 = gpio_fsel3 + 4,
     gpio_set0 = (GPIO_BASE + 0x1C),
-    gpio_clr0 = (GPIO_BASE + 0x28),
     gpio_set1 = gpio_set0 + 4,
+    gpio_clr0 = (GPIO_BASE + 0x28),
     gpio_clr1 = gpio_clr0 + 4,
     gpio_lev0 = (GPIO_BASE + 0x34)
 };
 
 // the value for each location.
-static unsigned
-    gpio_fsel0_v,
-    gpio_fsel1_v,
-    gpio_fsel2_v,
-    gpio_fsel3_v,
-    // do a hack to set initial value: don't use random.
-    gpio_fsel4_v = ~0,
-    gpio_set0_v,
-    gpio_clr0_v,
-    gpio_set1_v,
-    gpio_clr1_v;
+// static unsigned
+//     gpio_fsel0_v,
+//     gpio_fsel1_v,
+//     gpio_fsel2_v,
+//     gpio_fsel3_v,
+//     // do a hack to set initial value: don't use random.
+//     gpio_fsel4_v = ~0,
+//     gpio_set0_v,
+//     gpio_clr0_v,
+//     gpio_set1_v,
+//     gpio_clr1_v;
+
+uint32_t vals_arr[14] = {0, 0, 0, 0, ~0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+uint32_t translate_address(uint32_t address) {
+    return (address - GPIO_BASE) / 4;
+}
 
 // same, but takes <addr> as a uint32_t
 void PUT32(uint32_t addr, uint32_t v) {
@@ -151,31 +157,31 @@ void PUT32(uint32_t addr, uint32_t v) {
     trace("PUT32(0x%x) = 0x%x\n", addr, v);
     switch (addr) {
         case gpio_fsel0:
-            gpio_fsel0_v = v;
+            vals_arr[translate_address(gpio_fsel0)] = v;
             break;
         case gpio_fsel1:
-            gpio_fsel1_v = v;
+            vals_arr[translate_address(gpio_fsel1)] = v;
             break;
         case gpio_fsel2:
-            gpio_fsel2_v = v;
+            vals_arr[translate_address(gpio_fsel2)] = v;
             break;
         case gpio_fsel3:
-            gpio_fsel3_v = v;
+            vals_arr[translate_address(gpio_fsel3)] = v;
             break;
         case gpio_fsel4:
-            gpio_fsel4_v = v;
+            vals_arr[translate_address(gpio_fsel4)] = v;
             break;
         case gpio_set0:
-            gpio_set0_v = v;
+            vals_arr[translate_address(gpio_set0)] = v;
             break;
         case gpio_set1:
-            gpio_set1_v = v;
+            vals_arr[translate_address(gpio_set1)] = v;
             break;
         case gpio_clr0:
-            gpio_clr0_v = v;
+            vals_arr[translate_address(gpio_clr0)] = v;
             break;
         case gpio_clr1:
-            gpio_clr1_v = v;
+            vals_arr[translate_address(gpio_clr1)] = v;
             break;
         case gpio_lev0:
             panic("illegal write to gpio_lev0!\n");
@@ -198,19 +204,19 @@ uint32_t GET32(uint32_t addr) {
     unsigned v;
     switch (addr) {
         case gpio_fsel0:
-            v = gpio_fsel0_v;
+            v = vals_arr[translate_address(gpio_fsel0)];
             break;
         case gpio_fsel1:
-            v = gpio_fsel1_v;
+            v = vals_arr[translate_address(gpio_fsel1)];
             break;
         case gpio_fsel2:
-            v = gpio_fsel2_v;
+            v = vals_arr[translate_address(gpio_fsel2)];
             break;
         case gpio_fsel3:
-            v = gpio_fsel3_v;
+            v = vals_arr[translate_address(gpio_fsel3)];
             break;
         case gpio_fsel4:
-            v = gpio_fsel4_v;
+            v = vals_arr[translate_address(gpio_fsel4)];
             break;
         // we don't allow reading these.
         // case gpio_set0:  v = gpio_set0_v;  break;
@@ -295,6 +301,15 @@ int main(int argc, char *argv[]) {
     //
     // we do it raw vs put32 so nothing gets printed.
     trace_off();
+    // if (initial) {
+    //     PUT32(gpio_fsel0, __real_GET32(gpio_fsel0));
+    //     PUT32(gpio_fsel1, __real_GET32(gpio_fsel1));
+    //     PUT32(gpio_fsel2, __real_GET32(gpio_fsel2));
+    //     PUT32(gpio_fsel3, __real_GET32(gpio_fsel3));
+
+    //     PUT32(gpio_set0, __real_GET32(gpio_fsel0));
+    //     PUT32(gpio_clr0, __real_GET32(gpio_fsel0));
+    // } else {
     PUT32(gpio_fsel0, fake_random());
     PUT32(gpio_fsel1, fake_random());
     PUT32(gpio_fsel2, fake_random());
@@ -302,6 +317,7 @@ int main(int argc, char *argv[]) {
 
     PUT32(gpio_set0, fake_random());
     PUT32(gpio_clr0, fake_random());
+    // }
     trace_on();
 
     // extension: run in a subprocess to isolate

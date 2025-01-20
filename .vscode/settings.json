@@ -2,6 +2,7 @@
   "files.associations": {
     "*.svelte": "svelte",
     "stdio.h": "c",
-    "rpi.h": "c"
+    "rpi.h": "c",
+    "fake-pi.h": "c"
   }
 }
