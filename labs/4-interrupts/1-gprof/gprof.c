@@ -1,7 +1,7 @@
 /*
  * use interrupts to implement a simple statistical profiler.
  *	- interrupt code is a replication of ../timer-int/timer.c
- *	- you'll need to implement kmalloc so you can allocate 
+ *	- you'll need to implement kmalloc so you can allocate
  *	  a histogram table from the heap.
  *	- implement functions so that given a pc value, you can increment
  *	  its associated count
@@ -14,8 +14,8 @@
 
 // defines C externs for the labels defined by the linker script
 // libpi/memmap.
-// 
-// you can use these to get the size of the code segment, 
+//
+// you can use these to get the size of the code segment,
 // data segment, etc.
 #include "memmap.h"
 
@@ -29,22 +29,32 @@
 
 static unsigned hist_n, pc_min, pc_max;
 static volatile unsigned *hist;
+static uint32_t is_profiling;
 
-// - compute <pc_min>, <pc_max> using the 
-//   <libpi/memmap> symbols: 
+// - compute <pc_min>, <pc_max> using the
+//   <libpi/memmap> symbols:
 //   - use for bounds checking.
 // - allocate <hist> with <kmalloc> using <pc_min> and
 //   <pc_max> to compute code size.
 static unsigned gprof_init(void) {
-    unimplemented();
+    pc_min = (uint32_t)__code_start__;
+    pc_max = (uint32_t)__code_end__;
+    uint32_t code_size = (pc_max - pc_min) / 4 + 1;
+    assert(pc_min <= pc_max);
+    hist_n = (uint32_t)kmalloc(code_size);
+
     return hist_n;
 }
 
 // increment histogram associated w/ pc.
 //    few lines of code
 static void gprof_inc(unsigned pc) {
-    assert(pc >= pc_min && pc <= pc_max);
-    unimplemented();
+    if (is_profiling) {
+        is_profiling = 0;
+        assert(pc >= pc_min && pc <= pc_max);
+        ((uint32_t *)hist_n)[(pc - pc_min) / 4]++;
+        is_profiling = 1;
+    }
 }
 
 // print out all samples whose count > min_val
@@ -57,7 +67,18 @@ static void gprof_inc(unsigned pc) {
 //  - we expect pc's to be in GET32, PUT32, different
 //    uart routines, or rpi_wait.  (why?)
 static void gprof_dump(unsigned min_val) {
-    unimplemented();
+    is_profiling = 0;
+    uint32_t length = (pc_max - pc_min) / 4 + 1;
+    for (int i = 0; i < length; i++) {
+        uint32_t *hist = (uint32_t *)hist_n;
+        uint32_t count = hist[i];
+        if (count > min_val) {
+            printk("%x\n", pc_min + i * 4, count);
+            // printk("%x | %u\n", hist + i, count);
+        }
+    }
+
+    is_profiling = 1;
 }
 
 /**************************************************************
@@ -71,7 +92,7 @@ static volatile unsigned period;
 void interrupt_vector(unsigned pc) {
     dev_barrier();
     unsigned pending = GET32(IRQ_basic_pending);
-    if((pending & ARM_Timer_IRQ) == 0)
+    if ((pending & ARM_Timer_IRQ) == 0)
         return;
 
     PUT32(ARM_Timer_IRQ_Clear, 1);
@@ -96,8 +117,8 @@ void notmain() {
     timer_init(16, 0x100);
 
     // Q: if you move these below interrupt enable?
-    uint32_t oneMB = 1024*1024;
-    kmalloc_init_set_start((void*)oneMB, oneMB);
+    uint32_t oneMB = 1024 * 1024;
+    kmalloc_init_set_start((void *)oneMB, oneMB);
     gprof_init();
 
     printk("gonna enable ints globally!\n");
@@ -105,11 +126,11 @@ void notmain() {
 
     // caches_enable(); 	// Q: what happens if you enable cache?
     unsigned iter = 0;
-    while(cnt<200) {
+    while (cnt < 200) {
         printk("iter=%d: cnt = %d, period = %dusec, %x\n",
-                iter,cnt, period,period);
+               iter, cnt, period, period);
         iter++;
-        if(iter % 10 == 0)
+        if (iter % 10 == 0)
             gprof_dump(2);
     }
 }

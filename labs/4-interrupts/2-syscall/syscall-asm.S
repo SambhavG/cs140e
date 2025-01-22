@@ -31,4 +31,23 @@ MK_FN(syscall_illegal)
 @
 @ does not return
 MK_FN(run_user_code_asm)
-    asm_not_implemented()
+    @ @ user mode
+    @ @ get the current mode
+    @ mrs r2, cpsr
+    @ @ clear the bottom 5 bits of r2
+    @ bic r2, r2, #(1<<5 - 1)
+    @ @ set the mode to user
+    @ orr r2, r2, #USER_MODE
+    @ @ write back to cspr
+    @ msr cpsr, r2
+
+    @ user mode
+    cps #USER_MODE
+
+    @ flush
+    prefetch_flush(r2)
+
+    @ set sp to the stack pointer
+    mov sp, r1
+    @ jump to pc
+    bx r0

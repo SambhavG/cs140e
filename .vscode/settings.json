@@ -3,6 +3,8 @@
     "*.svelte": "svelte",
     "stdio.h": "c",
     "rpi.h": "c",
-    "fake-pi.h": "c"
+    "fake-pi.h": "c",
+    "stdint.h": "c",
+    "rpi-interrupts.h": "c"
   }
 }
