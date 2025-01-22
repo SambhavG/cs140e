@@ -1,43 +1,6 @@
 /* Assembly code for interrupt handling.  */
 #include "rpi-asm.h"
 
-/*
- * Enable/disable interrupts.
- *
- * CPSR = current program status register
- *        upper bits are different carry flags.
- *        lower 8:
- *           7 6 5 4 3 2 1 0
- *          +-+-+-+---------+
- *          |I|F|T|   Mode  |
- *          +-+-+-+---------+
- *
- *  I : disables IRQ when = 1.
- *  F : disables FIQ when = 1.
- *  T : = 0 indicates ARM execution, 
- *      = 1 is thumb execution.  
- *  Mode = current mode.
- */
-
-@ enable system interrupts by modifying cpsr.
-@    note: should make a version that returns 
-@    previous state.
-@ <.globl> makes name visible to other files
-.globl enable_interrupts  
-enable_interrupts:
-    mrs r0,cpsr         @ move cpsr to r0
-    bic r0,r0,#(1<<7)	@ clear 7th bit.
-    msr cpsr_c,r0		@ move r0 back to PSR
-    bx lr		        @ return.
-
-@ disable them
-.globl disable_interrupts
-disable_interrupts:
-    mrs r0,cpsr		       
-    orr r0,r0,#(1<<7)	@ set 7th bit
-    msr cpsr_c,r0
-    bx lr
-
 @ the interrupt table that we copy to 0x0.
 @   - start = <_interrupt_table>
 @   - end = <_interrupt_table_end>
