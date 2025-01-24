@@ -1,0 +1,13 @@
+opened tty port </dev/cu.usbserial-210>.
+pi-install: tty-usb=</dev/cu.usbserial-210> program=<./4-callee.bin> about to boot
+TRACE:simple_boot: sending 4484 bytes, crc32=9a315490
+waiting for a start
+putting code
+bootloader: Done.
+listening on ttyusb=</dev/cu.usbserial-210>
+PANIC:4-callee.c:check_cswitch_ignore_regs:85:TODO:add all your non-saved registers here
+DONE!!!
+
+Saw done
+
+bootloader: pi exited.  cleaning up

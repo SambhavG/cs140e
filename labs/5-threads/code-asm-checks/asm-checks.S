@@ -15,7 +15,11 @@
 #
 # NOTE: don't trash the stack pointer <sp>!
 MK_FN(push_one)
-    asm_todo("implement this!")
+    mov r2, sp
+    mov sp, r0
+    push {r1}
+    mov r0, sp
+    mov sp, r2
     bx lr
 
 
@@ -29,6 +33,11 @@ MK_FN(push_one)
 #
 # NOTE: don't trash the stack pointer <sp>!
 MK_FN(push_two)
+    mov r3, sp
+    mov sp, r0
+    push {r1, r2}
+    mov r0, sp
+    mov sp, r3
     bx lr
 
 
@@ -71,7 +80,8 @@ MK_FN(write_regs_to_stack)
     @ 1. push {all the callee + lr} (this is the save
     @    part of your context switch code)
     @ 2. store sp into the address held in r0
-    asm_todo(implement this)
+    push {r4 - r11, lr}
+    str sp, [r0]
     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 

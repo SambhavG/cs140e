@@ -18,12 +18,12 @@
 RUN=0
 
 # switch these when implemented.
-# COMMON_SRC += rpi-thread-asm.S 
-STAFF_OBJS += staff-rpi-thread-asm.o
+COMMON_SRC += rpi-thread-asm.S 
+# STAFF_OBJS += staff-rpi-thread-asm.o
 
 # switch these when implemented.
-# COMMON_SRC += rpi-thread.c
-STAFF_OBJS += staff-rpi-thread.o
+COMMON_SRC += rpi-thread.c
+# STAFF_OBJS += staff-rpi-thread.o
 
 STAFF_OBJS += staff-kmalloc.o
 
@@ -33,12 +33,12 @@ STAFF_OBJS += staff-kmalloc.o
 
 # the different tests: start with 1, then 2, then..
 PROGS = $(wildcard ./[234567]-test*.c)
-PROGS = $(wildcard ./7-test*.c)
-PROGS = $(wildcard ./5-test*.c)
-PROGS = $(wildcard ./4-test*.c)
-PROGS = $(wildcard ./3-test*.c)
-PROGS = $(wildcard ./2-test*.c)
-PROGS = $(wildcard ./1-test*.c)
+# PROGS = $(wildcard ./7-test*.c)
+# PROGS = $(wildcard ./5-test*.c)
+# PROGS = $(wildcard ./4-test*.c)
+# PROGS = $(wildcard ./3-test*.c)
+# PROGS = $(wildcard ./2-test*.c)
+# PROGS = $(wildcard ./1-test*.c)
 
 
 ######################################################################

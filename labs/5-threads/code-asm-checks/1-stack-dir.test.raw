@@ -1,0 +1,13 @@
+opened tty port </dev/cu.usbserial-210>.
+pi-install: tty-usb=</dev/cu.usbserial-210> program=<./1-stack-dir.bin> about to boot
+TRACE:simple_boot: sending 4124 bytes, crc32=46652619
+waiting for a start
+putting code
+bootloader: Done.
+listening on ttyusb=</dev/cu.usbserial-210>
+TRACE:notmain:stack grows down
+DONE!!!
+
+Saw done
+
+bootloader: pi exited.  cleaning up

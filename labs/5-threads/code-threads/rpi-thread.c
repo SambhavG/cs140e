@@ -1,27 +1,31 @@
 // engler, cs140e: starter code for trivial threads package.
 #include "rpi.h"
+// asdf
 #include "rpi-thread.h"
 
 //***********************************************************
 // debugging code: tracing and redzone checking.
 
-// if you want to turn off tracing, just 
+// if you want to turn off tracing, just
 // change to "if 0"
 #if 1
-#   define th_trace(args...) trace(args)
+#define th_trace(args...) trace(args)
 #else
-#   define th_trace(args...) do { } while(0)
+#define th_trace(args...) \
+    do {                  \
+    } while (0)
 #endif
 
 // if you want to turn off redzone checking,
 // change to "if 0"
 #if 1
-#   include "redzone.h"
-#   define RZ_CHECK() redzone_check(0)
+#include "redzone.h"
+#define RZ_CHECK() redzone_check(0)
 #else
-#   define RZ_CHECK() do { } while(0)
+#define RZ_CHECK() \
+    do {           \
+    } while (0)
 #endif
-
 
 /******************************************************************
  * datastructures used by the thread code.
@@ -42,7 +46,7 @@ static rpi_thread_t *scheduler_thread;  // first scheduler thread.
 static unsigned tid = 1;
 
 /******************************************************************
- * simplistic pool of thread blocks: used to make alloc/free 
+ * simplistic pool of thread blocks: used to make alloc/free
  * faster (plus, our kmalloc doesn't have free (other than reboot).
  *
  * you don't have to modify this.
@@ -56,12 +60,12 @@ static rpi_thread_t *th_alloc(void) {
     RZ_CHECK();
     rpi_thread_t *t = Q_pop(&freeq);
 
-    if(!t) {
+    if (!t) {
         t = kmalloc_aligned(sizeof *t, 8);
         nalloced++;
     }
-#   define is_aligned(_p,_n) (((unsigned)(_p))%(_n) == 0)
-    demand(is_aligned(&t->stack[0],8), stack must be 8-byte aligned!);
+#define is_aligned(_p, _n) (((unsigned)(_p)) % (_n) == 0)
+    demand(is_aligned(&t->stack[0], 8), stack must be 8 - byte aligned !);
     t->tid = tid++;
     return t;
 }
@@ -71,7 +75,6 @@ static void th_free(rpi_thread_t *th) {
     // push on the front in case helps with caching.
     Q_push(&freeq, th);
 }
-
 
 /*****************************************************************
  * implement the code below.
@@ -92,7 +95,7 @@ enum {
     LR_OFFSET = 8
 };
 
-// return pointer to the current thread.  
+// return pointer to the current thread.
 rpi_thread_t *rpi_cur_thread(void) {
     assert(cur_thread);
     RZ_CHECK();
@@ -117,20 +120,24 @@ rpi_thread_t *rpi_fork(void (*code)(void *arg), void *arg) {
      *  3. store the address of rpi_init_trampoline into the lr
      *     position so context switching will jump there.
      *
-     * - see <code-asm-checks/5-write-regs.c> for how to 
+     * - see <code-asm-checks/5-write-regs.c> for how to
      *   coordinate offsets b/n asm and C code.
      */
-    todo("initialize thread stack");
+    uint32_t near_end_of_stack = THREAD_MAXSTACK - LR_OFFSET - 1;
 
-    // should check that <t->saved_sp> points within the 
+    t->stack[near_end_of_stack + LR_OFFSET] = (uint32_t)&rpi_init_trampoline;
+    t->stack[near_end_of_stack + R4_OFFSET] = (uint32_t)code;
+    t->stack[near_end_of_stack + R5_OFFSET] = (uint32_t)arg;
+    t->saved_sp = (uint32_t *)&(t->stack[near_end_of_stack]);
+
+    // should check that <t->saved_sp> points within the
     // thread stack.
     th_trace("rpi_fork: tid=%d, code=[%p], arg=[%x], saved_sp=[%p]\n",
-            t->tid, code, arg, t->saved_sp);
+             t->tid, code, arg, t->saved_sp);
 
     Q_append(&runq, t);
     return t;
 }
-
 
 // exit current thread.
 //   - if no more threads, switch to the scheduler.
@@ -138,10 +145,17 @@ rpi_thread_t *rpi_fork(void (*code)(void *arg), void *arg) {
 //     make sure to set cur_thread correctly!
 void rpi_exit(int exitcode) {
     RZ_CHECK();
+    rpi_thread_t *old_thread = cur_thread;
+    th_free(cur_thread);
+
+    if (!Q_empty(&runq)) {
+        cur_thread = Q_pop(&runq);
+        rpi_cswitch(&(old_thread->saved_sp), cur_thread->saved_sp);
+    }
 
     // if you switch back to the scheduler thread:
-    //      th_trace("done running threads, back to scheduler\n");
-    todo("implement rpi_exit");
+    th_trace("done running threads, back to scheduler\n");
+    rpi_cswitch(&(old_thread->saved_sp), scheduler_thread->saved_sp);
 
     // should never return.
     not_reached();
@@ -149,22 +163,26 @@ void rpi_exit(int exitcode) {
 
 // yield the current thread.
 //   - if the runq is empty, return.
-//   - otherwise: 
-//      * add the current thread to the back 
+//   - otherwise:
+//      * add the current thread to the back
 //        of the runq (Q_append)
 //      * context switch to the new thread.
 //        make sure to set cur_thread correctly!
 void rpi_yield(void) {
     RZ_CHECK();
-    // NOTE: if you switch to another thread: print the statement:
-    //     th_trace("switching from tid=%d to tid=%d\n", old->tid, t->tid);
+    if (Q_empty(&runq)) return;
 
-    todo("implement the rest of rpi_yield");
+    Q_append(&runq, cur_thread);
+    rpi_thread_t *old = cur_thread;
+    rpi_thread_t *t = Q_pop(&runq);
+    cur_thread = t;
+    th_trace("switching from tid=%d to tid=%d\n", old->tid, t->tid);
+    rpi_cswitch(&(old->saved_sp), t->saved_sp);
 }
 
 /*
- * starts the thread system.  
- * note: our caller is not a thread!  so you have to 
+ * starts the thread system.
+ * note: our caller is not a thread!  so you have to
  * create a fake thread (assign it to scheduler_thread)
  * so that context switching works correctly.   your code
  * should work even if the runq is empty.
@@ -174,14 +192,15 @@ void rpi_thread_start(void) {
     th_trace("starting threads!\n");
 
     // no other runnable thread: return.
-    if(Q_empty(&runq))
+    if (Q_empty(&runq))
         goto end;
 
     // setup scheduler thread block.
-    if(!scheduler_thread)
+    if (!scheduler_thread)
         scheduler_thread = th_alloc();
 
-    todo("implement the rest of rpi_thread_start");
+    cur_thread = Q_pop(&runq);
+    rpi_cswitch(&(scheduler_thread->saved_sp), cur_thread->saved_sp);
 
 end:
     RZ_CHECK();
@@ -199,10 +218,11 @@ void rpi_print_regs(uint32_t *sp) {
     printk("sp=%p\n", sp);
 
     // stack pointer better be between these.
+    printk("stackstart=%p\n", &cur_thread->stack[0]);
     printk("stack=%p\n", &cur_thread->stack[THREAD_MAXSTACK]);
-    assert(sp < &cur_thread->stack[THREAD_MAXSTACK]);
+    assert(sp <= &cur_thread->stack[THREAD_MAXSTACK]);
     assert(sp >= &cur_thread->stack[0]);
-    for(unsigned i = 0; i < 9; i++) {
+    for (unsigned i = 0; i < 9; i++) {
         unsigned r = i == 8 ? 14 : i + 4;
         printk("sp[%d]=r%d=%x\n", i, r, sp[i]);
     }

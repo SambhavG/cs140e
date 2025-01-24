@@ -1,0 +1,32 @@
+opened tty port </dev/cu.usbserial-210>.
+pi-install: tty-usb=</dev/cu.usbserial-210> program=<./5-write-regs.bin> about to boot
+TRACE:simple_boot: sending 5360 bytes, crc32=107fa50c
+waiting for a start
+putting code
+bootloader: Done.
+listening on ttyusb=</dev/cu.usbserial-210>
+TRACE:notmain:about to write known register values to the stack
+sp=0x7ffffcc, *stored_sp=0x7ffffcc
+sp[0]=4, expect=4
+sp[1]=5, expect=5
+sp[2]=6, expect=6
+sp[3]=7, expect=7
+sp[4]=8, expect=8
+sp[5]=9, expect=9
+sp[6]=10, expect=10
+sp[7]=11, expect=11
+sp[8]=14, expect=14
+TRACE:after_writing_regs:sp[0]=4, expect=4
+TRACE:after_writing_regs:sp[1]=5, expect=5
+TRACE:after_writing_regs:sp[2]=6, expect=6
+TRACE:after_writing_regs:sp[3]=7, expect=7
+TRACE:after_writing_regs:sp[4]=8, expect=8
+TRACE:after_writing_regs:sp[5]=9, expect=9
+TRACE:after_writing_regs:sp[6]=10, expect=10
+TRACE:after_writing_regs:sp[7]=11, expect=11
+TRACE:after_writing_regs:sp[8]=14, expect=14
+DONE!!!
+
+Saw done
+
+bootloader: pi exited.  cleaning up
