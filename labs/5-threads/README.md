@@ -1,7 +1,44 @@
 721271717 477
 ## Writing a non-preemptive threads package
 
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+***Errata***:
 
+  - In general, whenever you switch threads, set
+    `rpi-thread.c:cur_thread` to the thread you're 
+     switching to.
+
+  - When an `assert`, `demand` or `panic` happens, it will give
+    the file and line number that the problem happened.
+
+  - IF YOU GET A REDZONE ERROR: this means you are corrupting
+    one or more bytes in the first 4096 bytes of the pi memory (presumably
+    writing to a null pointer).  So fix this.  You can add more redzone
+    checks to narrow down.
+
+  - Part 1: the `1-tests-run-*.c` tests 
+    will differ in a single line in the `.out` 
+    files (since
+    you haven't implemented `rpi_exit()`).  This is
+    ok.  Just make sure they run.
+
+  - `code-asm-checks`: there are no .out files: you have to figure
+    out if the answer is right.
+  - the `code-asm-checks/Makefile`: the test is `2-where-push-one.c`
+    not `2--where-push.c`
+  - `2--where-push.c`: `push` implicitly uses the stack pointer 
+    `sp`.  so you'll have to (1) save the `sp` to a caller 
+    reg, (2) move the pointer argument to the `sp`, (3) 
+    do the `push`, (4) undo everything.
+
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
 
 
 ***MAKE SURE YOU***:
@@ -425,6 +462,10 @@ If you want to get fancy, you should be able to run two LEDs in
 Congratulations!  Now you have a simple, but working thread implementation
 and understand the most tricky part of the code (context-switching)
 at a level most CS people do not.
+
+---------------------------------------------------------------------
+### Checkoff:
+Run the autograder with 'lab5' as the repo variable. Make sure your github repo is updated and the sunet you input is correct
 
 
 ----------------------------------------------------------------------
