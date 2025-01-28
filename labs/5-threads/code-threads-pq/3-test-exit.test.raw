@@ -1,0 +1,36 @@
+opened tty port </dev/cu.usbserial-210>.
+pi-install: tty-usb=</dev/cu.usbserial-210> program=<./3-test-exit.bin> about to boot
+TRACE:simple_boot: sending 8436 bytes, crc32=7b52227f
+waiting for a start
+putting code
+bootloader: Done.
+listening on ttyusb=</dev/cu.usbserial-210>
+TRACE:rpi_fork:rpi_fork: tid=1, code=[0x8038], arg=[0x0], saved_sp=[0xe114]
+TRACE:rpi_fork:rpi_fork: tid=2, code=[0x8038], arg=[0x1], saved_sp=[0x1012c]
+TRACE:rpi_fork:rpi_fork: tid=3, code=[0x8038], arg=[0x2], saved_sp=[0x12144]
+TRACE:rpi_fork:rpi_fork: tid=4, code=[0x8038], arg=[0x3], saved_sp=[0x1415c]
+TRACE:rpi_fork:rpi_fork: tid=5, code=[0x8038], arg=[0x4], saved_sp=[0x16174]
+TRACE:rpi_fork:rpi_fork: tid=6, code=[0x8038], arg=[0x5], saved_sp=[0x1818c]
+TRACE:rpi_fork:rpi_fork: tid=7, code=[0x8038], arg=[0x6], saved_sp=[0x1a1a4]
+TRACE:rpi_fork:rpi_fork: tid=8, code=[0x8038], arg=[0x7], saved_sp=[0x1c1bc]
+TRACE:rpi_fork:rpi_fork: tid=9, code=[0x8038], arg=[0x8], saved_sp=[0x1e1d4]
+TRACE:rpi_fork:rpi_fork: tid=10, code=[0x8038], arg=[0x9], saved_sp=[0x201ec]
+TRACE:rpi_thread_start:starting threads!
+TRACE:trivial:trivial thread: arg=0
+TRACE:trivial:trivial thread: arg=9
+TRACE:trivial:trivial thread: arg=8
+TRACE:trivial:trivial thread: arg=7
+TRACE:trivial:trivial thread: arg=6
+TRACE:trivial:trivial thread: arg=5
+TRACE:trivial:trivial thread: arg=4
+TRACE:trivial:trivial thread: arg=3
+TRACE:trivial:trivial thread: arg=2
+TRACE:trivial:trivial thread: arg=1
+TRACE:rpi_exit:done running threads, back to scheduler
+TRACE:rpi_thread_start:done with all threads, returning
+TRACE:notmain:SUCCESS
+DONE!!!
+
+Saw done
+
+bootloader: pi exited.  cleaning up
