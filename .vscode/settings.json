@@ -5,6 +5,9 @@
     "rpi.h": "c",
     "fake-pi.h": "c",
     "stdint.h": "c",
-    "rpi-interrupts.h": "c"
+    "rpi-interrupts.h": "c",
+    "libunix.h": "c",
+    "boot-crc32.h": "c",
+    "boot-defs.h": "c"
   }
 }

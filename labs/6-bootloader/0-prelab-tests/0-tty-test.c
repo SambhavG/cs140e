@@ -2,9 +2,8 @@
 // will be different on different computers.
 #include "libunix.h"
 int main(void) {
-    
     char *tty;
-    while(!(tty = find_ttyusb()))
+    while (!(tty = find_ttyusb_last()))
         output("no tty detected: plug in\n");
 
     output("tty=<%s>: (should be an absolute path)\n", tty);
