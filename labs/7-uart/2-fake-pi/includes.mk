@@ -1,0 +1,1 @@
+INC += -I/Users/sambhav/Documents/vscode_projects/cs140e/libpi/include -I/Users/sambhav/Documents/vscode_projects/cs140e/libpi/libc -I/Users/sambhav/Documents/vscode_projects/cs140e/libpi/staff-src -I.

@@ -1,6 +1,6 @@
 ###############################################################
 # uncomment this to build yours
-# COMMON_SRC += uart.c
+COMMON_SRC += uart.c
 
 PROGS =  output-test-0-hello.c  
 PROGS += output-test-1-hello-disable.c  

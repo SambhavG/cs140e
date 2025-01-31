@@ -2,7 +2,7 @@
 #include "rpi.h"
 
 static void my_putk(char *s) {
-    for(; *s; s++)
+    for (; *s; s++)
         uart_put8(*s);
 }
 
