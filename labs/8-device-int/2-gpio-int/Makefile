@@ -5,7 +5,7 @@ SRC = fake-pi.c  fake-random.c  pi-random.c
 # this is your code.
 SRC +=  gpio-int.c  
 
-LPP = $(CS140E_2024_PATH)/libpi
+LPP = $(CS140E_2025_PATH)/libpi
 CFLAGS += -DRPI_UNIX -I$(LPP)/include
 
 include $(CS140E_2025_PATH)/libunix/mk/Makefile.unix.fake

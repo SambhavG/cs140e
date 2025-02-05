@@ -1,0 +1,5 @@
+DEBUG:done with options: dev name=</dev/cu.usbserial-210>, pi-prog=<./logic-analyzer.bin>, trace=0
+opened tty port </dev/cu.usbserial-210>.
+DEBUG:my-install: tty-usb=</dev/cu.usbserial-210> program=<./logic-analyzer.bin>: about to boot
+TRACE:simple_boot: sending 10232 bytes, crc32=8da8aced
+BOOT:waiting for a start

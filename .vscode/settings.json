@@ -9,6 +9,7 @@
     "libunix.h": "c",
     "boot-crc32.h": "c",
     "boot-defs.h": "c",
-    "gpio.h": "c"
+    "gpio.h": "c",
+    "rpi-inline-asm.h": "c"
   }
 }

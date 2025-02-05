@@ -22,7 +22,9 @@ enum {
     GPIO_fsel_offset = 4,
     gpio_set0 = (GPIO_BASE + 0x1C),
     gpio_clr0 = (GPIO_BASE + 0x28),
-    gpio_lev0 = (GPIO_BASE + 0x34)
+    gpio_lev0 = (GPIO_BASE + 0x34),
+    gpio_ren0 = (GPIO_BASE + 0x4C),
+    gpio_fen0 = (GPIO_BASE + 0x58)
 
     // <you may need other values.>
 };

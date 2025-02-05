@@ -1,6 +1,7 @@
-// test code for checking the interrupts. 
+// test code for checking the interrupts.
 // see <test-interrupts.h> for additional routines.
 #include "test-interrupts.h"
+
 #include "timer-interrupt.h"
 #include "vector-base.h"
 
@@ -8,19 +9,22 @@ volatile int n_interrupt;
 
 static interrupt_fn_t interrupt_fn;
 
+// const unsigned GPIO_BASE = 0x20200000;
+unsigned gpio_peds0_v2 = 0x20200000 + 0x40;
+
 // default vector: just forwards it to the registered
 // handler see <test-interrupts.h> and the given test.
 void interrupt_vector(unsigned pc) {
     dev_barrier();
     n_interrupt++;
 
-    if(!interrupt_fn(pc))
+    if (!interrupt_fn(pc))
         panic("should have no other interrupts?\n");
 
     dev_barrier();
 }
 
-// initialize all the interrupt stuff.  client passes in the 
+// initialize all the interrupt stuff.  client passes in the
 // gpio int routine <fn>
 //
 // make sure you understand how this works.
@@ -46,7 +50,6 @@ void test_startup(init_fn_t init_fn, interrupt_fn_t int_fn) {
     cpsr_int_enable();
 }
 
-
 /********************************************************************
  * falling edge.
  */
@@ -55,8 +58,19 @@ volatile int n_falling;
 
 // check if there is an event, check if it was a falling edge.
 int falling_handler(uint32_t pc) {
-    todo("implement this: return 0 if no rising int\n");
-    return 0;
+    // Get the events register gppeds0
+    unsigned vals = GET32(gpio_peds0_v2);
+    int ret = 0;
+    for (int i = 0; i <= 31; i++) {
+        // Check for event and pin being high
+        if (vals & 0b1 << i && (!gpio_read(i))) {
+            n_falling++;
+            ret = 1;
+            gpio_event_clear(i);
+        }
+    }
+
+    return ret;
 }
 
 void falling_init(void) {
@@ -72,8 +86,19 @@ volatile int n_rising;
 
 // check if there is an event, check if it was a rising edge.
 int rising_handler(uint32_t pc) {
-    todo("implement this: return 0 if no rising int\n");
-    return 0;
+    // Get the events register gppeds0
+    unsigned vals = GET32(gpio_peds0_v2);
+    int ret = 0;
+    for (int i = 0; i <= 31; i++) {
+        // Check for event and pin being high
+        if (vals & 0b1 << i && gpio_read(i)) {
+            n_rising++;
+            ret = 1;
+            gpio_event_clear(i);
+        }
+    }
+
+    return ret;
 }
 
 void rising_init(void) {
@@ -93,8 +118,12 @@ void timer_test_init(void) {
 // make sure this gets called on each timer interrupt.
 int timer_test_handler(uint32_t pc) {
     dev_barrier();
-    // should look very similar to the timer interrupt handler.
-    todo("implement this by stealing pieces from 4-interrupts/0-timer-int");
+
+    unsigned pending = GET32(IRQ_basic_pending);
+    if ((pending & ARM_Timer_IRQ) == 0)
+        return 0;
+    PUT32(ARM_Timer_IRQ_Clear, 1);
+
     dev_barrier();
-    return 0;
+    return (pending == 1);
 }

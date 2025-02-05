@@ -35,7 +35,7 @@ PROGS = 1-timer.c
 
 # simplest: make sure that loopback works.
 PROGS = $(wildcard [0123]-*.c)
-PROGS = 0-check-connect.c
+# PROGS = 0-check-connect.c
 
 
 COMMON_SRC += test-interrupts.c

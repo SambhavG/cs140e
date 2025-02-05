@@ -152,7 +152,7 @@ void uart_init(void) {
     dev_barrier();
 
     // enable uart
-    PUT32(aux_enables, GET32(aux_enables) | 0b1);
+    OR32(aux_enables, 0b1);
 
     dev_barrier();
     // disable tx / rx
