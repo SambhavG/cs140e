@@ -9,7 +9,7 @@ PROGS= 0-hello.c
 
 # swap these if your bootloader doesn't work.
 BOOTLOADER = my-install
-BOOTLOADER = pi-install
+# BOOTLOADER = pi-install
 
 # set to 1 if you want to run.
 RUN=1

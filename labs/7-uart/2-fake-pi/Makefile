@@ -21,10 +21,10 @@ else
     LIB_SRC  += $(LPP)/src/gpio.c 
 
     # your uart from this lab.
-    LIB_SRC  += ../1-uart/uart.c
+    # LIB_SRC  += ../1-uart/uart.c
 
     # or can use the one in libpi
-    # LIB_SRC  += $(LPP)/src/uart.c
+    LIB_SRC  += $(LPP)/src/uart.c
 endif
 
 # all the include locations.

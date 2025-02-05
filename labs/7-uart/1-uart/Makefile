@@ -1,13 +1,13 @@
 ###############################################################
 # uncomment this to build yours
-COMMON_SRC += uart.c
+# COMMON_SRC += uart.c
 
 PROGS =  output-test-0-hello.c  
 PROGS += output-test-1-hello-disable.c  
 PROGS += output-test-3-emit.c
 
 # swap these if your bootloader doesn't work.
-BOOTLOADER = my-install
+# BOOTLOADER = my-install
 BOOTLOADER = pi-install
 
 # set to 1 if you want to run.

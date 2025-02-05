@@ -4,10 +4,9 @@
  *
  * all your modifications should go here.
  */
-#include "put-code.h"
-
 #include "boot-crc32.h"
 #include "boot-defs.h"
+#include "put-code.h"
 
 /************************************************************************
  * helper code: you shouldn't have to modify this.
@@ -114,13 +113,13 @@ static inline void trace_put32(int fd, uint32_t v) {
 //  - only call IFF the word could be an opcode (see <simple-boot.h>).
 //  - do not call it on data since it could falsely match a data value as a
 //    <PRINT_STRING>.
-static inline uint32_t get_op(int fd) {
+static inline uint32_t get_op(int fd, int trace_this) {
     // we do not trace the output from PRINT_STRING so do not call the
     // tracing operations here except for the first word after we are
     // sure it is not a <PRINT_STRING>
     uint32_t op = get_uint32(fd);
     if (op != PRINT_STRING) {
-        if (trace_p)
+        if (trace_p && (trace_this || op != GET_PROG_INFO))
             trace("GET32:%x [%s]\n", op, boot_op_to_str(op));
         return op;
     }
@@ -140,7 +139,7 @@ static inline uint32_t get_op(int fd) {
     output(">\n");
 
     // attempt to get a non <PRINT_STRING> op.
-    return get_op(fd);
+    return get_op(fd, trace_this);
 }
 
 // helper routine to make <simple_boot> code cleaner:
@@ -207,7 +206,7 @@ void simple_boot(int fd, uint32_t boot_addr, const uint8_t *buf, unsigned n) {
     //
     // CRUCIAL: make sure you use <get_op> for the first word in each
     // message.
-    while ((op = get_op(fd)) != GET_PROG_INFO) {
+    while ((op = get_op(fd, 1)) != GET_PROG_INFO) {
         output("expected initial GET_PROG_INFO, got <%x>: discarding.\n", op);
         // have to remove just one byte since if not aligned, stays not aligned
         get_uint8(fd);
@@ -220,7 +219,8 @@ void simple_boot(int fd, uint32_t boot_addr, const uint8_t *buf, unsigned n) {
     trace_put32(fd, crc32(buf, n));
 
     // 2. drain any extra GET_PROG_INFOS
-    while ((op = get_op(fd)) == GET_PROG_INFO) {
+    // this should not be traced
+    while ((op = get_op(fd, 0)) == GET_PROG_INFO) {
     }
 
     // 3. check that we received a GET_CODE
@@ -237,7 +237,7 @@ void simple_boot(int fd, uint32_t boot_addr, const uint8_t *buf, unsigned n) {
     }
 
     // 5. Wait for BOOT_SUCCESS
-    while ((op = get_op(fd)) != BOOT_SUCCESS) {
+    while ((op = get_op(fd, 1)) != BOOT_SUCCESS) {
     }
 
     boot_output("bootloader: Done.\n");

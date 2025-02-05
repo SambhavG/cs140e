@@ -139,11 +139,13 @@ void uart_init(void) {
 
     // Clear the FIFOs (p13)
     // write 1 to bits 1 and 2 of AUX_MU_IIR_REG
-    OR32(AUX_MU_IIR_REG, 0b110);
+    // OR32(AUX_MU_IIR_REG, 0b110);
+    PUT32(AUX_MU_IIR_REG, 0b110);
 
     // Set uart to 8n1 (p14)
     // Write 11 to bottom two bits of AUX_MU_LCR_REG
-    OR32(AUX_MU_LCR_REG, 0b11);
+    // OR32(AUX_MU_LCR_REG, 0b11);
+    PUT32(AUX_MU_LCR_REG, 0b11);
 
     // 115200 baud
     // Write 270 to AUX_MU_BAUD (computed from formula)
@@ -157,26 +159,27 @@ void uart_init(void) {
     PUT32(AUX_MU_IER_REG, 0);
 
     // Reenable transmitter and receiver (p17)
-    OR32(AUX_MU_CNTL_REG, 0b11);
+    // OR32(AUX_MU_CNTL_REG, 0b11);
+    PUT32(AUX_MU_CNTL_REG, 0b11);
     dev_barrier();
 
     // delete everything to do w/ sw-uart when done since
     // it trashes your hardware state and the system
     // <putc>.
-    demand(!called_sw_uart_p,
-           delete all sw - uart uses or hw UART in bad state);
+    // demand(!called_sw_uart_p,
+    //        delete all sw - uart uses or hw UART in bad state);
 }
 
 // disable the uart: make sure all bytes have been
 //
 void uart_disable(void) {
-    dev_barrier();
     // Check that all bytes have been transmitted (transmitter is idle)
     // Wait for TX to be idle (p18)
     // Wait until bit 3 of AUX_MU_STAT_REG is 1
     // while (!(GET32(AUX_MU_STAT_REG) && 0b1000)) {
     // }
     uart_flush_tx();
+    dev_barrier();
 
     // Disable tx,rx
     // Write 00 to bottom two of AUX_MU_CNTL_REG
@@ -196,14 +199,18 @@ void uart_disable(void) {
 // FIFO.  if FIFO is empty, blocks until there is
 // at least one byte.
 int uart_get8(void) {
+    dev_barrier();
     // Wait for there to be a byte in RX (p19)
     // Block until bit 9 of AUX_MU_STAT_REG is 1
     while (!(GET32(AUX_MU_STAT_REG) & (0b1 << 9))) {
+        rpi_wait();
     }
 
     // Pop from receive queue (p11)
     // Bottom 8 bits from AUX_MU_IO_REG
-    return (int)(GET32(AUX_MU_IO_REG) & 0b11111111);
+    int ret = (int)(GET32(AUX_MU_IO_REG) & 0b11111111);
+    dev_barrier();
+    return ret;
 }
 
 // returns 1 if the hardware TX (output) FIFO has room
@@ -217,11 +224,13 @@ int uart_can_put8(void) {
 // put one byte on the TX FIFO, if necessary, waits
 // until the FIFO has space.
 int uart_put8(uint8_t c) {
+    dev_barrier();
     while (!uart_can_put8()) {
+        rpi_wait();
     };
     // Write c to AUX_MU_IO_REG bottom 8 bits (p11)
     PUT32(AUX_MU_IO_REG, c);
-
+    dev_barrier();
     return 1;
 }
 
@@ -229,6 +238,7 @@ int uart_put8(uint8_t c) {
 //  - 1 if at least one byte on the hardware RX FIFO.
 //  - 0 otherwise
 int uart_has_data(void) {
+    dev_barrier();
     // Check if bottom bit of AUX_MU_STAT_REG is 1
     return GET32(AUX_MU_STAT_REG) & 0b1;
 }
@@ -246,6 +256,7 @@ int uart_get8_async(void) {
 //  - 1 if TX FIFO empty AND idle.
 //  - 0 if not empty.
 int uart_tx_is_empty(void) {
+    dev_barrier();
     // Check if bit 9 of AUX_MU_STAT_REG is set (p18)
     return (GET32(AUX_MU_STAT_REG) & (0b1 << 9));
 }

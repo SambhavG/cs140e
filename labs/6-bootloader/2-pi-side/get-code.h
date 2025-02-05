@@ -213,7 +213,7 @@ uint32_t get_code(void) {
     }
 
     // 7. send back a BOOT_SUCCESS!
-    boot_putk("Sambhav Gupta: success: Received the program!");
+    boot_putk("Sambhav Gupta w/ custom UART: success: Received the program!");
 
     // woo!
     boot_put32(BOOT_SUCCESS);
