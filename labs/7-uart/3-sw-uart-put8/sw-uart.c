@@ -77,9 +77,9 @@ sw_uart_t sw_uart_init_helper(unsigned tx, unsigned rx,
               cyc_per_bit, cyc_per_bit * baud);
 
     // make sure you set TX to its correct default!
-    // todo("setup rx,tx and initial state of tx pin.");
     gpio_set_input(rx);
     gpio_set_output(tx);
+    gpio_set_on(tx);
 
     return (sw_uart_t){
         .tx = tx,

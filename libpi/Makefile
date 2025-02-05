@@ -8,6 +8,7 @@
 #   3. uncomment:
 SRC += src/gpio.c
 SRC += src/uart.c
+SRC += src/sw-uart.c
 # STAFF_OBJS  +=  ./staff-objs/uart.o
 
 
