@@ -1,5 +1,41 @@
 ## Lab: device interrupts 
 
+---------------------------------------------------------------------------
+#### Errata and clarifications.
+
+Notes:
+
+  - Part 1: the vector base register is an extension for the arm 1176
+    processor, but isn't in the general arm family.  it's a good reason
+    to read through chapter 3 of the arm 1176 which defines a ton of 
+    weird instructions.
+
+    Some of the reasons we do the vector base reg:
+
+    1. We want to be able to protect page 0 so segfaults will actually
+       fault;
+
+    2. It lets us use relative jumps rather than absolute (since the
+       jump table doesn't move), which will be faster since it does
+       not require a memory load;
+
+    3. We won't have to do anything special when we enable the icache
+       (or dcache) since we don't copy code and thus don't have to make
+       the icache consistent w/ memory or the dcache.
+
+  - Part 2: the  `2-gpio-int/Makefile` references 2024: you should change
+    to 2025.
+
+  - Part 4:  once the logic analyzer code works, make sure you switch
+    the `4-logic-analyze/Makefile` to use your `sw-uart.c`.  You may also
+    have to switch your `libpi/Makefile` to use `libpi/src/sw-uart.c` (and
+    stop using the staff) if you haven't already (and copy `sw-uart.c`
+    from last lab there if you didn't already).
+
+  - Part 4: `make check` doesn't work (we don't know what to compare to)
+    so do a `make run` and see that the cycles are around 6000.
+
+---------------------------------------------------------------------------
 <p align="center">
   <img src="images/glowing-rpi.png" width="450" />
 </p>
@@ -31,6 +67,8 @@ Check-off:
      reasonable values for its timings (around 6000 cycles).
   5. Ideally: You have the basic `sw_uart_get8` interrupt working and can send
      back and forth.
+
+     The autograder isn't really working, so just check with one of the TAs
 
 There are a ton of [EXTENSION](./EXTENSIONS.md).  We actually have a
 bunch that are not written, so ask if you want :).
