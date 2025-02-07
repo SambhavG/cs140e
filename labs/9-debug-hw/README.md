@@ -1,6 +1,39 @@
 
 ## Using debug hardware to catch mistakes
 
+
+------------------------------------------------------------------
+### Errata and clarifications.
+
+  - Part 1: you are supposed to modify `1-watchpt-test.c`.
+    The panic about `b` is just a way of indicating where
+    you should modify.
+
+  - All the `_set` and `_get` routines are just simple assembly
+    wrappers to write or read the given co-processor.  It's up
+    to the calller to pass in the right bits to write for `_set`.
+
+  - Delete the semi-colon in `mini-step.c:mismatch_off`.  
+    Original:
+
+            // disable mis-matching by just turning it off in bcr0
+            void mismatch_off(void) {
+                if(!single_step_on_p);      <---- bad semi-colon!
+                    panic("mismatch not turned on\n");
+
+
+    Fixed: 
+
+            // disable mis-matching by just turning it off in bcr0
+            void mismatch_off(void) {
+                if(!single_step_on_p)
+                    panic("mismatch not turned on\n");
+    
+
+------------------------------------------------------------------
+
+
+
 <p align="center">
   <img src="images/fetch-quest-task.png" width="450" />
 </p>
@@ -51,7 +84,7 @@ virtual memory, and if you continue to do OS or embedded stuff, will be
 very useful in the future.
 
 ### Checkoff
-   - Run lab9 on the autograder
+   - Run lab9 on the autograder. Please make sure you have added/committed all files include libpi/src/vector-base.h
    - The tests for 1 and 2 pass.
    - You code isn't ugly and has comments where you got the instructions from.
    - Possibly a part 3.
@@ -215,8 +248,11 @@ To set a watchpoint you can follow the recipe on 13-47.
   4. After finishing your modifications of cp14, make sure you do a
      `prefetchflush` (see below) to make sure the processor refetches
      and re-decodes the instructions in the instuction prefetch buffer.
-  5. Implement the code in the `data_abort_int` handler to check if the
-     exception is from a debug exception and, if so crash with an error.
+  5. Implement the code in the data abort handler
+     to check if the exception is from a debug exception and, if not
+     crash with an error, otherwise handle it.  (The test already
+     does this.)
+
 
 For the WCR: We don't want linking (which refers to the use of context id's).
 We do want:
