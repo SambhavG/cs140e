@@ -18,9 +18,56 @@
 #include "full-except.h"
 
 // we have a single handler: so just use globals.
-static watch_handler_t watchpt_handler = 0;
-static void *watchpt_data = 0;
-static void *watchpoint_addr;
+// static watch_handler_t watchpt_handler = 0;
+// static void *watchpt_data = 0;
+// static void *watchpoint_addr;
+
+static watch_handler_t watchpt_handler[2];
+static void *watchpt_data[2];
+static void *watchpoint_addr[2];
+static int num_watchpoints = 0;
+
+
+//Tells you which watchpoint is the one looking at this address
+static int which_wp(void* addr) {
+    for (int i = 0; i < num_watchpoints; i++) {
+        if (watchpoint_addr[i] == addr) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+static int wp_ctrl_is_enabled(unsigned index) {
+    if (index == 0 && cp14_wcr0_is_enabled()) return 1;
+    if (index == 1 && cp14_wcr1_is_enabled()) return 1;
+    return 0;
+}
+
+static int wp_ctrl_enable(unsigned index) {
+    if (index == 0) cp14_wcr0_enable();
+    if (index == 1) cp14_wcr1_enable();
+}
+
+static int wp_ctrl_disable(unsigned index) {
+    if (index == 0) cp14_wcr0_disable();
+    if (index == 1) cp14_wcr1_disable();
+}
+
+static unsigned wp_ctrl_get(unsigned index) {
+    if (index == 0) return cp14_wcr0_get();
+    if (index == 1) return cp14_wcr1_get(); 
+}
+
+static unsigned wp_ctrl_set(unsigned index, unsigned val) {
+    if (index == 0) cp14_wcr0_set(val);
+    if (index == 1) cp14_wcr1_set(val); 
+}
+
+static int wp_val_set(unsigned index, void* addr) {
+    if (index == 0) cp14_wvr0_set(addr);
+    if (index == 1) cp14_wvr1_set(addr);
+}
 
 // is it a load fault?
 static int mini_watch_load_fault(void) {
@@ -40,29 +87,20 @@ static void watchpt_fault(regs_t *r) {
 
     watch_fault_t w = {0};
 
-    // todo("setup the <watch_fault_t> structure");
-    // todo("call: watchpt_handler(watchpt_data, &w);");
     w.fault_pc = watchpt_fault_pc();
     w.is_load_p = mini_watch_load_fault();
     w.regs = r;
-
-
-    uint32_t b = cp14_wcr0_get();
-    b = bits_get(b, 5, 8);
-    unsigned offset = 0;
-    unsigned i;
-    for (i = 0; i < 4; i++) {
-        if (b == 1) break;
-        b >>=1;
-    }
-
-    w.fault_addr =(void*) (cp14_wvr0_get() + i);
-
+    void* fault_addr = (void*) cp15_far_get();
+    w.fault_addr = fault_addr;
 
     watchpt_handler(watchpt_data, &w);
 
-    cp14_wcr0_disable();
-    assert(!cp14_wcr0_is_enabled());
+    //Disable whichever watchpoint was triggered
+    int triggered_watchpoint = which_wp(fault_addr);
+
+    wp_ctrl_disable(triggered_watchpoint);
+
+    assert(!wp_ctrl_disable(triggered_watchpoint));
 
     // in case they change the regs.
     switchto(w.regs);
@@ -97,17 +135,21 @@ void mini_watch_init(watch_handler_t h, void *data) {
 
 // set a watch-point on <addr>.
 void mini_watch_addr(void *addr) {
-    cp14_wvr0_set((uint32_t) addr);
+    assert(num_watchpoints < 2);
+    wp_val_set(num_watchpoints, addr);
+
     uint32_t bottom_bits = (unsigned) addr & 0b11;
 
-    uint32_t b = cp14_wcr0_get();
+    uint32_t b = wp_ctrl_get(num_watchpoints);
     b = bits_set(b, 5, 8, 0b0001 << bottom_bits);
     b = bit_set(b, 0);
-    cp14_wcr0_set(b);
+    wp_ctrl_set(num_watchpoints, b);
 
-    assert(cp14_wcr0_is_enabled());
+    assert(wp_ctrl_is_enabled(num_watchpoints));
     prefetch_flush();
-    watchpoint_addr = addr;
+    watchpoint_addr[num_watchpoints] = addr;
+
+    num_watchpoints++;
 }
 
 // disable current watchpoint <addr>

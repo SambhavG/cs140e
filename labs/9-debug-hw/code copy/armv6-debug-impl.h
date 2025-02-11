@@ -114,13 +114,28 @@ coproc_mk_get(dfsr, p15, 0, c5, c0, 0)
 coproc_mk_get(ifar, p15, 0, c6, c0, 2)
 coproc_mk_get(ifsr, p15, 0, c5, c0, 1)
 
+//3-69
+coproc_mk_get(far, p15, 0, c6, c0, 2)
+
 //these are all on page 13-5
 coproc_mk(dscr, p14, 0, c0, c1, 0)
 coproc_mk(wcr0, p14, 0, c0, c0, 0b111)
+coproc_mk(wcr1, p14, 0, c1, c0, 0b111)
 coproc_mk(wvr0, p14, 0, c0, c0, 0b110)
+coproc_mk(wvr1, p14, 0, c1, c0, 0b110)
 
 coproc_mk(bcr0, p14, 0, c0, c0, 0b101)
+coproc_mk(bcr1, p14, 0, c0, c0, 0b101)
+coproc_mk(bcr2, p14, 0, c0, c0, 0b101)
+coproc_mk(bcr3, p14, 0, c0, c0, 0b101)
+coproc_mk(bcr4, p14, 0, c0, c0, 0b101)
+coproc_mk(bcr5, p14, 0, c0, c0, 0b101)
 coproc_mk(bvr0, p14, 0, c0, c0, 0b100)
+coproc_mk(bvr1, p14, 0, c0, c0, 0b100)
+coproc_mk(bvr2, p14, 0, c0, c0, 0b100)
+coproc_mk(bvr3, p14, 0, c0, c0, 0b100)
+coproc_mk(bvr4, p14, 0, c0, c0, 0b100)
+coproc_mk(bvr5, p14, 0, c0, c0, 0b100)
 
 // you'll need to define these and a bunch of other routines.
 // static inline uint32_t cp15_dfsr_get(void) {todo("implement");}
@@ -250,6 +265,24 @@ static inline void cp14_wcr0_disable(void) {
     val = bit_clr(val, 0);
     cp14_wcr0_set(val);
 }
+
+static inline int cp14_wcr1_is_enabled(void) {
+    //13-22
+    //Bit 0
+    return bit_isset(cp14_wcr1_get(), 0);
+}
+static inline void cp14_wcr1_enable(void) {
+    unsigned val = cp14_wcr1_get();
+    val = bit_set(val, 0);
+    cp14_wcr1_set(val);
+}
+static inline void cp14_wcr1_disable(void) {
+    unsigned val = cp14_wcr1_get();
+    val = bit_clr(val, 0);
+    cp14_wcr1_set(val);
+}
+
+
 
 coproc_mk_get(wfar, p14, 0, c0, c6, 0)
 
