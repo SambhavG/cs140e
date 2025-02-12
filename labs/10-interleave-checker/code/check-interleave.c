@@ -67,14 +67,29 @@ static void single_step_handler_full(regs_t *r) {
     uint32_t pc = r->regs[15];
     uint32_t n = ++checker->inst_count;
 
-
-    // TODO: you'll have to add code to do the switching here.
     output("single-step handler: inst=%d: A:pc=%x\n", n,pc);
+
+    //If n is the num of inst we were supposed to run, switch back
+    if (n == checker->switch_on_inst_n + 1) {
+        checker->switch_addr = pc;
+        brkpt_mismatch_stop();
+        unsigned ret = (checker->B)((void*)checker);
+        if (ret == 1) {
+            checker->switched_p = 1;
+            switchto(r); //run the rest of A without faults
+        }
+    }
 
     // recall: the weird way single step works: run the instruction 
     // at address <pc>, by setting up a mismatch fault for any other
     // <pc> value.
-    brkpt_mismatch_set(pc);
+
+    if (pc == (unsigned) A_terminated) {
+        brkpt_mismatch_stop();
+    } else {
+        brkpt_mismatch_set(pc);
+    }
+
     // switch to back.
     switchto(r);
 }
@@ -188,6 +203,7 @@ int check(checker_t *c) {
     // should still pass (obviously)
     checker = c;
     for(int i = 0; i < 10; i++) {
+        printk("----\n");
         c->init(c);
         run_A_at_userlevel(c);
         if(!c->B(c))
@@ -222,7 +238,24 @@ int check(checker_t *c) {
     //  }
     // 
     //  return 0 if there were errors.
-    todo("implement true interleaving!\n");
+    
+    int err = 0;
+    for(int i = 0; i < 2; i++) {
+        printk("Starting trial %u\n", i);
+        c->switched_p = 0;
+        c->switch_on_inst_n = i;
+        c->inst_count = 0;
+        c->init(c);
+        c->ntrials++;
+        run_A_at_userlevel(c);
+        c->check(c);
+        if (!c->switched_p) {
+            printk("switched_p was not set\n");
+            err = 1;
+            break;
+        }
+    }
+    if (err) return 0;
 
     return 1;
 }

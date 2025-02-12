@@ -1,0 +1,1 @@
+PANIC:tests/1-epsilon-should-fail-test.c:notmain:34:check should have failed, trials=2!!
