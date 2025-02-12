@@ -578,7 +578,7 @@ Disassembly of section .text:
 
 00008818 <single_step_handler_full>:
     8818:	e92d41f0 	push	{r4, r5, r6, r7, r8, lr}
-    881c:	e1a06000 	mov	r6, r0
+    881c:	e1a05000 	mov	r5, r0
     8820:	eb000364 	bl	95b8 <brkpt_fault_p>
     8824:	e3500000 	cmp	r0, #0
     8828:	1a000005 	bne	8844 <single_step_handler_full+0x2c>
@@ -588,41 +588,41 @@ Disassembly of section .text:
     8838:	e59f00a4 	ldr	r0, [pc, #164]	@ 88e4 <single_step_handler_full+0xcc>
     883c:	eb000396 	bl	969c <printk>
     8840:	eb0004c5 	bl	9b5c <clean_reboot>
-    8844:	e596503c 	ldr	r5, [r6, #60]	@ 0x3c
+    8844:	e595603c 	ldr	r6, [r5, #60]	@ 0x3c
     8848:	e59f7098 	ldr	r7, [pc, #152]	@ 88e8 <single_step_handler_full+0xd0>
     884c:	e5973044 	ldr	r3, [r7, #68]	@ 0x44
     8850:	e593401c 	ldr	r4, [r3, #28]
     8854:	e2844001 	add	r4, r4, #1
     8858:	e583401c 	str	r4, [r3, #28]
-    885c:	e1a02005 	mov	r2, r5
+    885c:	e1a02006 	mov	r2, r6
     8860:	e1a01004 	mov	r1, r4
     8864:	e59f0080 	ldr	r0, [pc, #128]	@ 88ec <single_step_handler_full+0xd4>
     8868:	eb00038b 	bl	969c <printk>
     886c:	e5973044 	ldr	r3, [r7, #68]	@ 0x44
     8870:	e5932018 	ldr	r2, [r3, #24]
     8874:	e1540002 	cmp	r4, r2
-    8878:	2a000006 	bcs	8898 <single_step_handler_full+0x80>
+    8878:	0a000006 	beq	8898 <single_step_handler_full+0x80>
     887c:	e59f306c 	ldr	r3, [pc, #108]	@ 88f0 <single_step_handler_full+0xd8>
-    8880:	e1530005 	cmp	r3, r5
+    8880:	e1530006 	cmp	r3, r6
     8884:	0a000012 	beq	88d4 <single_step_handler_full+0xbc>
-    8888:	e1a00005 	mov	r0, r5
+    8888:	e1a00006 	mov	r0, r6
     888c:	eb0002f0 	bl	9454 <brkpt_mismatch_set>
-    8890:	e1a00006 	mov	r0, r6
+    8890:	e1a00005 	mov	r0, r5
     8894:	ebffffd5 	bl	87f0 <switchto>
-    8898:	e5835020 	str	r5, [r3, #32]
+    8898:	e5836020 	str	r6, [r3, #32]
     889c:	eb00032e 	bl	955c <brkpt_mismatch_stop>
     88a0:	e5970044 	ldr	r0, [r7, #68]	@ 0x44
     88a4:	e5903008 	ldr	r3, [r0, #8]
     88a8:	e12fff33 	blx	r3
     88ac:	e3500001 	cmp	r0, #1
     88b0:	0a000002 	beq	88c0 <single_step_handler_full+0xa8>
-    88b4:	e1a00005 	mov	r0, r5
+    88b4:	e1a00006 	mov	r0, r6
     88b8:	eb0002e5 	bl	9454 <brkpt_mismatch_set>
     88bc:	eaffffee 	b	887c <single_step_handler_full+0x64>
     88c0:	e5973044 	ldr	r3, [r7, #68]	@ 0x44
     88c4:	e3a02001 	mov	r2, #1
     88c8:	e5832028 	str	r2, [r3, #40]	@ 0x28
-    88cc:	e1a00006 	mov	r0, r6
+    88cc:	e1a00005 	mov	r0, r5
     88d0:	ebffffc6 	bl	87f0 <switchto>
     88d4:	eb000320 	bl	955c <brkpt_mismatch_stop>
     88d8:	eaffffec 	b	8890 <single_step_handler_full+0x78>

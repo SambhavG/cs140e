@@ -68,7 +68,7 @@ static void single_step_handler_full(regs_t *r) {
     output("single-step handler: inst=%d: A:pc=%x\n", n,pc);
 
     //If n is the num of inst we were supposed to run, switch back
-    if (n >= checker->switch_on_inst_n) {
+    if (n == checker->switch_on_inst_n) {
         checker->switch_addr = pc;
         brkpt_mismatch_stop();
         unsigned ret = (checker->B)((void*)checker);
