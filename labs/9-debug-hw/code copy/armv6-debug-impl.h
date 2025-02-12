@@ -115,14 +115,14 @@ coproc_mk_get(ifar, p15, 0, c6, c0, 2)
 coproc_mk_get(ifsr, p15, 0, c5, c0, 1)
 
 //3-69
-coproc_mk_get(far, p15, 0, c6, c0, 2)
+coproc_mk_get(far, p15, 0, c6, c0, 0)
 
 //these are all on page 13-5
 coproc_mk(dscr, p14, 0, c0, c1, 0)
 coproc_mk(wcr0, p14, 0, c0, c0, 0b111)
-coproc_mk(wcr1, p14, 0, c1, c0, 0b111)
+coproc_mk(wcr1, p14, 0, c0, c1, 0b111)
 coproc_mk(wvr0, p14, 0, c0, c0, 0b110)
-coproc_mk(wvr1, p14, 0, c1, c0, 0b110)
+coproc_mk(wvr1, p14, 0, c0, c1, 0b110)
 
 coproc_mk(bcr0, p14, 0, c0, c0, 0b101)
 coproc_mk(bcr1, p14, 0, c0, c0, 0b101)

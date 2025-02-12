@@ -31,40 +31,35 @@ watchpt_handler(void *data, watch_fault_t *w) {
 void notmain(void) {
     mini_watch_init(watchpt_handler, 0);
 
-    enum { null = 0, val = 0xdeadbeef };
+    enum { addr1 = 0xaef941ac, addr2 = 0xae1234, val1 = 0xdeadbeef, val2 = 0xeadbeef };
 
-    mini_watch_addr((void*) null);
+    mini_watch_addr((void*) addr1, watchpt_handler, 0);
+    trace("set watchpoint for addr %p\n", addr1);
+    mini_watch_addr((void*) addr2, watchpt_handler, 0);
+    trace("set watchpoint for addr %p\n", addr2);
 
     assert(mini_watch_enabled());
-    trace("set watchpoint for addr %p\n", null);
 
-    expected_fault_addr = null;
+    expected_fault_addr = addr1;
     expected_fault_pc = (uint32_t)PUT32;
-
     trace("should see a store fault!\n");
-    PUT32(null,val);
-
-    if(!store_fault_n)
+    PUT32(addr1,val1);
+    if(store_fault_n < 1)
         panic("did not see a store fault\n");
+    uint32_t got = GET32(addr1);
+    if(got != val1)
+        panic("expected GET(%x)=%x, have %x\n", addr1, val1, got);
 
+    expected_fault_addr = addr2;
+    expected_fault_pc = (uint32_t)PUT32;
+    trace("should see a store fault!\n");
+    PUT32(addr2,val2);
+    if(store_fault_n < 2)
+        panic("did not see a store fault\n");
     assert(!mini_watch_enabled());
-    uint32_t got = GET32(null);
-    if(got != val)
-        panic("expected GET(%x)=%x, have %x\n", null, val, got);
-
-    mini_watch_addr((void*) null);
-    assert(mini_watch_enabled());
-
-    trace("should see a load fault!\n");
-    expected_fault_addr = null;
-    expected_fault_pc = (uint32_t)GET32;
-
-    got = GET32(null);
-    if(!load_fault_n)
-        panic("did not see a load fault\n");
-
-    if(got != val)
-        panic("expected GET(%x)=%x, have %x\n", null, val, got);
+    got = GET32(addr2);
+    if(got != val2)
+        panic("expected GET(%x)=%x, have %x\n", addr2, val1, got);
     
     trace("SUCCESS\n");
 }

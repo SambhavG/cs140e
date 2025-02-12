@@ -37,12 +37,12 @@ typedef void (*watch_handler_t)(void *data, watch_fault_t *fault);
 // initialize watchpoint: any fault will call 
 // <h> passing <data> and a structure with info about
 // current fault.
-void mini_watch_init(watch_handler_t h, void *data);
+void mini_watch_init();
 
 // watch address <addr>
 //
 // could also give an option to pass a new handler routine.
-void mini_watch_addr(void *addr);
+void mini_watch_addr(void *addr, watch_handler_t h, void *data);
 
 // disable watchpoint on <addr>
 void mini_watch_disable(void *addr);
