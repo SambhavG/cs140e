@@ -4,11 +4,10 @@
 
 // trivial counter.   broken.
 static volatile int cnt = 0;
-static void cnt_A(checker_t *c) { printk("A: The count is %u\n", cnt); cnt++; printk("A: The count is %u\n", cnt);} 
-static int cnt_B(checker_t *c) { cnt++; return 1; }
-static void cnt_init(checker_t *c) { cnt = 0; printk("init: The count is %u\n", cnt);}
+static void cnt_A(checker_t *c) { cnt++;} 
+static int cnt_B(checker_t *c) { cnt++;return 1; }
+static void cnt_init(checker_t *c) { cnt = 0;}
 static int  cnt_check(checker_t *c) { 
-    printk("The count is %u\n", cnt);
     return cnt == 2; }
 
 checker_t cnt_mk_checker(void) {

@@ -10,6 +10,7 @@
     "boot-crc32.h": "c",
     "boot-defs.h": "c",
     "gpio.h": "c",
-    "rpi-inline-asm.h": "c"
+    "rpi-inline-asm.h": "c",
+    "pi-sys-lock.h": "c"
   }
 }

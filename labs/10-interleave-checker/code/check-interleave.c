@@ -16,7 +16,6 @@ int brk_verbose_p = 0;
 
 static void A_terminated(uint32_t ret);
 
-
 // invoked from user level: 
 //   syscall(sysnum, arg0, arg1, ...)
 //
@@ -38,12 +37,11 @@ static int syscall_handler_full(regs_t *r) {
 
     switch(sys_num) {
     case SYS_RESUME:
-            // used to do a context switch from user->privileged.
-            switchto((void*)arg0);
-            panic("not reached\n");
+        // used to do a context switch from user->privileged.
+        switchto((void*)arg0);
+        panic("not reached\n");
     case SYS_TRYLOCK:
-        panic("not handling yet\n");
-
+        sys_lock_try((void*)arg0);
     case SYS_TEST:
         printk("running empty syscall with arg=%d\n", arg0);
         return SYS_TEST;
@@ -70,7 +68,7 @@ static void single_step_handler_full(regs_t *r) {
     output("single-step handler: inst=%d: A:pc=%x\n", n,pc);
 
     //If n is the num of inst we were supposed to run, switch back
-    if (n == checker->switch_on_inst_n + 1) {
+    if (n >= checker->switch_on_inst_n) {
         checker->switch_addr = pc;
         brkpt_mismatch_stop();
         unsigned ret = (checker->B)((void*)checker);
@@ -78,6 +76,8 @@ static void single_step_handler_full(regs_t *r) {
             checker->switched_p = 1;
             switchto(r); //run the rest of A without faults
         }
+        //B returned 0; we need to do another instruction of A
+        brkpt_mismatch_set(pc);
     }
 
     // recall: the weird way single step works: run the instruction 
@@ -202,8 +202,8 @@ int check(checker_t *c) {
     // checking but run A() in single step mode: 
     // should still pass (obviously)
     checker = c;
+    c->switch_on_inst_n = INT32_MAX;
     for(int i = 0; i < 10; i++) {
-        printk("----\n");
         c->init(c);
         run_A_at_userlevel(c);
         if(!c->B(c))
@@ -239,23 +239,30 @@ int check(checker_t *c) {
     // 
     //  return 0 if there were errors.
     
-    int err = 0;
-    for(int i = 0; i < 2; i++) {
+    for(int i = 0; ; i++) {
         printk("Starting trial %u\n", i);
         c->switched_p = 0;
-        c->switch_on_inst_n = i;
+        c->switch_on_inst_n = i+1;
         c->inst_count = 0;
         c->init(c);
-        c->ntrials++;
         run_A_at_userlevel(c);
-        c->check(c);
+        
+
         if (!c->switched_p) {
-            printk("switched_p was not set\n");
-            err = 1;
+            // A ran from beginning to end without switching; we are done
             break;
         }
+        c->ntrials++;
+        int worked = c->check(c);
+        if (!worked) {
+            c->nerrors++;
+            // printk("ERROR: check failed when switched on address %x instructions %u\n", c->switch_addr, i);
+            printk("ERROR: check failed when switched on address  instructions\n");
+        }
+
+        printk("Worked: %u\n", worked);
     }
-    if (err) return 0;
+    if (c->nerrors) return 0;
 
     return 1;
 }
