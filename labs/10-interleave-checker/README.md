@@ -1,5 +1,48 @@
 ## Lab: using single stepping to check interleaving.
 
+### Errata and clarifications.
+
+Notes:
+
+  - For tests that have errors: `make check` may not pass because
+    you might legitimately have a different number of errors than we do.
+
+    While checking at the machine code level makes the tool powerful,
+    it also means you may not match our tests if the number of machine
+    code instructions your compiler emitted for a test differs from ours.
+    Currently our stance is that you'll have to look at the tests to see
+    if they make sense (the pro argument for this is that it helps your
+    reason about what is going on).
+
+  - On the above note: Test 1 is not passing for a bunch of people.
+    You can skip it.
+
+  - Note: you'll have to cast-away the volatile when calling B
+    from your single-step handler.  Something like:
+
+            // call B
+            if(!c->B((void*)c)) {
+                ...
+
+    This is ugly (sorry) but is safe for what we are doing today.
+
+  - Use the tests in `code/tests` (not `code/tests-2.0`) unless you
+    do extensions.  The `code-tests-2.0` require `yield()`.
+
+  - As the `breakpoint.h` header file states: these routines will
+    be very close to those in `mini-step.h` so adapting your code from
+    lab 9 should be quick.  We have renamed them b/c there was some
+    variations in how people built theirs b/c the lab 9 README was
+    unclear on exact functionality.
+
+  - The trylock discussion has been simplified, so look at the
+    README.
+
+---------------------------------------------------------------
+
+### Intro
+
+
 Now that you have a single-step implementation, we'll use it to for
 something cool: writing a concurrency checker that is tiny but mighty.
 By the end you'll be able to race condition bugs difficult to catch with
@@ -119,16 +162,20 @@ This has several pieces:
   1. We need to install exception handlers:  the calls to `full_except_*`
      at the start of `check` do this.  This uses the code from 140e:
      you should be able to drop in your versions.
-  2. We need to run A at user level.  The call to `run_A_at_userlevel`
-     does this.  
-
+  2. We need to run A at user level in single stepping mode.  
+     The call to `run_A_at_userlevel` does this.
   3. We need to set faults and handle them: `single_step_handler_full`
      does this.
 
 What `run_A_at_userlevel` does:
-  1. It creates a full register set for A that can be switched into
-     using `switchto_cswitch`.
-  
+  1. It creates a full register set (see `switchto.h:reg_t`) for A
+     that can be switched into using `switchto_cswitch`.
+
+     The register block `reg_t` is defined in `switchto.h` and is just
+     17 words to hold the 16 general purpose registers (r0 in offset 0,
+     r1 in offset 1, r15 --- the pc --- in offset 15) plus the cpsr
+     (in offset 16).
+
   2. The arm has 16 general purpose registers and the process status
      word.  We use the CPSR of the current execution and just swap
      the mode.  We set PC (r15) to the address of A().  We set the
@@ -180,14 +227,18 @@ to compare the `pc` value against `A_terminated()` and if equal, turn
 single stepping off.  After doing so, the test output should do down
 dramatically.
 
-Easiest approach: change the makefile to only run
-`tests/0-epsilon-test.c`.
+Easiest approach: 
+  - change the Makefile to only run `tests/0-epsilon-test.c`.
 
 -----------------------------------------------------------------------
 ### Part 1: do a single switch from A() to B()
 
 For this make sure your code handles all tests tests besides test 4.
 Test 3 and 5 are reasonable; the others are trivial.  
+
+Don't be afraid to add print statements (that you can easily disable)
+to see which routine is running, and at what pc location.   You can add
+to the tests as well.
 
 -----------------------------------------------------------------------
 ### Part 2:  make a `sys_trylock()` for test 4.
@@ -201,24 +252,32 @@ one to another if needed.
 
 (Note, this isn't the only way we can acheive these two goals.)
 
-The most general way to implement this is to 
-run `B()` as a second thread.
-Why:
-  - Given how the exception trampoline code is written, we can't
-    call system calls from privileged code.  (Note: you could rewrite
-    your 140e `full-except.c` to do so if you want).
+Adding a system call is pretty straightforward (you've done in several
+labs).  The challenge for us is that we can only call system calls from
+user-level not any privileged level (not fundamental --- this is just
+b/c of how we've implemented the code).  The easiest hack to handle this
+is problem is to just check which mode we are at, something like:
 
-    Thus, if B() is allowed to call the trylock code (it is) we need to
-    run B()'s code at user-level.  The most straightfoward way to do so
-    is to run it as a second thread.  This will also let us implement a
-    `yield` primitive (part 3, below) and switch multiple times.
+```
+    // check-interleave.h
+    static inline int sys_lock_try(volatile int *l) {
+        // in rpi-inline-asm.h
+        uint32_t cpsr = cpsr_get();
+        
+        // libpi/include/cpsr-util.h
+        if(mode_get(cpsr) == USER_MODE)
+            return syscall_invoke_asm(SYS_TRYLOCK, l);
+        else
+            todo("just call the trylock directly\n");
+    }
+```
 
-  - Note: you could also achieve the same result by (1) by adding new
-    system calls or (2) changing the code to check if its at user-level
-    and, if not, call the function directly.  We don't do so b/c most
-    of the extensions need two threads.
+This might be a good idea to just get things working.  However, all
+extensions need a more general approach of multiple threads.  So you
+should run `B()` as a second thread after the above works (or just skip
+to using second thread immediately).
 
-You can do so by:
+You can run B() as a seperate thread by:
  1. Adapt the the `run_A` code to create a second thread.  Note: b/c
     of armv6 restrictions make sure you are allocating the stack to be
     8-byte aligned.  You'll need to change the code so on exit it does
@@ -226,7 +285,7 @@ You can do so by:
 
  2. Have a thread queue that you put the threads on and dequeue (as usual).
  3. Adapt your single step handler to use a `switchto` to the next thread
-    rather than calling B directly.
+    rather than calling B() directly.
  4. For some code you wo't be able to run the sequential check as-is, so 
     either disable it, or make sure your threads can handle "running 
     sequentially".
