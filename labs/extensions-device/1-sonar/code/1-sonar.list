@@ -208,12 +208,12 @@ Disassembly of section .text:
 000082d4 <notmain>:
     82d4:	e92d41f0 	push	{r4, r5, r6, r7, r8, lr}
     82d8:	e24dd008 	sub	sp, sp, #8
-    82dc:	e3a02015 	mov	r2, #21
-    82e0:	e3a01014 	mov	r1, #20
+    82dc:	e3a02018 	mov	r2, #24
+    82e0:	e3a0101a 	mov	r1, #26
     82e4:	e59f0074 	ldr	r0, [pc, #116]	@ 8360 <notmain+0x8c>
     82e8:	eb000022 	bl	8378 <printk>
-    82ec:	e3a02015 	mov	r2, #21
-    82f0:	e3a01014 	mov	r1, #20
+    82ec:	e3a02018 	mov	r2, #24
+    82f0:	e3a0101a 	mov	r1, #26
     82f4:	e1a0000d 	mov	r0, sp
     82f8:	ebffff61 	bl	8084 <hc_sr04_init>
     82fc:	e59f0060 	ldr	r0, [pc, #96]	@ 8364 <notmain+0x90>

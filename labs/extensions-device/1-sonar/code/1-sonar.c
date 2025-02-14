@@ -4,8 +4,8 @@
 
 // use this timeout(in usec) so everyone is consistent.
 enum { timeout = 55000,
-       echo_pin = 21,
-       trigger_pin = 20 };
+       echo_pin = 24,
+       trigger_pin = 26 };
 
 void notmain(void) {
     printk("starting sonar: trigger=%d, echo=%d!\n",

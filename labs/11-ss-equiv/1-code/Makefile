@@ -18,11 +18,11 @@ BOOTLOADER=my-install
 #PROGS += 1-rfe-switchto-user.c
 
 # part 0
-#PROGS  += 0-any-mode-sp-lr.c
-#PROGS  += 0-mem-user-sp-lr.c
+PROGS  += 0-any-mode-sp-lr.c
+# PROGS  += 0-mem-user-sp-lr.c
 
 # start with this one!
-PROGS  += 0-cps-user-sp-lr.c
+# PROGS  += 0-cps-user-sp-lr.c
 
 # we use a custom start b/c we have routines at fixed
 # locations.
