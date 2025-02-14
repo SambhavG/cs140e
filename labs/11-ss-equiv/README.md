@@ -1,12 +1,31 @@
-## Pre-emptive threads, checked with single step equivalance 
+## Pre-emptive threads, checked with single step equivalence 
 
 <p align="center">
   <img src="images/pi-ss-equiv.jpg" width="700" />
 </p>
 
+### Errata and clarifications
+
 NOTE:
-  - If you see a mistake: refetch the `README.md`.  If that 
+  - If you see a mistake: re-fetch the `README.md`.  If that 
     doesn't fix it let us know!
+
+
+Mistake:
+
+  - The comment for `mem_user_sp_get` is backwards (it was
+    the comment for `_set`).  It should be:
+
+```
+        MK_FN(mem_user_sp_get)
+            @ store the user mode <sp> register into memory
+            @ pointed to by <r0>
+            stm r0, {sp}^
+            bx lr
+```
+
+---------------------------------------------------------------
+### Overview
 
 By the end of this lab you'll have your own simple pre-emptive threads
 package and it won't actually be that hard.  Crucially, it will *work*
@@ -15,40 +34,42 @@ The reason for this strong claim is that you will use the debugging
 hardware to verify that running code pre-emptively gives exactly the same
 results as running it sequentially --- that every register has exactly
 the same value for each instruction that gets executed.  Given the pieces
-you've built so far, building this "single step equivalance"  checking
+you've built so far, building this "single step equivalence"  checking
 won't be hard and yet will make hard things easy because it makes them
 trivial to completely check against a simple reference.
 
 Next week you'll be able to combine this threading system with the 
 virtual memory you build to make user level processes that can implement
 the UNIX system calls `fork()`, `exec()`, `exit()`, `waitpid()` etc.
-You'll also use your single-step equivalance code to validate that this
-combination works by using it compute the equivalance hash of processes
+You'll also use your single-step equivalence code to validate that this
+combination works by using it compute the equivalence hash of processes
 running without virtual memory and pre-emption and verifying you get
 the same hash result when running with virtual memory, pre-emption.
 
-  - NOTE: this trend of comparing the equivalance hash of code run
+  - NOTE: this trend of comparing the equivalence hash of code run
     in the simplest way possible to code running with full complexity
     will be a common one for the rest of the quarter and is the only way
     we know to have 80 people build their own OS and make it surprising
     if the code is broken.
 
-    With that said, equivalance checking isn't verification, but it does
+    With that said, equivalence checking isn't verification, but it does
     validate so thoroughly that it's interesting to the staff if your
-    code is broken but can pass equivalance checking.  (You should let
+    code is broken but can pass equivalence checking.  (You should let
     us know if this ever occurs!)
 
 The specific code you'll write:
   - Your own low-level pre-emptive context switching and exception
     trampoline code that will replace ours from the last couple of 
     labs (`full-except-asm.o` and `staff-switchto-asm.o`).
-  - The equivalant hashing code.
+  - The equivalent hashing code.
 Both of these will be fairly short.  The payoff at the end is a simple
 pre-emptive thread package that works.
 
 Checkoff:
   1. `make check` passes in `1-code` with all tests.
-  1. `make check` passes in `2-code` with all tests.
+  2. `make check` passes in `2-code` with all tests.
+  3. Run the autograder. Make sure you have written and pushed 
+     your own part 3 `3-tests` too
 
 ---------------------------------------------------------------
 ## Background: pre-emption and context switching.
@@ -126,7 +147,7 @@ complication that:
 
 Thus, you'll have to write code to read and write the registers at one
 level from another --- for the most part, the unprivileged user stack
-pointer (sp) and return register (lr) from a privileed interrupt context.
+pointer (sp) and return register (lr) from a privileged interrupt context.
 
 #### Banked registers
 
@@ -149,7 +170,7 @@ to change modes, how to access registers in one mode from another, etc.
 So we'll first do these parts in isolated, easy to debug pieces.
 
 As we mentioned above, in order to save and restore the state of a level
-processs from privileged mode we'll have read and write the two banked
+process from privileged mode we'll have read and write the two banked
 user-mode registers (`sp` and `lr`).  The set of tests have you implement
 the code to read and write these registers in three different ways.
 
@@ -194,12 +215,15 @@ You should do them in the following order:
         @ store the user mode sp into the address passed as the 
         @ first parameter (i.e., in r0)
         MK_FN(mem_user_sp_get)
-            @ dereference the address held in <r0> 
-            @ and write the 32-bit result into user 
-            @ mode <sp> register.
+            @ store the user mode <sp> register into memory
+            @ pointed to by <r0>
             stm r0, {sp}^
             bx lr
 ```
+
+     If you get confused about the semantics don't forget to look closely
+     at the test!  (True for all the other parts, too.)
+
 
   3. `0-any-mode-sp-lr.c` generalize the mode switching method for
      any mode (other than USER) so that you can read and write registers
@@ -214,6 +238,11 @@ You should do them in the following order:
      Followed by a prefetch_flush that uses a caller saved register you
      don't care about.  You can see an example of where we use `msr` in
      `libpi/staff-start.S`
+
+
+Great: you now are able to (1) read and write banked registers of other
+modes (both privileged and user-level) and (2) switch between privileged
+modes.  We'll now setup the code to switch to user mode.
 
 ---------------------------------------------------------------
 ## Part 1: using `rfe` to switch to user level
@@ -322,7 +351,7 @@ routines.  We will now verify them using single stepping without much
 work and to a degree you'd be surprised if they are broken.  
 
 Great, now you have the main building blocks: we'll put all the pieces
-above together on Thusrday, hopefully in a way that blows your mind.
+above together on Thursday, hopefully in a way that blows your mind.
 
 ---------------------------------------------------------------
 ## Part 3: saving and restoring privileged registers.
@@ -349,7 +378,7 @@ you're coming from and going to privileged (not user mode).
      `libpi/staff-start.S`) and then (2) do a `ldm` of all the registers.
 
   4. Your privileged mode save and restore
-     should work for any privileged mode, not just a specific hardcoded
+     should work for any privileged mode, not just a specific hard-coded
      one.  So you should use `msr` not `cps`.
 
 What to do:
@@ -373,7 +402,7 @@ Important notes:
     For today we'll take the 8th bit set or not set.
 
 
-***NOTE: you are allowed to do the following easier, equivalant way 
+***NOTE: you are allowed to do the following easier, equivalent way 
 that requires less thinking***
 
   1. Keep the `swi_trampoline` as-is from part 2.  It assumes
