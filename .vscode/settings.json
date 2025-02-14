@@ -16,6 +16,7 @@
     "memmap.h": "c",
     "mini-step.h": "c",
     "vector-base.h": "c",
-    "armv6-debug-impl.h": "c"
+    "armv6-debug-impl.h": "c",
+    "asm-helpers.h": "c"
   }
 }

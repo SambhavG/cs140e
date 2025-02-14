@@ -5,24 +5,24 @@ BOOTLOADER=my-install
 # you'll have to create these.  they should
 # have the same .out's as part 2, other than
 # the cpsr will differ.
-#   PROGS += 3-reg-save.c
-#   PROGS += 3-reg-save-full.c
+PROGS += 3-reg-save.c
+PROGS += 3-reg-save-full.c
 
 # part 2
-#PROGS += 2-reg-save-full.c
-#PROGS += 2-reg-save.c
+PROGS += 2-reg-save-full.c
+PROGS += 2-reg-save.c
 
 # part 1
-#PROGS += 1-rfe-example.c
-#PROGS += 1-rfe-blk.c
-#PROGS += 1-rfe-switchto-user.c
+PROGS += 1-rfe-example.c
+PROGS += 1-rfe-blk.c
+PROGS += 1-rfe-switchto-user.c
 
 # part 0
 PROGS  += 0-any-mode-sp-lr.c
-# PROGS  += 0-mem-user-sp-lr.c
+PROGS  += 0-mem-user-sp-lr.c
 
 # start with this one!
-# PROGS  += 0-cps-user-sp-lr.c
+PROGS  += 0-cps-user-sp-lr.c
 
 # we use a custom start b/c we have routines at fixed
 # locations.

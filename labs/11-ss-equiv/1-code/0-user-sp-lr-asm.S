@@ -109,8 +109,8 @@ MK_FN(mode_get_lr_sp_asm)
     msr cpsr_c, r0
     prefetch_flush(r3);
 
-    stm r1, {sp}^
-    stm r2, {lr}^
+    stm r1, {sp}
+    stm r2, {lr}
 
     cps #SUPER_MODE
     prefetch_flush(r3);

@@ -26,7 +26,10 @@ MK_FN(rfe_trampoline_asm)
 @ tiny change: modify rfe_asm to deal with being 
 @ passed a 17-entry register array
 MK_FN(blk_rfe_asm)
-    asm_todo("implement this");
+    mov sp, r0
+    add sp, #60
+    rfe sp
+
     asm_not_reached();
 
 @ do not need to modify: same as original, so just
@@ -48,7 +51,10 @@ MK_FN(blk_trampoline_asm)
 @     code)
 @  2. does an rfe to load pc and cpsr
 MK_FN(switchto_user_asm)
-    asm_todo("implement this");
+    mov sp, r0
+    ldm r0, {r0-r14}^
+    add sp, #60
+    rfe sp
     asm_not_reached();
 
 @ so we don't get linker errors 
