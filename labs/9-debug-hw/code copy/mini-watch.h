@@ -34,6 +34,8 @@ static inline watch_fault_t watch_fault_mk(
 // structure describing the current fault.
 typedef void (*watch_handler_t)(void *data, watch_fault_t *fault);
 
+void watchpt_fault(regs_t *r);
+
 // initialize watchpoint: any fault will call 
 // <h> passing <data> and a structure with info about
 // current fault.

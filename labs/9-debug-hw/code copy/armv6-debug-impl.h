@@ -125,28 +125,18 @@ coproc_mk(wvr0, p14, 0, c0, c0, 0b110)
 coproc_mk(wvr1, p14, 0, c0, c1, 0b110)
 
 coproc_mk(bcr0, p14, 0, c0, c0, 0b101)
-coproc_mk(bcr1, p14, 0, c0, c0, 0b101)
-coproc_mk(bcr2, p14, 0, c0, c0, 0b101)
-coproc_mk(bcr3, p14, 0, c0, c0, 0b101)
-coproc_mk(bcr4, p14, 0, c0, c0, 0b101)
-coproc_mk(bcr5, p14, 0, c0, c0, 0b101)
+coproc_mk(bcr1, p14, 0, c0, c1, 0b101)
+coproc_mk(bcr2, p14, 0, c0, c2, 0b101)
+coproc_mk(bcr3, p14, 0, c0, c3, 0b101)
+coproc_mk(bcr4, p14, 0, c0, c4, 0b101)
+coproc_mk(bcr5, p14, 0, c0, c5, 0b101)
 coproc_mk(bvr0, p14, 0, c0, c0, 0b100)
-coproc_mk(bvr1, p14, 0, c0, c0, 0b100)
-coproc_mk(bvr2, p14, 0, c0, c0, 0b100)
-coproc_mk(bvr3, p14, 0, c0, c0, 0b100)
-coproc_mk(bvr4, p14, 0, c0, c0, 0b100)
-coproc_mk(bvr5, p14, 0, c0, c0, 0b100)
+coproc_mk(bvr1, p14, 0, c0, c1, 0b100)
+coproc_mk(bvr2, p14, 0, c0, c2, 0b100)
+coproc_mk(bvr3, p14, 0, c0, c3, 0b100)
+coproc_mk(bvr4, p14, 0, c0, c4, 0b100)
+coproc_mk(bvr5, p14, 0, c0, c5, 0b100)
 
-// you'll need to define these and a bunch of other routines.
-// static inline uint32_t cp15_dfsr_get(void) {todo("implement");}
-// static inline uint32_t cp15_ifar_get(void) { todo("implement"); }
-// static inline uint32_t cp15_ifsr_get(void) { todo("implement"); }
-// static inline uint32_t cp14_dscr_get(void) { todo("implement"); }
-// static inline uint32_t cp14_wcr0_set(uint32_t r) { todo("implement"); }
-// static inline void cp14_wvr0_set(uint32_t r) { todo("implement"); }
-// static inline void cp14_bcr0_set(uint32_t r) { todo("implement"); }
-// static inline void cp14_bvr0_set(uint32_t r) { todo("implement"); }
-// static inline uint32_t cp14_bvr0_get(void) { todo("implement"); }
 
 // return 1 if enabled, 0 otherwise.
 //    - we wind up reading the status register a bunch:
@@ -283,7 +273,6 @@ static inline void cp14_wcr1_disable(void) {
 }
 
 
-
 coproc_mk_get(wfar, p14, 0, c0, c6, 0)
 
 
@@ -291,6 +280,87 @@ coproc_mk_get(wfar, p14, 0, c0, c6, 0)
 static inline uint32_t watchpt_fault_pc(void) {
     //13-12
     return cp14_wfar_get() - 0x8;
+}
+
+
+static inline int cp14_bcr1_is_enabled(void) {
+    //13-19
+    //Bit 0
+    return bit_isset(cp14_bcr1_get(), 0);
+}
+static inline void cp14_bcr1_enable(void) {
+    unsigned val = cp14_bcr1_get();
+    val = bit_set(val, 0);
+    cp14_bcr1_set(val);
+}
+static inline void cp14_bcr1_disable(void) {
+    unsigned val = cp14_bcr1_get();
+    val = bit_clr(val, 0);
+    cp14_bcr1_set(val);
+}
+
+static inline int cp14_bcr2_is_enabled(void) {
+    //13-19
+    //Bit 0
+    return bit_isset(cp14_bcr2_get(), 0);
+}   
+static inline void cp14_bcr2_enable(void) {
+    unsigned val = cp14_bcr2_get();
+    val = bit_set(val, 0);
+    cp14_bcr2_set(val);
+}
+static inline void cp14_bcr2_disable(void) {
+    unsigned val = cp14_bcr2_get();
+    val = bit_clr(val, 0);
+    cp14_bcr2_set(val);
+}
+
+static inline int cp14_bcr3_is_enabled(void) {
+    //13-19
+    //Bit 0
+    return bit_isset(cp14_bcr3_get(), 0);
+}   
+static inline void cp14_bcr3_enable(void) {
+    unsigned val = cp14_bcr3_get();
+    val = bit_set(val, 0);
+    cp14_bcr3_set(val);
+}
+static inline void cp14_bcr3_disable(void) {
+    unsigned val = cp14_bcr3_get();
+    val = bit_clr(val, 0);
+    cp14_bcr3_set(val);
+}
+
+static inline int cp14_bcr4_is_enabled(void) {
+    //13-19
+    //Bit 0
+    return bit_isset(cp14_bcr4_get(), 0);
+}   
+static inline void cp14_bcr4_enable(void) {
+    unsigned val = cp14_bcr4_get();
+    val = bit_set(val, 0);
+    cp14_bcr4_set(val);
+}
+static inline void cp14_bcr4_disable(void) {
+    unsigned val = cp14_bcr4_get();
+    val = bit_clr(val, 0);
+    cp14_bcr4_set(val);
+}
+
+static inline int cp14_bcr5_is_enabled(void) {
+    //13-19
+    //Bit 0
+    return bit_isset(cp14_bcr5_get(), 0);
+}   
+static inline void cp14_bcr5_enable(void) {
+    unsigned val = cp14_bcr5_get();
+    val = bit_set(val, 0);
+    cp14_bcr5_set(val);
+}
+static inline void cp14_bcr5_disable(void) {
+    unsigned val = cp14_bcr5_get();
+    val = bit_clr(val, 0);
+    cp14_bcr5_set(val);
 }
 
 #endif

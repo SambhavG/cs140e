@@ -7,133 +7,68 @@
 #include "vector-base.h"
 #include "armv6-debug-impl.h"
 #include "full-except.h"
+#include "mini-step.h"
+
+static void bp_handler(void *data, step_fault_t *s) {
+    printk("[Custom handler] Custom bp handler triggered: can see that the breakpoint was triggered at pc=%x\n", s->fault_pc);
+    printk("[Custom handler] The registers are: %x, %x, %x, %x, %x\n", s->regs->regs[0], s->regs->regs[1], s->regs->regs[2], s->regs->regs[3], s->regs->regs[4]);
+}
 
 // the routine we fault on: we don't want to use GET32 or PUT32
 // since that would break printing.
-void foo(int x);
+void foo1(int x);
+void foo2(int x);
+void foo3(int x);
+void foo4(int x);
+void foo5(int x);
 
-// total number of faults.
-static volatile int n_faults = 0;
 
-/*
-   13-11:
-        RULE: "must first check IFSR or DFSR to determine a debug
-        exception has occured before checking `DSCR`).
 
-   See:
-     - IFSR 3-67 in docs/arm1176-fault-regs.pdf
-     - DSCR 13-35 in docs/arm1176-ch13-debug.pdf 
-
-  - `IFSR`: set whenever breakpoint occurs.   Checked in prefetch abort.
-
-  - 13-35:  on breakpoint:
-      - Check `DSCR[5:2]`,
-      - IFSR set as table 13-23 describes.  Handler must check this to see if
-        its a breakpoint or normal prefetch abort.
-      - hardware sets up the normal prefetch abort state.
-      - Instruction causing the fault is in `r14` plus 4.
-*/
-static void brkpt_fault(regs_t *r) {
-    // lr needs to get adjusted for watchpoint fault?
-    // we should be able to return lr?
-    if(!was_brkpt_fault())
-        panic("should only get a breakpoint fault\n");
-    assert(cp14_bcr0_is_enabled());
-
-    // 13-34: effect of exception on watchpoint registers.
-    uint32_t pc = r->regs[15];
-    output("pc=%x, foo=%x\n", pc, foo);
-    assert(pc == (uint32_t)foo);
-
-    // not sure why we did this.
-    output("ifar=%x\n", cp15_ifar_get());
-    output("ifsr=%x\n", cp15_ifsr_get());
-    output("dscr[2:5]=%b\n", bits_get(cp14_dscr_get(), 2, 5));
-
-    // increment fault count, disable the fault and jump back.
-    n_faults++;
-    cp14_bcr0_disable();
-
-    assert(!cp14_bcr0_is_enabled());
-    // switch back and run the faulting instruction.
-    switchto(r);
-}
 
 void notmain(void) {
-    // 1. install exception handlers.
+    mini_bp_init();
 
-    // install exception handlers.
-    full_except_install(0);
-    full_except_set_prefetch(brkpt_fault);
+    mini_bp_addr(foo1, bp_handler, NULL);
 
-    // 2. enable the debug coprocessor.
-    cp14_enable();
+    output("set breakpoint for addr %p\n", foo1);
 
-    // just started, should not be enabled.
-    assert(!cp14_bcr0_is_enabled());
-
-    /*
-      3. set a simple breakpoint.  from 13-45:
-         1. read the bcr
-         2. clear enable bit: write back
-         3. write the imva to BVR
-         4. write BCR: BCR[22:21] = 00 or 1
-            BCR[20] = 0 no linking
-            BCR[15:14]: secure access as required
-            BCR[8:5] base addres as required
-            BCR[2:1]: super visor access as required
-            BCR[0] = 1
-        prefetch flush.
-    */
-    // just started, should not be enabled.
-    assert(!cp14_bcr0_is_enabled());
-
-    // see 13-17 for how to set bits
-    uint32_t b = cp14_bcr0_get();
-
-    //clear enable bit and write back
-    cp14_bcr0_set(bit_clr(b, 0));
-
-    //Write imva to BVR
-    cp14_bvr0_set((uint32_t)foo);
-
-    //Do the stuff listed above - 13-18, 13-19
-    b = bits_set(b, 21, 22, 0b00);
-    b = bit_clr(b, 20);
-    b = bits_set(b, 14, 15, 0b00);
-    b = bits_set(b, 5, 8, 0b1111);
-    b = bits_set(b, 1, 2, 0b11);
-    b = bit_set(b, 0);
-
-    if(!b)
-        panic("must set b to the right bits\n");
-
-    cp14_bcr0_set(b);
-    assert(cp14_bcr0_is_enabled());
-
-    output("set breakpoint for addr %p\n", foo);
-
-    output("about to call %p: should see a fault!\n", foo);
-    foo(0);
-    assert(!cp14_bcr0_is_enabled());
-    assert(n_faults == 1);
+    output("about to call %p: should see a fault!\n", foo1);
+    foo1(0);
+    assert(mini_bp_num_faults() == 1);
 
     int n = 10;
     trace("worked!  fill do %d repeats\n", n);
-    for(int i = n_faults = 0; i < n; i++) {
-        cp14_bcr0_enable();
-        assert(cp14_bcr0_is_enabled());
-
-        trace("should see a breakpoint fault!\n");
-        foo(i);
-        assert(!cp14_bcr0_is_enabled());
-        trace("n_faults=%d, i=%d\n", n_faults,i);
-        assert(n_faults == i+1);
+    for(int i = 0; i < n; i++) {
+        mini_bp_addr(foo1, bp_handler, NULL);
+        mini_bp_addr(foo2, bp_handler, NULL);
+        mini_bp_addr(foo3, bp_handler, NULL);
+        mini_bp_addr(foo4, bp_handler, NULL);
+        mini_bp_addr(foo5, bp_handler, NULL);
+        trace("should see five breakpoint faults!\n");
+        foo1(i);
+        foo2(i);
+        foo3(i);
+        foo4(i);
+        foo5(i);
+        trace("n_faults=%d, i=%d\n", mini_bp_num_faults(),i);
+        assert(mini_bp_num_faults() == 6+i*5);
     }
     trace("SUCCESS\n");
 }
 
 // weak attempt at preventing inlining.
-void foo(int x) {
-    trace("running foo: %d\n", x);
+void foo1(int x) {
+    trace("running foo1: %d\n", x);
+}
+void foo2(int x) {
+    trace("running foo2: %d\n", x);
+}
+void foo3(int x) {
+    trace("running foo3: %d\n", x);
+}
+void foo4(int x) {
+    trace("running foo4: %d\n", x);
+}
+void foo5(int x) {
+    trace("running foo5: %d\n", x);
 }

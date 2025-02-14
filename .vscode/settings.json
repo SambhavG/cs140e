@@ -11,6 +11,11 @@
     "boot-defs.h": "c",
     "gpio.h": "c",
     "rpi-inline-asm.h": "c",
-    "pi-sys-lock.h": "c"
+    "pi-sys-lock.h": "c",
+    "full-except.h": "c",
+    "memmap.h": "c",
+    "mini-step.h": "c",
+    "vector-base.h": "c",
+    "armv6-debug-impl.h": "c"
   }
 }

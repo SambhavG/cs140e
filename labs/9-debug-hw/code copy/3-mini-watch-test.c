@@ -29,7 +29,7 @@ watchpt_handler(void *data, watch_fault_t *w) {
 }
 
 void notmain(void) {
-    mini_watch_init(watchpt_handler, 0);
+    mini_watch_init();
 
     enum { addr1 = 0xaef941ac, addr2 = 0xae1234, val1 = 0xdeadbeef, val2 = 0xeadbeef };
 

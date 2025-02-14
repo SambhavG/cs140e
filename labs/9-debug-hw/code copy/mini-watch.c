@@ -25,14 +25,14 @@
 static watch_handler_t watchpt_handler[2];
 static void *watchpt_data[2];
 static void *watchpoint_addr[2];
-static int which_on[2];
+static int which_wp_on[2];
 static int num_watchpoints = 0;
 
 
 //Tells you which watchpoint is the one looking at this address
 static int which_wp(void* addr) {
     for (int i = 0; i < 2; i++) {
-        if (which_on[i] && watchpoint_addr[i] == addr) {
+        if (which_wp_on[i] && watchpoint_addr[i] == addr) {
             return i;
         }
     }
@@ -41,7 +41,7 @@ static int which_wp(void* addr) {
 
 static int get_next_available_wp() {
     for (int i = 0; i < 2; i++) {
-        if (!which_on[i]) return i;
+        if (!which_wp_on[i]) return i;
     }
     return -1;
 }
@@ -86,9 +86,9 @@ static int mini_watch_load_fault(void) {
 
 // if we have a dataabort fault, call the watchpoint
 // handler.
-static void watchpt_fault(regs_t *r) {
+void watchpt_fault(regs_t *r) {
     void* fault_addr = (void*) cp15_far_get();
-    printk("Got watchpoint fault on address %x\n", fault_addr);
+    printk("[watchpt_fault] Got watchpoint fault on address %x\n", fault_addr);
     int triggered_watchpoint = which_wp(fault_addr);
 
     // watchpt handler.
@@ -111,6 +111,8 @@ static void watchpt_fault(regs_t *r) {
     //Disable whichever watchpoint was triggered
 
     wp_ctrl_disable(triggered_watchpoint);
+    which_wp_on[triggered_watchpoint] = 0;
+    num_watchpoints--;
 
     assert(!wp_ctrl_is_enabled(triggered_watchpoint));
 
@@ -136,7 +138,7 @@ void mini_watch_addr(void *addr, watch_handler_t h, void *data) {
     addr = (void*) ((unsigned) addr & ~0b11);
 
     int this_wp_index = get_next_available_wp();
-    which_on[this_wp_index] = 1;
+    which_wp_on[this_wp_index] = 1;
 
     //Set up watchpoint (originally in mini_watch_input)
     uint32_t b = 0;
@@ -164,7 +166,7 @@ void mini_watch_disable(void *addr) {
     addr = (void*) ((unsigned) addr & ~0b11);
     int index = which_wp(addr);
     assert(index != -1);
-    which_on[index] = 0;
+    which_wp_on[index] = 0;
     num_watchpoints--;
     wp_ctrl_disable(index);
 }

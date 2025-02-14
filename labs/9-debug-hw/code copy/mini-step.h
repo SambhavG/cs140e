@@ -1,6 +1,6 @@
 // very simple version of single stepping.
-#ifndef __MINI_WATCH_H__
-#define __MINI_WATCH_H__
+#ifndef __MINI_STEP_H__
+#define __MINI_STEP_H__
 
 // defines <regs_t>
 #include "switchto.h"
@@ -58,4 +58,28 @@ void mini_step_init(step_handler_t h, void *data);
 
 // run <fn> in single step mode with <arg> 
 uint32_t mini_step_run(void (*fn)(void*), void *arg);
+
+//*******************************************************
+// Breakpoint functionality
+
+void brkpt_fault(regs_t *r);
+
+// Initialize the breakpoint system
+void mini_bp_init(void);
+
+// Set a breakpoint at the given address
+void mini_bp_addr(void *addr, step_handler_t h, void *data);
+
+// Disable breakpoint at the given address
+void mini_bp_disable(void *addr);
+
+// Returns number of currently enabled breakpoints
+int mini_bp_enabled(void);
+
+// Check if current fault is a breakpoint fault
+int mini_bp_is_fault(void);
+
+// Get total number of breakpoint faults that have occurred
+int mini_bp_num_faults(void);
+
 #endif
