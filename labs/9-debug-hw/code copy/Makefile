@@ -26,7 +26,7 @@ START_ASM = staff-start.S
 # these are all the tests.
 # PROGS := $(wildcard ./[1234567]-*.c)
 
-PROGS := 5-test-everything.c
+PROGS := 7-find-printer.c
 # PROGS := 4-mini-step-trace-only.c
 # PROGS := 4-mini-step-diff.c
 # PROGS := 3-mini-watch-byte-access.c
