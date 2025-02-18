@@ -6,12 +6,19 @@
 
 ### Errata and clarifications
 
-NOTE:
-  - If you see a mistake: re-fetch the `README.md`.  If that 
-    doesn't fix it let us know!
+***Big happy announcement***:
+  - PART 4 is for tuesday.  Just do part 1-3 today.
 
+BUGS:
 
-Mistake:
+  - Not really a bug but a common unclarity:
+    for part 3 you should Implement a `switchto_priv_asm` that will
+    switch-to a privileged mode.  It can assume it will never be used
+    to switch to the user.  Part 3 discusses this.
+
+  - Part 2: the pc printed in the system call handler should be `80e4`
+    (the pc after the swi instruction), not `80e0` (the pc of the swi
+    instruction).
 
   - The comment for `mem_user_sp_get` is backwards (it was
     the comment for `_set`).  It should be:
@@ -23,6 +30,33 @@ Mistake:
             stm r0, {sp}^
             bx lr
 ```
+
+  - This doesn't matter for today, but the routine:
+
+```
+        static inline void
+        mode_get_lr_sp(uint32_t mode, uint32_t *sp, uint32_t *lr) {
+            if(mode == USER_MODE)
+                mode_get_lr_sp(SYS_MODE, sp, lr);
+            else
+                mode_get_lr_sp(mode, sp, lr);
+        }
+```
+
+    Should be to `mode_get_lr_sp_asm`.  (Thanks Andrew!)
+
+
+
+NOTE:
+  - If you see a mistake: re-fetch the `README.md`.  If that 
+    doesn't fix it let us know!
+
+Extensions:
+  - Save and restore the user-mode registers in as many 
+    different ways as possible.  You'll definitely understand
+    things at a deeper level.
+  - Replace the `switchto` and `context_switch` in last two labs
+    with yours.  Very educational!
 
 ---------------------------------------------------------------
 ### Overview
@@ -276,9 +310,9 @@ a larger one (test 2):
     a 2-entry one.
 
     What to do: You should write the code `1-rfe-asm.S:blk_rfe_asm`
-    to handle a 17-entry array with the `pc` at word offset 15 (byte
-    offset 15*4), and the `cpsr` you want to restore at word offset 16
-    (byte offset 16*4).  This differs from our example where the pc
+    to handle a 17-entry array with the PC at word offset 15 (byte
+    offset 15x4), and the CPSR you want to restore at word offset 16
+    (byte offset 16x4).  This differs from our example where the pc
     was at offset 0 and cpsr was at word offset 1 (so byte offset 4).
     All you have to do is add the right constant value to the sp register
     before doing the rfe instruction.
@@ -290,10 +324,10 @@ a larger one (test 2):
     17-entry array and eliminates the need for a trampoline used in
     `1-rfe-asm.S` to setup the stack pointer.
 
-    What to do: You'll write `1-rfe-asm.S:switch_to_user_asm` to load
-    user mode registers `r0-r14` and then do an `rfe` to load r15 and
-    the CPSR.  This is just a matter of copying and modifying some of
-    your part 1 assembly.
+    What to do: You'll write `1-rfe-asm.S:switch_to_user_asm` to do an
+    `ldm` to load user mode registers `r0-r14` and then do an `rfe`
+    to load r15 and the CPSR.  This is just a matter of copying and
+    modifying some of your part 1 assembly.
 
     ***Note, the test in its current form only validates `r0-r3`, `sp`,
     `pc` and mode (we will do the others below).***
@@ -304,8 +338,6 @@ do the rest of it in the next few stages.
 ------------------------------------------------------------------
 ### Part 2: saving all user registers: `2-reg-save-asm.S`
 
-***NOTE: If you see this, do a git pull: we probably cleaned up
-the prose ***
 
 Here you'll implement the assembly to save all registers in ascending
 order into a single 17-entry block of memory on the exception stack and
@@ -333,7 +365,8 @@ There are two different tests:
      instruction, triggering a system call exception.  This makes saving
      easy to debug: `r0-r14` in the 17-entry register block should have
      its offset as a value.  `r15` should be the pc of the swi instruction
-     (for me `80e0`) and r16 should have `USER` as a mode.
+     (the swi instruction is at address `80e0`, and so the pc in 
+     the system call handler should be `80e4`) and r16 should have `USER` as a mode.
 
      If you look at the system call handler `2-reg-save.c:do_syscall`
      you can see that it dumps the registers, so that you can check them.
@@ -356,8 +389,6 @@ above together on Thursday, hopefully in a way that blows your mind.
 ---------------------------------------------------------------
 ## Part 3: saving and restoring privileged registers.
 
-***NOTE: If you see this, do a git pull: we probably cleaned up
-the prose ***
 
 In this part you'll write code to save and restore registers when
 you're coming from and going to privileged (not user mode).
@@ -388,6 +419,13 @@ What to do:
     mode (presumably not `SUPER` or `SYS`).  You already have the pieces
     for this so it's mainly a re-enforcement.
 
+  - For the full test: Implement a `switchto_priv_asm` that will switch-to
+    a privilege mode rather than user mode (as `switchto_user_asm` does).
+    The easiest way is to switch to the right mode using `msr`:
+
+            msr   cpsr_cxsf, r1
+
+    do a `prefetch_flush` and then `ldm` all 16 general purpose registers.
 
 Important notes:
 
@@ -433,13 +471,8 @@ that requires less thinking***
 ------------------------------------------------------------------
 ### Part 4: putting it all together: `2-code`
 
-***NOTE: If you see this, do a git pull: we've added more prose ***
-***NOTE: If you see this, do a git pull: we've added more prose ***
-***NOTE: If you see this, do a git pull: we've added more prose ***
-***NOTE: If you see this, do a git pull: we've added more prose ***
-***NOTE: If you see this, do a git pull: we've added more prose ***
-***NOTE: If you see this, do a git pull: we've added more prose ***
-
+***NOTE: we will do this part next tuesday to give you more
+time for valentine's day and midterms***
 
 The code for this part is setup so you can flip routines back and forth.
 As is, everything should pass "out of the box".
