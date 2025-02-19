@@ -13,6 +13,8 @@
     dumb mistake.)
 
 NOTE:
+  - Part 2 has many more suggestions now if you do a pull.
+
   - If you do a pull, there is a `code/switchto.h` that got added
     with a better type signature for `cswitch`.
 
@@ -98,15 +100,45 @@ NOTE:
 
 Do something interesting or cool with the equivalance threads.
 Some easy things:
-  1. We always switch every instruction.  This won't necessarily
-     find all bugs.  It's good to have a mode than can randomly switch.
-     Perhaps every 2 instructions on average, then every 3 instructions
-     on average, etc.   But you can make whatever decision seems
-     reasonable.
+
+  - We always switch every instruction.  This won't necessarily
+    find all bugs.  It's good to have a mode than can randomly switch.
+    Perhaps every 2 instructions on average, then every 3 instructions
+    on average, etc.   But you can make whatever decision seems
+    reasonable.  
+
+    If you recall in lab 11 we used `pi_random()`.  You'll need 
+    to include:
+
+            #include "pi-random.h"
+
+    And can then just call it:
+
+            uint32_t v = pi_random();
+
      
-  2. A bigger part (which counts as an extension) is to do your
-     interleave checker for real now that we have threads --- we
-     can currently check an arbitrary number of threads.
+  - You could add a yield (like your `rpi-threads.c` had) 
+    and some tests to check that it works.  Potentially
+    can add other routines (such as `wait()`).  This 
+    involves adding new system calls.  AFAIK these should
+    work fine with hashes.
+
+  - A bigger thing (which counts as an extension) is to do your
+    interleave checker for real now that we have threads --- we
+    can currently check an arbitrary number of threads.  You can
+    spin this up into a final project.
+
+  - Another cool thing (not exactly trivial) is to run multiple
+    threads using the same stack by copying their stack in and out on
+    switch (a form of swapping).  It lets you run multiple routines at
+    the same location with the same stack and so get the same hashes.
+    As a side effect this will make it clear why we use VM, but is
+    actually cool.
+
+  - Even better than the above is something cool you come up with.
+
+
+With all that said the best thing to do is the following:
 
 #### Best extension
 
@@ -147,9 +179,3 @@ handle code that branches by:
  3. Then rerun the routine at SYSTEM mode, but instead of mismatching
     do matching (using the addresses in the array).
 
-#### other extensions
-
-Missing a bunch:
-  1. do random switching.
-  2. copy the stack in and out on cswitch so you can run multiple
-     routines at the same location (and get the same hashes).
