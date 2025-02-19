@@ -49,6 +49,8 @@ typedef struct rq {
     eqx_th_t *head, *tail;
 } rq_t;
 
+static uint32_t num_threads = 0;
+
 // will define eqx_pop, eqx_push, eqx_append, etc
 #include "queue-ext-T.h"
 gen_queue_T(eqx_th, rq_t, head, tail, eqx_th_t, next)
@@ -222,6 +224,8 @@ eqx_schedule(void)
 {
     assert(cur_thread);
 
+    //Randomly decide how many threads to go up
+
     eqx_th_t *th = eqx_th_pop(&eqx_runq);
     if(th) {
         if(th->verbose_p)
@@ -348,7 +352,6 @@ static int equiv_syscall_handler(regs_t *r) {
 
     // check the stack.
     eqx_check_sp(th);
-
     unsigned sysno = r->regs[0];
     switch(sysno) {
     case EQX_SYS_PUTC:

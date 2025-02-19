@@ -79,13 +79,20 @@ MK_TRAMPOLINE(interrupt,        4, int_vector)
 @    faulted.
 prefetch_handler_full:
     @ initially we just forward to staff
-    b staff_prefetch_trampoline_full
+    @ b staff_prefetch_trampoline_full
 
     mov sp, #INT_STACK_ADDR
     sub   lr, lr, #4
 
-    asm_todo("save all the regs in a reg_t on the stack") 
-    asm_todo("mov regs into r0, spsr into r1, pc into r2")
+    @ asm_todo("save all the regs in a reg_t on the stack") 
+    @ asm_todo("mov regs into r0, spsr into r1, pc into r2")
+    sub     sp, sp, #68     @ 0x44
+    stmia   sp, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, sl, fp, ip, sp, lr}^
+    str     lr, [sp, #60]   @ 0x3c
+    mov     r2, lr
+    mrs     r1, SPSR
+    str     r1, [sp, #64]   @ 0x40
+    mov     r0, sp
 
     bl prefetch_abort_full_except
     asm_not_reached();
@@ -97,9 +104,16 @@ prefetch_handler_full:
 @    faulted.
 data_abort_full:
     @ initially we just forward to staff
-    b staff_data_abort_trampoline_full
-
-    asm_todo("implement")
+    @ b staff_data_abort_trampoline_full
+    mov     sp, #INT_STACK_ADDR  @ 0x9000000
+    sub     lr, lr, #8
+    sub     sp, sp, #68     @ 0x44
+    stmia   sp, {r0-r14}^
+    str     lr, [sp, #60]   @ 0x3c
+    mov     r2, lr
+    mrs     r1, SPSR
+    str     r1, [sp, #64]   @ 0x40
+    mov     r0, sp
     bl data_abort_full_except
     asm_not_reached();
 
@@ -111,9 +125,17 @@ data_abort_full:
 @ the pc in <regs> should point to the instruction after.
 syscall_full:
     @ initially we just forward to staff
-    b staff_syscall_trampoline_full
+    @ b staff_syscall_trampoline_full
 
-    asm_todo("implement: do not set sp!")
+    @ asm_todo("implement: do not set sp!")
+    mov     sp, #INT_STACK_ADDR  @ 0x9000000
+    sub     sp, sp, #68     @ 0x44
+    stmia   sp, {r0-r14}^
+    str     lr, [sp, #60]   @ 0x3c
+    mov     r2, lr
+    mrs     r1, SPSR
+    str     r1, [sp, #64]   @ 0x40
+    mov     r0, sp
 
     bl syscall_full_except
     asm_not_reached();

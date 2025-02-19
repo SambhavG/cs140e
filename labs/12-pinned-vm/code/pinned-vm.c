@@ -15,6 +15,12 @@
 // arm1176.pdf: 3-149
 
 // define the following routines.
+
+cp_asm(lockdown_index, cp15, 5, c15, c4, 2)
+cp_asm(lockdown_va, cp15, 5, c15, c5, 2)
+cp_asm(lockdown_pa, cp15, 5, c15, c6, 2)
+cp_asm(lockdown_attr, cp15, 5, c15, c7, 2)
+
 #if 0
 // arm1176.pdf: 3-149
 void lockdown_index_set(uint32_t x);
@@ -63,8 +69,8 @@ void pin_mmu_sec(unsigned idx,
                 uint32_t pa,
                 pin_t e) {
 
-    staff_pin_mmu_sec(idx, va, pa, e);
-    return;
+    // staff_pin_mmu_sec(idx, va, pa, e);
+    // return;
 
     demand(idx < 8, lockdown index too large);
     // lower 20 bits should be 0.
@@ -81,10 +87,18 @@ void pin_mmu_sec(unsigned idx,
     // these will hold the values you assign for the tlb entries.
     uint32_t x, va_ent, pa_ent, attr;
 
-    // put your code here.
-    unimplemented();
+    x = idx;
+    lockdown_index_set(x);
 
-#if 0
+    //set va, G, and asid
+    va_ent = bits_set(va_ent, 12, 31, va);
+    va_ent = bits_set(va_ent, 9, 9, e.G);
+    va_ent = bits_set(va_ent, 0, 7, e.asid);
+
+    //unfinished
+
+
+
     // put this back in when defined.
     if((x = lockdown_va_get()) != va_ent)
         panic("lockdown va: expected %x, have %x\n", va_ent,x);
@@ -92,7 +106,6 @@ void pin_mmu_sec(unsigned idx,
         panic("lockdown pa: expected %x, have %x\n", pa_ent,x);
     if((x = lockdown_attr_get()) != attr)
         panic("lockdown attr: expected %x, have %x\n", attr,x);
-#endif
 }
 
 // check that <va> is pinned.  

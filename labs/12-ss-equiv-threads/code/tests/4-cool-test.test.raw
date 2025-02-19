@@ -1,9 +1,10 @@
-staff-find-ttyusb.c:find_ttyusb_last:89:DEBUG:FOUND: </dev/ttyUSB0>
-my-install.c:main:150:DEBUG:my-install: tty-usb=</dev/ttyUSB0> program=<./tests/4-cool-test.bin>: about to boot
-TRACE:simple_boot: sending 18916 bytes, crc32=179ab7ba
+DEBUG:done with options: dev name=</dev/cu.usbserial-110>, pi-prog=<./tests/4-cool-test.bin>, trace=0
+opened tty port </dev/cu.usbserial-110>.
+DEBUG:my-install: tty-usb=</dev/cu.usbserial-110> program=<./tests/4-cool-test.bin>: about to boot
+TRACE:simple_boot: sending 19584 bytes, crc32=a6514527
 BOOT:waiting for a start
+DEBUG:PRINT_STRING:pi sent print: <Sambhav Gupta w/ custom UART: success: Received the program!>
 BOOT:bootloader: Done.
-listening on ttyusb=</dev/ttyUSB0>
 ENABLE
 hello from 1
 hello from 2
@@ -25,4 +26,5 @@ hhhhhhhheeeeeeeelllllllllllllllloooooooo        ffffffffrrrrrrrroooooooommmmmmmm
 
 DONE!!!
 
-BOOT: bootloader: pi exited.  cleaning up
+bootloader: pi exited.  cleaning up
+Num entries: 1

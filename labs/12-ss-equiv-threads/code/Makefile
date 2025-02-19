@@ -4,7 +4,7 @@
 #  - the 4,3,2 tests won't work with make check
 #  - but they should pass their internal checks.
 # PROGS = tests/4-cool-test.c
-# PROGS = tests/3-stack-test.c
+PROGS = tests/3-stack-test.c
 # PROGS = tests/2-no-stack-test.c
 # 
 # PROGS += tests/1-mov-test.c
@@ -37,13 +37,14 @@ COMMON_SRC += full-except-asm.S
 # you'll have to just drop in your breakpoint to replace this.
 # copy it over here.
 STAFF_OBJS += staff-breakpoint.o
+# COMMON_SRC += breakpoint.c
 
 # we give you a kmalloc
 STAFF_OBJS += $(CS140E_2025_PATH)/libpi/staff-objs/kmalloc.o
 
 # as you replace routines comment these out.
-STAFF_OBJS += staff-full-except-asm.o
-STAFF_OBJS += staff-switchto-asm.o
+# STAFF_OBJS += staff-full-except-asm.o
+# STAFF_OBJS += staff-switchto-asm.o
 
 BOOTLOADER=my-install
 RUN = 1
