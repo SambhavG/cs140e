@@ -7,18 +7,43 @@
 ### Clarifications and Errata
 
 BUG:
-  - Part 2: change the following calls in the tests to delete
-    the `staff_`.  So from:
+  - Part 3: This step is a bit annoying.  The initial `staff-pinned-vm.o`
+    exports the name `lockdown_print_entries`, so you wouldn't be
+    able to write yours and still use staff routines.
 
-        1-test-setup.c:    staff_pin_mmu_init(~0);
-        1-test-setup.c:    staff_pin_mmu_switch(0,ASID1);
+    So do a git pull, and drop the following code at the end of your
+    `pinned-vm.c` and do a `make clean` and `make check` to make
+    sure things still work.
+
+```
+void staff_lockdown_print_entry(unsigned idx);
+
+void lockdown_print_entry(unsigned idx) {
+
+    staff_lockdown_print_entry(idx);
+}
+
+void lockdown_print_entries(const char *msg) {
+    trace("-----  <%s> ----- \n", msg);
+    trace("  pinned TLB lockdown entries:\n");
+    for(int i = 0; i < 8; i++)
+        lockdown_print_entry(i);
+    trace("----- ---------------------------------- \n");
+}
+```
+
+    
+
+  - Part 2: change the following calls in the tests to delete
+    the `staff_pin_`.  So from:
+
         1-test-two-addr.c: staff_pin_mmu_init(dom_bits);
 
     To:
 
-        1-test-setup.c:    pin_mmu_init(~0);
-        1-test-setup.c:    pin_mmu_switch(0,ASID1);
         1-test-two-addr.c: pin_mmu_init(dom_bits);
+
+    Note: ignore the  `1-test-setup.c` test.  We don't use it.
 
   - Part 2: You have to implement both `pinned-vm.c:pin_mmu_init` and
     `pin_set_context` at the same time.
@@ -333,9 +358,11 @@ Then start going through the rest (I'll add more discussion).
 ## Part 3: implement `pinned-vm.c:lockdown_print_entries`
 
 ***NOTE:***
-  - DO A PULL TO get updated README
+  - Look at the top of the README for how to fix the name conflict
+    here.
   - our `apx` is actually `apx` + `ap`  on page 3-151 (so 3 bits
     in total).
+
 
 As the final part, implement the print for the lockdown entries.
 Mine is something like:
