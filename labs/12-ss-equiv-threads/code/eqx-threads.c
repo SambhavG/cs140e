@@ -29,6 +29,7 @@
 #include "fast-hash32.h"
 #include "eqx-syscalls.h"
 #include "cpsr-util.h"
+// #include "pi-random.h"
 
 // check for initialization bugs.
 static int eqx_init_p = 0;
@@ -148,6 +149,7 @@ eqx_fork_stack(void (*fn)(void*), void *arg,
 
     eqx_regs_init(th);
     eqx_th_push(&eqx_runq, th);
+    num_threads++;
     return th;
 }
 
@@ -189,6 +191,8 @@ void eqx_refork(eqx_th_t *th) {
     th->reg_hash = 0;
 
     eqx_th_push(&eqx_runq, th);
+
+    num_threads++;
 }
 
 // run a single instruction by setting a mismatch on the 
@@ -211,6 +215,22 @@ void brkpt_run_one_inst(regs_t *r) {
 
     switchto(r);
 }
+uint32_t randseed = 42;
+uint32_t random_gen() {
+    uint32_t val = randseed ^ 0b10101000101010001010101010001010;
+
+    // randseed = randseed * 247483451;
+    randseed = randseed * 1664525 + 1013904223;
+    // printk("%u\n", val >> 26);
+    return val >> 26;
+}
+
+// uint32_t mod(uint32_t a, uint32_t b) {
+//     //Round b to lower power of 2
+//     b = (b+1) >> 1;
+//     b |= 
+
+// }
 
 // pick the next thread and run it.
 //
@@ -225,9 +245,20 @@ eqx_schedule(void)
     assert(cur_thread);
 
     //Randomly decide how many threads to go up
+    if (num_threads > 0) {
+        //choose random
+        uint32_t rand = random_gen(randseed);
+        //Pop and push this many
+        for (int i = 0; i < rand; i++) {
+            eqx_th_append(&eqx_runq, eqx_th_pop(&eqx_runq));
+        }
+    }
+
 
     eqx_th_t *th = eqx_th_pop(&eqx_runq);
+
     if(th) {
+        num_threads--;
         if(th->verbose_p)
             output("switching from tid=%d,pc=%x to tid=%d,pc=%x,sp=%x\n",
                 cur_thread->tid,
@@ -237,6 +268,8 @@ eqx_schedule(void)
                 th->regs.regs[REGS_SP]);
         // put the current thread at the end of the runqueue.
         eqx_th_append(&eqx_runq, cur_thread);
+
+        num_threads++;
         cur_thread = th;
     }
     brkpt_run_one_inst(&cur_thread->regs);
@@ -388,6 +421,7 @@ static int equiv_syscall_handler(regs_t *r) {
             eqx_trace("done with all threads\n");
             switchto(&start_regs);
         }
+        num_threads--;
 
         // otherwise do the next one.
         brkpt_run_one_inst(&cur_thread->regs);
@@ -436,6 +470,8 @@ uint32_t eqx_run_threads(void) {
 
     exit_hash = 0;
     cur_thread = eqx_th_pop(&eqx_runq);
+
+    num_threads--;
     // for today we don't expect an empty runqueue,
     // but you can certainly get rid of this if prefer.
     if(!cur_thread)
@@ -458,12 +494,14 @@ uint32_t eqx_run_threads(void) {
 
     // check that runqueue empty.
     cur_thread = eqx_th_pop(&eqx_runq);
+
     if(cur_thread)
         panic("run queue should be empty\n");
 
     // better be empty.
     assert(!eqx_runq.head);
     assert(!eqx_runq.tail);
+    assert(num_threads == 0);
 
     eqx_trace("done running threads\n");
 
