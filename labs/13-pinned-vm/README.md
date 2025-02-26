@@ -52,6 +52,8 @@ void lockdown_print_entries(const char *msg) {
     you should call any needed `staff_mmu_*` routines (just 
     like the tests do) rather than re-implementing them.  You
     will write the `mmu_*` routines next week.
+  - We added some clarification for `pin_clear` and `tlb_contains_va`.
+    in Part 2.
 
 Hints:
   - We don't use secure mode.  So just set that stuff to 0.
@@ -335,8 +337,6 @@ An example usage to see their semantics:
 ----------------------------------------------------------------------
 ## Part 2: start knocking off `staff_*` calls in `pinnned-vm.c`
 
-***If you see this: DO A PULL TO get updated README***
-
 First start by implementing `pinned-vm.c:pin_mmu_init` and
 `pin_set_context` at the same time (`pin_mmu_init` will allocate the
 invalid page table and `pin_set_context` will use it).
@@ -352,7 +352,12 @@ you want to:
 You should be able to pretty easily finish both using the code
 from the first test case.
 
-Then start going through the rest (I'll add more discussion).
+Then start going through the rest.  For:
+  - `pin_clear`: set all all three registers at TLB `idx` to 0.
+     make sure you do a lookup after to verify they are 0.
+  - `tlb_contains_va`: this is on 3-79.  Do a translation in the current
+    mode, as a "privileged read".  In both success and failure cases,
+    assign the result of the translation to `result`.
 
 ----------------------------------------------------------------------
 ## Part 3: implement `pinned-vm.c:lockdown_print_entries`
@@ -362,7 +367,11 @@ Then start going through the rest (I'll add more discussion).
     here.
   - our `apx` is actually `apx` + `ap`  on page 3-151 (so 3 bits
     in total).
-
+  - note: the pa and va are a bit weird.  we divide them by 
+    1MB to get the sector number, but they might have been
+    a different size.  this is fine for today, but later on
+    if you use this routine you'd probably want a different
+    approach.
 
 As the final part, implement the print for the lockdown entries.
 Mine is something like:
@@ -413,19 +422,43 @@ start with the exception code from `1-test-basic.c`.
 A domain fault.  Write a single test that:
   1. Tags the heap with its own domain id `d`.
   2. Removes permissions for `d`, does a load using `GET32`, and gets the fault.
-  3. In the fault handler, prints the `pc`, the ARMv6 "reason" for the 
-     fault (using the `dfsr`), re-enables the domain permissions, and returns.
+  3. In the fault handler: 
+        1. Verify that the `pc` equals the address for `GET32`;
+        2. Print the pc and the ARMv6 "reason" for the 
+           fault (using the `dfsr`);
+        3. Re-enable the domain permissions, and return.  
+
+     NOTE: The test `1-test-basic-tutorial.c` had an example of catching
+     faults and looking at dfsr.
+
   4. Do (2) and (3) for store.  Use (`PUT32`) so you can check the `pc`.
-  5. Do (2) and (3) for a jump.  You'll have to write the instruction
-     for `bx lr` to a heap location and jump to it.  Note: for this 
-     you'll need to also install a `prefetch` abort handler 
-     (just like we did last lab).
+  5. Do (2) and (3) for a jump.  You'll have to:
+        1. Allocate 4 bytes in the heap;
+        2. Write the instruction encoding for `bx lr` to that 
+           heap location (you can find the `bx lr` encoding by
+           looking in any `.list` file);
+        3. And then jump to that heap location either by using BRANCHTO
+           (see `libpi/staff-start.S`), or by casting the location to
+           a function pointer.  (Don't use inline assembly!  it's not
+           needed).
+
+     Note: for this you'll need to also install a `prefetch` abort handler
+     (just like we did in the single-step labs).
 
 Useful domain pages:
   - B4-10: what the bit values mean for the `domain` field.
   - B4-15: how addresses are translated and checked for faults.
   - B4-27: the location / size of the `domain` field in the segment page table entry.
   - B4-42: setting the domain register.
+
+  - The "Data Fault Status Register" to get the cause (b4-19,
+    b4-20, b4-43, b4-44).  And the "Combined Data/FAR" to get the fault
+    address (b4-44).
+
+  - Instruction fault status register (IFSR):
+<table><tr><td>
+<img src="images/ifsr-get.png"/>
+</td></tr></table>
 
 
 NOTE: (I don't think this applies today, but just in case): if you delete
