@@ -150,14 +150,64 @@ void pin_set_context(uint32_t asid) {
 }
 
 void pin_clear(unsigned idx)  {
-    staff_pin_clear(idx);
+    demand(idx <= 7, invalid idx);
+
+    lockdown_index_set(idx);
+    lockdown_va_set(0);
+    lockdown_pa_set(0);
+    lockdown_attr_set(0);
+
+    assert(lockdown_va_get() == 0);
+    assert(lockdown_pa_get() == 0);
+    assert(lockdown_attr_get() == 0);
+
+    // staff_pin_clear(idx);
 }
 
 void staff_lockdown_print_entry(unsigned idx);
 
 void lockdown_print_entry(unsigned idx) {
 
-    staff_lockdown_print_entry(idx);
+    trace("   idx=%d\n", idx);
+    lockdown_index_set(idx);
+    uint32_t va_ent = lockdown_va_get();
+    uint32_t pa_ent = lockdown_pa_get();
+    uint32_t attr = lockdown_attr_get();
+    unsigned v = bit_get(pa_ent, 0);
+
+    if(!v) {
+        trace("     [invalid entry %d]\n", idx);
+        return;
+    }
+
+    uint32_t va = (va_ent >> 12);
+    uint32_t pa = (pa_ent >> 12);
+    uint32_t G = bits_get(va_ent, 9, 9);
+    uint32_t asid = bits_get(va_ent, 0, 7);
+    uint32_t AP_perm = bits_get(pa_ent, 1, 3);
+    uint32_t pagesize = bits_get(pa_ent, 6, 7);
+    uint32_t nsa = bits_get(pa_ent, 9, 9);
+    uint32_t nstid = bits_get(pa_ent, 8, 8);
+    uint32_t apx = bits_get(pa_ent, 1, 3);
+    uint32_t ap = bits_get(pa_ent, 1, 2);
+    uint32_t size = bits_get(pa_ent, 6, 7);
+    uint32_t dom = bits_get(attr, 7, 10);
+    uint32_t xn = bits_get(attr, 6, 6);
+    uint32_t tex = bits_get(attr, 3, 5);
+    uint32_t C = bits_get(attr, 2, 2);
+    uint32_t B = bits_get(attr, 1, 1);
+
+    // 3-149
+    trace("     va_ent=%x: va=%x|G=%d|ASID=%d\n",
+        va_ent, va, G, asid);
+
+    // 3-150
+    trace("     pa_ent=%x: pa=%x|nsa=%d|nstid=%d|size=%b|apx=%b|v=%d\n",
+                pa_ent, pa, nsa,nstid,size, apx,v);
+
+    // 3-151
+    trace("     attr=%x: dom=%d|xn=%d|tex=%b|C=%d|B=%d\n",
+            attr, dom,xn,tex,C,B);
 }
 
 void lockdown_print_entries(const char *msg) {
@@ -165,5 +215,5 @@ void lockdown_print_entries(const char *msg) {
     trace("  pinned TLB lockdown entries:\n");
     for(int i = 0; i < 8; i++)
         lockdown_print_entry(i);
-    trace("--------------------------------------- \n");
+    trace("----- ---------------------------------- \n");
 }
