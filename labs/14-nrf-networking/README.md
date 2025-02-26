@@ -1,8 +1,38 @@
-## Get two nrf24l01p RF tranceivers to talk to each other.
+## Get two nrf24l01p RF transceivers to talk to each other.
 
 <p align="center">
   <img src="images/pi-network.jpg" width="650" />
 </p>
+
+
+
+-----------------------------------------------------------------
+### Errata
+
+  - Going from "Power Down" to "RX": table 16 on page 24: a safe
+    value seems to be 5ms.  I'm not sure how we calculated 2ms
+    (which does *appear* to work).
+
+  - `nrf_init`: so the test pass always set `NRF_RX_ADDR_P0` to 0.
+    This is a bit weird, but that's the way the tests are (sorry).
+
+  - make sure you increment the stats fields.  
+
+    When you send a packet:
+
+            n->tot_sent_msgs++;
+            n->tot_sent_bytes += nbytes;
+
+    On tx if a packet gets lost:
+
+            n->tot_lost++;
+
+    When you receive a packet:
+
+            n->tot_recv_msgs++;
+            n->tot_recv_bytes += nbytes;
+
+
 
 -----------------------------------------------------------------
 #### tl;dr: hints and mistakes
@@ -10,9 +40,12 @@
 We put these here so you can easily scroll.  Will add errata
 as needed.
 
+
 HINTS:
   - If you have issues, the first thing to do is
     switch to using the `staff_nrf_init` routine.
+  - Make sure you look at the first few test cases, since they
+    have a lot of comments about where stuff is.
 
 Key pages:
   - p 57-63: The full set of NRF registers.
@@ -22,7 +55,7 @@ Key pages:
     how to do it.  we care about RX, TX, standby-I.  stay in the
     "recommended" states.
   - Make sure you go through the [CHEATSHEET](./CHEATSHEET-nrf24l01p.md).
-    A bunch of facts you need are there, so it's a good cheatcode.
+    A bunch of facts you need are there, so it's a good cheat-code.
 
 Common mistakes:
 
@@ -54,7 +87,7 @@ Common mistakes:
 NOTE: The code is currently setup so that all the tests *should* pass
 if you just run `make check`.
 
-   - ***NOTE: with 70+ people in one room we may have signficant
+   - ***NOTE: with 70+ people in one room we may have significant
      RF interference***
    - So: if the tests don't pass, this doesn't mean the code is broken.
      It may just mean you are getting interference.
@@ -78,10 +111,16 @@ if you just run `make check`.
 #### Description
 
 Today you'll build some code to make the NRF chips we have talk to
-each other.   The lab is organized as a fetch-quest where you'll build
+each other.   
+The NRF's are very common, and fairly cheap (we are using clones that
+were about $14 per 12).
+The lab is organized as a fetch-quest where you'll build
 the routines to (1) initialize, (2) receive, (3) send non-acked packets,
 (4) send acked packets.  This gives you a simple starting point for
-networking.  
+networking.    
+
+The NRFs are extremely common and fairly cheap --- ours were 
+12 boards for $14 (though, likely fake clones).
 
 <p align="center">
   <img src="images/nrf-closeup.jpg" width="250" />
@@ -103,7 +142,7 @@ Before you start:
 
     If the configuration failed (e.g., the "0" tests): the problem
     could be that you plugged the boards in wrong (see the photo).
-    Or you could have a defective NRF or parthiv board --- you'll have
+    Or you could have a defective NRF or Parthiv board --- you'll have
     to swap things out to narrow down.
 
     If you get a smattering of packet losses, this is likely just
@@ -151,7 +190,7 @@ Key files that you should not have to change:
  - `nrf-test.h`: helpers for testing.  Useful to look at to see how
    to use the NRF interfaces.
 
-#### Checkoff
+#### Check-off
 
 Pretty simple:
   1.  You should have implemented your own copies of the `staff_` routines
@@ -165,8 +204,8 @@ Pretty simple:
 
 Major extension:
   - You can always do this lab on hard mode and build your own from
-    scratch: you'll learn alot.  The tests give reasonable iterfaces.
-    Doing this plus a network bootloader would be a reasonable final
+    scratch: you'll learn a lot.  The tests give reasonable interfaces.
+    Doing this plus a network boot-loader would be a reasonable final
     project.
 
 --------------------------------------------------------------------------------
@@ -186,7 +225,7 @@ we can just plug them in!)
 
 The r/pi has hardware support for SPI.  We give you this driver,
 but you can write it driver as an extension.  Or you just bit bang
-using [the wikipedia code](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface):
+using [the Wikipedia code](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface):
 
 <kdb> <img src="images/spi-bit-bang.png"  /> </kdb>
 
@@ -229,7 +268,7 @@ enum {
 
 To get and set NRF registers you specify the register you want (from
 above), and use the SPI routines to read and write.  SPI is a bit weird
-in that it takes produces as many bytes as ouput as it took as input.
+in that it takes produces as many bytes as output as it took as input.
 So you'll notice the transmit and receive buffers for each operation
 take the same size input.
 
@@ -314,7 +353,7 @@ Cheat code:
 
 As mentioned above, for simplicity, you'll only configure the NRF to use
 a single pipe.  This pipe can either be initialized for acknowledgements
-(`ack_p=1`) and or no acknwledgements (`ack_p=0`) but not both.
+(`ack_p=1`) and or no acknowledgements (`ack_p=0`) but not both.
 
    -  `ack_p=0`: for this you only have to enable pipe 1.
       No other pipe should be enabled.  
@@ -440,7 +479,7 @@ read the value back and check it.  This will detect:
      single byte).
   3. Broken hardware: if one of your NRF devices (or Parthiv board slots)
      is dead.
-  4. Device misconfiguration, e.g., the SPI clock was too fast so the 
+  4. Device mis-configuration, e.g., the SPI clock was too fast so the 
      device couldn't keep up.
 
 
@@ -493,7 +532,7 @@ RX mode:
     `NRF_CONFIG=rx_config`.)
 
 
-Second most common bug: in `nrf_init` hardcoding variables as constants.
+Second most common bug: in `nrf_init` hard-coding variables as constants.
 
   - This is partly on me: a nasty bug people hit was caused by
     hard-coding NRF initialization values rather than setting 
@@ -515,7 +554,7 @@ Second most common bug: in `nrf_init` hardcoding variables as constants.
 ### Part 1: Implement `nrf-driver.c:nrf_tx_send_noack`.
 
 <p align="center">
-  <img src="images/pi-huge-network.jpg" width="650" />
+  <img src="images/pi-huge-network.jpg" width="850" />
 </p>
 
 #### tl;dr:
@@ -548,13 +587,25 @@ Roughly:
      At this point "the TX fifo is not empty" as per the state machine.
 
   3. We are currently in RX mode.  So to transmit the packet we go
-     to TX mode as follows:
-      1. Go to Standby-I by setting `CE=0` (see state machine).  
-      2. Set `NRF_CONFIG=tx_config`;
-      3. Set `CE=1`.  
+     to TX mode using the state machine on p22.
 
      AFAIK, going from "RX" to "Standby-I" to "Standy-II" with data is
-     the the fastest way to go from "RX" to "TX".
+     the the fastest way to go from "RX" to "TX" as follows (but: always
+     trust p22 over us):
+
+      1. Put the packet in the TX FIFO.
+      2. From RX: Go to Standby-I by setting `CE=0` (see state machine).
+         I think step 1 and step 2 can be interchanged.  
+      3. Set `NRF_CONFIG=tx_config`;
+      4. Set `CE=1`.  The state machine says "for at least 10usec",
+         but see step 5.
+      5. We will then wait for the TX to finish (below) ---
+         because transmit will then be done, I do not believe we need
+         to explicitly wait for 130usec (the transition state) nor the
+         10usec in step 4.
+
+     NOTE: you should `assert` using the helpers `nrf_is_tx` and
+     `nrf_is_rx` to make sure you're in the expected states.
 
   4. Detect when the transmission is complete by either (1) waiting
      until the TX fifo is empty or (2) for the TX interrupt to be
@@ -562,7 +613,11 @@ Roughly:
      (interrupts) is similar to sending with acks so probably makes
      more sense.
 
-  5. Clear the TX interrupt.
+  5. Clear the TX interrupt and increment the stats fields.
+
+            n->tot_sent_msgs++;
+            n->tot_sent_bytes += nbytes;
+
   6. Transition back to RX mode.
   7. Return the number of bytes sent (just `nbytes` that the routine
      was called with).
@@ -616,7 +671,7 @@ issues, it is probably from this mistake.
 ### Part 4: Implement `nrf-driver.c:nrf_tx_send_ack`.
 
 <p align="center">
-  <img src="images/pi-shockwave.jpg" width="450" />
+  <img src="images/pi-shockwave.jpg" width="850" />
 </p>
 
 #### tl;dr:
@@ -677,7 +732,7 @@ If you have problems:
   1. As a first step, make a one-way test where one pi sends packets in
      a loop (e.g., every second) and the second pi waits for them and 
      prints when it receives.  Ping pong requires that RX and TX are
-     working on both pi's (including address assigment) whereas 
+     working on both pi's (including address assignment) whereas 
      a one-way test only requires TX working on one and RX on the other.
 
   2. Insert a `nrf_dump` right before sending or receiving and make sure
@@ -686,7 +741,7 @@ If you have problems:
 Congratulations!  You now have simple working networking system.  
 
 <p align="center">
-  <img src="images/robots-done.png" width="450" />
+  <img src="images/robots-done.png" width="550" />
 </p>
 
 --------------------------------------------------------------------------------
@@ -696,7 +751,8 @@ There's a ton of extensions.  Building out most of these would
 be a great, useful final project:
   1. Speed!  The code is slow.  You should be able to tune it.
      One easy change is to change it so it can send multiple
-     packets at a time.
+     packets at a time.   Assuming you can get close to hardware
+     speeds this is a legit final project.
   2. Make a reliable FIFO.
   3. Do a network bootloader.
   4. Do exponential backoff to handle the case where two nodes blast
@@ -707,6 +763,11 @@ be a great, useful final project:
   7.  Use more pipes.
   8. Send and receive using both NRFs to double the effective bandwidth.
      A great final project is seeing how many NRFs you can drive at once.
+  9. Cool final project: hook up 10+ NRFs (maybe using a custom pcb) and
+     see how many you can drive at once.   
+
+     Related: have multiple  NRFs (e.g., two :) and provide a virtual
+     interface that makes it easy to send multiple packets at once.
 
 #### Use interrupts
 
