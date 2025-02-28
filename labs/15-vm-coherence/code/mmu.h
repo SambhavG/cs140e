@@ -98,5 +98,7 @@ void mmu_disable(void);
 int staff_mmu_is_enabled(void);
 int mmu_is_enabled(void);
 
+void mmu_enable_set_asm(cp15_ctrl_reg1_t c);
+void mmu_disable_set_asm(cp15_ctrl_reg1_t c);
 
 #endif

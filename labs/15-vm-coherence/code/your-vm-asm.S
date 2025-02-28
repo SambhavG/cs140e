@@ -191,6 +191,11 @@ MK_FN(mmu_sync_pte_mods)
 
     DSB(r2)
     INV_TLB(r2)
+    FLUSH_BTB(r2)
+    DSB(r2)
+    PREFETCH_FLUSH(r2)
+
+
     @flush everything
     FLUSH_BTB(r2)
     DSB(r2)

@@ -19,6 +19,7 @@
     "armv6-debug-impl.h": "c",
     "asm-helpers.h": "c",
     "dwc2_common.h": "c",
-    "defines.h": "c"
+    "defines.h": "c",
+    "mmu-internal.h": "c"
   }
 }
