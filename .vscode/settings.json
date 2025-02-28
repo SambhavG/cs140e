@@ -17,6 +17,8 @@
     "mini-step.h": "c",
     "vector-base.h": "c",
     "armv6-debug-impl.h": "c",
-    "asm-helpers.h": "c"
+    "asm-helpers.h": "c",
+    "dwc2_common.h": "c",
+    "defines.h": "c"
   }
 }
