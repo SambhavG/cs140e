@@ -5,7 +5,58 @@
 </p>
 
 -----------------------------------------------------------------------
+***Bugs***:
+
+  - Part 5: talked about `ttbd` --- it's `ttbc` (we've updated the readme below).
+
+  - Part 1: Multiple definitions: When you implement
+    `cp15_ctrl_reg1_rd` you'll get a multiple definition error.  Just do
+    a pull and this will get fixed.
+
+    If you pulled and got a undefined error, just drop in:
+
+            cp15_ctrl_reg1_t cp15_ctrl_reg1_rd(void) {
+                return staff_cp15_ctrl_reg1_rd();
+            }
+
+  - Part 1: The comment for `cp15_domain_ctrl_wr` says you need to
+    "flush_btb, dsb, prefetch flush" but I think you only need the
+    prefetch flush.
+
+  - Part 6: when you remove all the staff code, you will have to modify
+    your pinned-vm.h to remove the staff calls:
+
+```
+        // pinned-vm.h: delete the staff_* prefixes
+        
+        // simple wrappers
+        static inline void pin_mmu_enable(void) {
+            assert(!mmu_is_enabled());
+            staff_mmu_enable();
+            assert(mmu_is_enabled());
+        }
+        static inline void pin_mmu_disable(void) {
+            assert(mmu_is_enabled());
+            staff_mmu_disable();
+            assert(!mmu_is_enabled());
+        }
+```
+
+
 ***Clarifications***:
+
+  - You can use the macros in `arm6-coprocessor-asm.h` in the assembly
+    code.  E.g.,
+
+
+```
+        mov r2, #2  @ clear r2
+        INV_DCACHE(r2)
+        INV_ICACHE(r2)
+        INV_TLB(r2)
+```
+
+
   - If your `pinned-vm.c` has issues: we've checked in
     `code/orig-pinned-vm.c` you can just change the `Makefile` to use
     this instead.
@@ -13,12 +64,6 @@
         # change the code/Makefile to use orig-pinnned-vm.c
         # COMMON_SRC += pinned-vm.c
         COMMON_SRC += orig-pinned-vm.c
-
-
-  - Before you start:
-      - Copy your `pinned-vm.c` into today's `code` directory.  (If you
-        don't you should get a compilation error.)
-      - make sure `make check` works before doing anything else.
 
   - Note: the test `4-test-vm-cache-mgmt.c` assumes your enable/disable
     does an icache invalidation.  As the lab discusses below if you 
@@ -402,7 +447,8 @@ Where and what:
 
   1. B4-41: The hardware has to be able to find the page table when
   there is a TLB miss.  You will write the address of the page table to
-  the page table register `ttbr0`, set both `TTBR1` and `TTBRD` to `0`.
+  the page table register `ttbr0`, set both `TTBR1` and `TTBC` to `0`.
+  (See below)
   Note the alignment restriction!
 
   2.  B4-52: The ARM allows each TLB entry to be tagged with an address
@@ -419,6 +465,12 @@ Where and what:
   <img src="images/part5-context-id-rule.png" width=500/>
 </td></tr></table>
 
+----------------------------------------------------------------------
+##### B4-41: setting `ttbc`
+
+<table><tr><td>
+  <img src="images/part5-ttbc-set.png" width=500/>
+</td></tr></table>
 
 ----------------------------------------------------------------------
 ##### B4-41: Setting page table pointer.
@@ -457,7 +509,7 @@ Where and what:
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
-## Part 4: Get rid of our code.
+## Part 6: Get rid of our code.
 
 You should go through and delete all uses of our MMU / pinned-vm code
 in the `code/Makefile`:
@@ -472,6 +524,26 @@ in the `code/Makefile`:
     STAFF_OBJS += staff-mmu-except.o
     STAFF_OBJS += staff-pinned-vm.o
 ```
+
+
+Also, delete the `staff_` prefix in `pinned-vm.h`:
+
+```
+        // pinned-vm.h: delete the staff_* prefixes
+        
+        // simple wrappers
+        static inline void pin_mmu_enable(void) {
+            assert(!mmu_is_enabled());
+            staff_mmu_enable();
+            assert(mmu_is_enabled());
+        }
+        static inline void pin_mmu_disable(void) {
+            assert(mmu_is_enabled());
+            staff_mmu_disable();
+            assert(!mmu_is_enabled());
+        }
+```
+
 
 At this point, all VM code is written by you!  This is a legit capstone.
 
@@ -531,15 +603,13 @@ The main one:
     of how the machine works.
 
 Some additional ones:
+  - Make a flush routine that only flushes the specific VA information.
+    Measure the cost difference (huge).
 
-  - Write faster flushing operations:  What we have is very slow in
-    that it flushes everything rather than flushing just the needed
-    virtual address.  Change the PTE modification code to be more precise.
-
-  - You can make a virtual memory system that does not use page tables
-    by carefully adding entries to the "locked" region in the TLB on
-    miss (or before).  It's an interesting exercise to redo the VM in
-    this way.
+  - More general: Write faster flushing operations:  What we have is
+    very slow in that it flushes everything rather than flushing just
+    the needed virtual address.  Change the PTE modification code to be
+    more precise.
 
   - Use memory protection to improve your digital analyzer error.
     You can use memory protection to eliminate the if-statement
@@ -557,14 +627,12 @@ Some additional ones:
     This is a very old trick that not a lot of people know about anymore.
     Garbage collectors use it, along with other things.
 
-  - Make a flush routine that only flushes the specific VA information.
-    Measure the cost difference (huge).
 
-  - Set up code so that it cleans the cache rather than just invalidates.
-  - Write code to make it easy to look up a PTE (`mmu_lookup_pte(void *addr)`)
-    and change permissions, write-buffer, etc.
+NOTE: these assume you have page tables:
   - Set-up two-level paging.
   - Set-up 16MB paging.
+  - Write code to make it easy to look up a PTE (`mmu_lookup_pte(void *addr)`)
+    and change permissions, write-buffer, etc.
 
 ----------------------------------------------------------------------
 <p align="center">
