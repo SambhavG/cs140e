@@ -1,14 +1,15 @@
 # you'll implement <mini-watch.c> later in lab
-COMMON_SRC += mini-watch.c
-COMMON_SRC += mini-step.c
+# COMMON_SRC += mini-watch.c
+# COMMON_SRC += mini-step.c
 
 
 # support dynamic exception registering.
-COMMON_SRC += staff-full-except.c 
+# COMMON_SRC += staff-full-except.c 
 
 # you'll do these next week.
-STAFF_OBJS := staff-full-except-asm.o  
-STAFF_OBJS += staff-switchto-asm.o
+# STAFF_OBJS := staff-full-except-asm.o  
+# STAFF_OBJS += staff-switchto-asm.o
+STAFF_OBJS := csud/libcsud.a
 STAFF_OBJS += $(CS140E_2025_PATH)/libpi/staff-objs/kmalloc.o
 
 # define this if you need to give the device for your pi
@@ -26,7 +27,7 @@ START_ASM = staff-start.S
 # these are all the tests.
 # PROGS := $(wildcard ./[1234567]-*.c)
 
-PROGS := 10-find-printer.c
+PROGS := 12-find-printer.c
 # PROGS := 9-find-printer.c
 # PROGS := 8-find-printer.c
 # PROGS := 7-find-printer.c

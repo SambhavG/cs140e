@@ -81,6 +81,7 @@ MK_FN(cp15_set_procid_ttbr0)
     PREFETCH_FLUSH(r2)
     TTBR0_SET(r1)
     TTBR1_SET(r2)
+    FLUSH_BTB(r2)
     PREFETCH_FLUSH(r2)
     DSB(r2)
     ASID_SET(r0)
@@ -158,16 +159,16 @@ MK_FN(mmu_enable_set_asm)
     INV_ICACHE(r2)
 
     @flush everything
-    FLUSH_BTB(r2)
+    @ FLUSH_BTB(r2)
     DSB(r2)
-    PREFETCH_FLUSH(r2)
+    @ PREFETCH_FLUSH(r2)
 
     @ write the user's original value in r0
     CONTROL_REG1_WR(r0)
 
     @ flush everything
+    PREFETCH_FLUSH(r2)
     FLUSH_BTB(r2)
-    DSB(r2)
     PREFETCH_FLUSH(r2)
 
     bx lr

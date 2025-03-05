@@ -123,5 +123,7 @@ sw_uart_printk(sw_uart_t *s, const char *fmt, ...) {
     sw_uart_putk(s, buf);
 }
 
+uint8_t sw_uart_loopback(sw_uart_t *uart, uint8_t b);
+
 
 #endif

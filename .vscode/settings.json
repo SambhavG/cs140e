@@ -20,6 +20,16 @@
     "asm-helpers.h": "c",
     "dwc2_common.h": "c",
     "defines.h": "c",
-    "mmu-internal.h": "c"
+    "mmu-internal.h": "c",
+    "*.a": "c",
+    "platform.h": "c",
+    "usbd.h": "c",
+    "devicerequest.h": "c",
+    "device.h": "c",
+    "pipe.h": "c",
+    "descriptors.h": "c",
+    "types.h": "c",
+    "get-code.h": "c",
+    "put-code.h": "c"
   }
 }

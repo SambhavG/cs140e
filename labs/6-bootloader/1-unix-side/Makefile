@@ -1,4 +1,4 @@
-PROGS = my-install.c
+PROGS = my-install.c my-install-debug.c handler.c
 COMMON_SRC = put-code.c
 CFLAGS += -I../2-pi-side
 

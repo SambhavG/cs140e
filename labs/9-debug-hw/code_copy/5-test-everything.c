@@ -37,7 +37,20 @@ int fib_caller(void) {
 }
 
 void notmain(void) {
+
+    char buf[1000];
+    while (1) {
+        //Read until get a \0
+        uint8_t bytes = uart_get8();
+        for (int i = 0; i < bytes; i++) {
+            buf[i] = uart_get8();
+        }
+        buf[bytes] = '\0';
+        output("buf: %s\n", buf);
+    }
+
     debugger_init();
+
 
     int n = 10;
     for(int i = 0; i < n; i++) {
