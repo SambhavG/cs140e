@@ -1,0 +1,20 @@
+DEBUG:done with options: dev name=</dev/cu.usbserial-10>, pi-prog=<./tests/2-fat32-hash-read.bin>, trace=0
+opened tty port </dev/cu.usbserial-10>.
+DEBUG:my-install: tty-usb=</dev/cu.usbserial-10> program=<./tests/2-fat32-hash-read.bin>: about to boot
+TRACE:simple_boot: sending 30312 bytes, crc32=955777c6
+BOOT:waiting for a start
+DEBUG:PRINT_STRING:pi sent print: <Sambhav Gupta w/ custom UART: success: Received the program!>
+BOOT:bootloader: Done.
+Reading the MBR.
+Loading the first partition.
+Loading the FAT.
+EMMC_WARN: Retrying data command
+EMMC_WARN: Retrying data command
+EMMC_ERR: Giving up data command
+EMMC_ERR: READ FAILED: sector=61067264, size=3815424
+PANIC:pi-sd.c:pi_sd_read:38:could not read from sd card: result = -1
+
+DONE!!!
+
+bootloader: pi exited.  cleaning up
+Num entries: 1

@@ -8,19 +8,19 @@
 # and look at the output to make sure it makes sense.
 
 # uncomment COMMON_SRC and comment out STAFF_OBJS
-# COMMON_SRC += mbr.c
-STAFF_OBJS +=  staff-mbr.o
+COMMON_SRC += mbr.c
+# STAFF_OBJS +=  staff-mbr.o
 
 # uncomment COMMON_SRC and comment out STAFF_OBJS
-# COMMON_SRC += fat32.c
-STAFF_OBJS +=  staff-fat32.o
+COMMON_SRC += fat32.c
+# STAFF_OBJS +=  staff-fat32.o
 
 # the tests in decreasing order of difficulty.
 
 # PROGS := $(wildcard tests/[3]-*.c)
 # PROGS := $(wildcard tests/[2]-*.c)
-PROGS := $(wildcard tests/[1]-*.c)
-PROGS := $(wildcard tests/[0]-*.c)
+# PROGS := $(wildcard tests/[1]-*.c)
+# PROGS := $(wildcard tests/[0]-*.c)
 
 # since each takes so long, break them out.
 # when doing part 2 just build one at a time
@@ -28,7 +28,7 @@ PROGS := $(wildcard tests/[0]-*.c)
 # PROGS := tests/2-fat32-mk.c
 # PROGS := tests/2-fat32-read.c
 # PROGS := tests/2-fat32-hash-read.c  
-# PROGS := tests/2-fat32-ls.c  
+PROGS := tests/2-fat32-ls.c  
 # PROGS := tests/2-fat32-jump.c	   
 
 # for checkoff don't do r/w
@@ -39,6 +39,7 @@ CFLAGS_EXTRA  = -Iexternal-code
 # a list of all of your object files.
 COMMON_SRC += pi-sd.c mbr-helpers.c fat32-helpers.c fat32-lfn-helpers.c external-code/unicode-utf8.c external-code/emmc.c#  external-code/mbox.c 
 
+STAFF_OBJS += $(CS140E_2025_PATH)/libpi/staff-objs/kmalloc.o
 # external-code/bzt-sd.c 
 
 TTYUSB = 

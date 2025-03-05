@@ -1,0 +1,1 @@
+PANIC:pi-sd.c:pi_sd_read:38:could not read from sd card: result = -1
