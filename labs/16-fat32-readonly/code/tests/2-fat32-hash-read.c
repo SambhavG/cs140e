@@ -64,13 +64,13 @@ void notmain() {
     // this could possibly fail if you have a different gcc
     // version --- change the cksum if so.
     output("if the hash of <hello-f.bin> fails: make sure its hash is correct\n");
-    read_and_hash(&fs, &root, "HELLO-F.BIN", 0xd9e29bb9);
+    read_and_hash(&fs, &root, "HELLO-F.BIN", 0xbd2b38c2);
 
     // fill in the cksum values for these.
-    todo("fill in the checksum for these next three files (use `hash-files`)\n");
-    read_and_hash(&fs, &root, "BOOTLO~1.BIN", 0);
-    read_and_hash(&fs, &root, "CONFIG.TXT", 0);
-    read_and_hash(&fs, &root, "KERNEL.IMG", 0);
+    // todo("fill in the checksum for these next three files (use `hash-files`)\n");
+    read_and_hash(&fs, &root, "BOOTL~14.BIN", 0xed7e8fc7);
+    read_and_hash(&fs, &root, "CONFIG.TXT", 0xfd52a31c);
+    read_and_hash(&fs, &root, "KERNEL.IMG", 0x44be2a6b);
 
     printk("PASS: %s\n", __FILE__);
 }

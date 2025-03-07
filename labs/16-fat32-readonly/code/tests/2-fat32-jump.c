@@ -76,7 +76,14 @@ void notmain() {
     // jump to it using BRANCHTO.  make sure
     // you skip the header!  (see in hello-f.list
     // and memmap.fixed in 13-fat32/hello-fixed
-    unimplemented();
+    // unimplemented();
+    
+    for (int i = 0; i < f->n_data; i++) {
+      *((uint8_t*) addr+i) = f->data[i];
+    }
+
+
+    BRANCHTO(p[2]+p[1]);
 
     trace("returned from <%s>!\n", name);
 

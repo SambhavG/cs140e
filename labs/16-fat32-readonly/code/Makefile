@@ -18,7 +18,7 @@ COMMON_SRC += fat32.c
 # the tests in decreasing order of difficulty.
 
 # PROGS := $(wildcard tests/[3]-*.c)
-# PROGS := $(wildcard tests/[2]-*.c)
+PROGS := $(wildcard tests/[2]-*.c)
 # PROGS := $(wildcard tests/[1]-*.c)
 # PROGS := $(wildcard tests/[0]-*.c)
 
@@ -28,7 +28,7 @@ COMMON_SRC += fat32.c
 # PROGS := tests/2-fat32-mk.c
 # PROGS := tests/2-fat32-read.c
 # PROGS := tests/2-fat32-hash-read.c  
-PROGS := tests/2-fat32-ls.c  
+# PROGS := tests/2-fat32-ls.c  
 # PROGS := tests/2-fat32-jump.c	   
 
 # for checkoff don't do r/w
