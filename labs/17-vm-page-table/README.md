@@ -7,8 +7,24 @@
 -----------------------------------------------------------------------
 ## tl;dr: clarifications and errata
 
+BUG:
+
+  - Do a pull.  The .out's for test 2, 3, 4 had the wrong hashes.
+    User memory should be mapped to `MEM_uncached` (just as we
+    have done all quarter).
+
 Clarifications:
-  - do a pull, and the README will get updated about part 0.
+  - Compare the tests for the coherence lab (15) with the tests
+    in the code directory: the only difference between them is
+    the use of page tables versus pinned, so you can see the
+    exact semantics and example usage.
+
+  - Part 0: do a pull, and the README will get updated.
+  - Part 1: when you're done and removing staff code,
+    replace `3-test-cache.c:staff_sync_tlb()` with
+    a call to your `mmu_sync_pte_mods()` --- all the test
+    is trying to do is to verify that 
+    TLB misses occur after invalidating the TLB.
 
 -----------------------------------------------------------------------
 
@@ -220,6 +236,8 @@ Some simple examples:
    and change back.  (Note: when you modify existing page table entries
    you will have to call `staff_mmu_sync_pte_mods` after you modify the
    page table.).
+  - make code faster by changing the the page attributes and co-processor
+    settings to enable the datacache.
 
 Some bigger ones:
  - Setup caching and show it makes some matrix operation better.
@@ -231,17 +249,36 @@ Some bigger ones:
  - automatically grow the stack (below).
 
 ----------------------------------------------------------------------
-### Extension: extend the equivalance checking (lab 14) to have vm.
+### Extension: use the r/pi mailboxes to get the size of memory
 
-Pretty straightforward idea: adapt the single stepping equivalance checker
-from lab 14:
-  - `equiv-threads.c` in the `code-patch-2` or `code-complete-staff`.
+We have been extremely informal about what memory we can use 
+and how much the pi has.  You can query it directly using the
+mailbox interface.  See the 140-24 lab:
+   - [mailbox lab](https://github.com/dddrrreee/cs140e-24win/tree/main/labs/12-i2c%2Bmailboxes)
+For a description of how.  There's tons of interesting hacks you can do 
+w/ the mailboxes, including overclocking the pi to make it faster.
 
-And use it to show that running with and without VM (where the VM uses
-identity maps) gives the same hashes.  You can then do the fancier version
-of showing you get the same hashes even if you switch between proceses.
 
-You'll learn a ton doing this!  It's what I wanted the final lab to be.
+----------------------------------------------------------------------
+### Major Extension: extend the equivalance checking (lab 12) to have vm.
+
+Interesting but not much code: adapt the single stepping equivalance
+checker from lab 12 to use identity-mapped virtual memory.  You should
+get the same hashes when running:
+
+  - with and without virtual memory.
+  - with one thread without VM and many threads with VM switching on
+    every instruction.
+  - with caching on and without.
+  - turning the vm off and on on each switch.
+  - lots of other variations.
+
+You'll learn a ton doing this!  
+
+Note:
+  - To get the code to compile you'll have to change the
+    call `kmalloc_init()` to `kmalloc_init(1)` (or however many MB
+    you need).
 
 ----------------------------------------------------------------------
 ### Extension: Automatically grow the stack.
@@ -261,13 +298,13 @@ As before, to handle a write to an unmapped section:
      on b4-20).
 
 -----------------------------------------------------------------------
-### Extensions
 
-There's a ton of extensions to do:
-  - do nested page tables with 4k pages.
-  - port the tests from last time over with a consistent interface.
-  - make code fast by changing the the page attributes and co-processor settings to 
-    enable the datacache.
+### Summary
+
+Congratulations!  You now have a simple (albeit a bit simplistic) virtual
+memory system that runs bare metal, where you implemented all the hard code.
+Not many have done the same.
+
 
 <p align="center">
   <img src="images/cat-laptop.png" width="450" />
