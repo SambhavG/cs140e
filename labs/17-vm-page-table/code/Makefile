@@ -7,13 +7,16 @@ BOOTLOADER = my-install
 # PROGS += tests/3-test-cache.c
 # PROGS += tests/4-test-dcache-inv.c  
 # PROGS += tests/4-test-vm-cache-mgmt.c
+PROGS += tests/ported-test.c
+# PROGS += tests/5-test-user.c
+# PROGS += tests/5-test-offsets.c
 
-PROGS := $(wildcard tests/[1234]-*c)
+# PROGS := $(wildcard tests/[1234]-*c)
 
 # this is the one file you'll modify.
 COMMON_SRC += pt-vm.c
 
-STAFF_OBJS += staff-pt-vm.o
+# STAFF_OBJS += staff-pt-vm.o
 
 # useful helpers.
 COMMON_SRC += mmu-helpers.c
@@ -35,11 +38,11 @@ YOUR_VM = $(CS140E_2025_PATH)/labs/15-vm-coherence/code.staff/
 
 # you should be able to delete all of these after the lab
 # if you swap in yours
-STAFF_OBJS += staff-mmu-asm.o  
-STAFF_OBJS += staff-mmu.o  
+# STAFF_OBJS += staff-mmu-asm.o  
+# STAFF_OBJS += staff-mmu.o  
 # these are just from pinned v: should be able to delete
 # if you swap yours in.
-STAFF_OBJS += staff-mmu-except.o  
+# STAFF_OBJS += staff-mmu-except.o  
 
 # same.
 O = $(CS140E_2025_PATH)/libpi

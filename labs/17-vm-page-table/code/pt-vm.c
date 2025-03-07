@@ -2,6 +2,7 @@
 #include "pt-vm.h"
 #include "helper-macros.h"
 #include "procmap.h"
+#include "pt-vm.h"
 
 // turn this off if you don't want all the debug output.
 enum { verbose_p = 1 };

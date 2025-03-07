@@ -269,17 +269,17 @@ void notmain(void) {
 
     volatile uint32_t *ptr = (void*)cache_addr;
     int x;
-    staff_sync_tlb();
+    mmu_sync_pte_mods();
     pmu_stmt_measure("measuring tlb misses after invalidation", 
         itlb_miss, dtlb_miss, 
         { 
-            staff_sync_tlb();
+            mmu_sync_pte_mods();
             *ptr;
-            staff_sync_tlb();
+            mmu_sync_pte_mods();
             *ptr;
-            staff_sync_tlb();
+            mmu_sync_pte_mods();
             *ptr;
-            staff_sync_tlb();
+            mmu_sync_pte_mods();
             *ptr;
         } 
     );

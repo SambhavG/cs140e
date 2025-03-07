@@ -30,6 +30,8 @@
     "descriptors.h": "c",
     "types.h": "c",
     "get-code.h": "c",
-    "put-code.h": "c"
+    "put-code.h": "c",
+    "helper-macros.h": "c",
+    "procmap.h": "c"
   }
 }
