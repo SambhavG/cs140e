@@ -13,6 +13,15 @@ BUG:
     User memory should be mapped to `MEM_uncached` (just as we
     have done all quarter).
 
+  - For `code/Makefile` get rid of `.staff` by changing:
+
+            YOUR_VM = $(CS140E_2025_PATH)/labs/15-vm-coherence/code.staff/
+
+    To:
+
+            YOUR_VM = $(CS140E_2025_PATH)/labs/15-vm-coherence/code/
+
+
 Clarifications:
   - Compare the tests for the coherence lab (15) with the tests
     in the code directory: the only difference between them is
@@ -229,12 +238,12 @@ Some simple examples:
  - Make a stack that automatically grows (e.g., if you write beyond
    the stack pointer it grows the stack automatically).    As mentioned
    in the next point, 
-   you should call `staff_mmu_sync_pte_mods()` after you modify 
+   you should call `mmu_sync_pte_mods()` after you modify 
    a page table entry.  (This invalidates caches it could be in or
    influence.)
  - Change memory protection (implement `vm_mprotect`), show it faults,
    and change back.  (Note: when you modify existing page table entries
-   you will have to call `staff_mmu_sync_pte_mods` after you modify the
+   you will have to call `mmu_sync_pte_mods` after you modify the
    page table.).
   - make code faster by changing the the page attributes and co-processor
     settings to enable the datacache.
