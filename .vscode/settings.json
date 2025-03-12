@@ -32,6 +32,8 @@
     "get-code.h": "c",
     "put-code.h": "c",
     "helper-macros.h": "c",
-    "procmap.h": "c"
+    "procmap.h": "c",
+    "unistd.h": "c",
+    "rpi-constants.h": "c"
   }
 }

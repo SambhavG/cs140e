@@ -95,6 +95,7 @@ int run_system_err_ok(int verbose_p, const char *fmt, ...) ;
 char *name_lookup(const char *path, const char *name);
 
 void pi_echo(int unix_fd, int pi_fd, const char *portname);
+void pi_echo_debug(int unix_fd, int pi_fd, const char *portname, const char *progname);
 
 int exists(const char *name);
 

@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
 
     // 5. echo output from pi
     if(!exec_argv)
-        pi_echo(0, fd, dev_name);
+        pi_echo_debug(0, fd, dev_name, pi_prog);
     else {
         // todo("not handling exec_argv");
         handoff_to(fd, TRACE_FD, exec_argv);

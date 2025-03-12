@@ -45,12 +45,16 @@ step_fault_mk(
         .regs = regs
     };
 }
-
+//enum for step handler return values
+enum step_handler_res {
+    STOP_SS,
+    START_SS
+};
 // step handler registered by the client.
 //   - <data> is provided by the client and passed on each
 //    handler invocation.
 //   - <fault> describes the fault location.
-typedef void (*step_handler_t)(void *data, step_fault_t *fault);
+typedef enum step_handler_res (*step_handler_t)(void *data, step_fault_t *fault);
 
 // one time initialize.  setup to call <h> with <data> on
 // each fault.

@@ -168,8 +168,12 @@ void mismatch_run(regs_t *r) {
 }
 
 void ss_on_exit(int exitcode) {
+    switchto(&start_regs);
+    // used this when ss couldn't be disabled
     panic("should never reach this!\n");
 }
+
+
 
 // when we get a mismatch fault.
 // 1. check if its for <ss_on_exit>: if so
@@ -192,10 +196,11 @@ static void mismatch_fault(regs_t *r) {
         not_reached();
     }
     step_fault_t f = step_fault_mk(pc, r);
-    step_handler(step_handler_data, &f);
-    mismatch_pc_set(pc);
+    enum step_handler_res handler_return = step_handler(step_handler_data, &f);
+    if (single_step_on_p) {
+        mismatch_pc_set(pc);
+    }
     while(!uart_can_put8());
-
     switchto(r);
 }
 
@@ -230,7 +235,9 @@ uint32_t mini_step_run(void (*fn)(void*), void *arg) {
     };
     mismatch_on();
     switchto_cswitch(&start_regs, &r);
-    mismatch_off();
+    if (single_step_on_p) {
+        mismatch_off();
+    }
     return r.regs[0];
 }
 
