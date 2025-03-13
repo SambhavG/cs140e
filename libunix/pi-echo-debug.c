@@ -140,7 +140,7 @@ void wait_and_send_input(int unix_fd, int pi_fd) {
 
 void print_debugger_state(debugger_state_t* db) {
     //clear terminal
-    // printf("\033c");
+    printf("\033c");
     //Process program
     //Replace the final .bin in the path with .list
     unsigned pc = db->regs[15];
@@ -285,12 +285,37 @@ void print_debugger_state(debugger_state_t* db) {
                 while (*instr_text && !isspace(*instr_text)) instr_text++;  // Skip raw bytes
                 while (*instr_text && isspace(*instr_text)) instr_text++;  // Skip spaces
                 
+                // Extract the full address for breakpoint comparison
+                char full_addr_str[9] = {0};
+                strncpy(full_addr_str, line_ptr + 4, 4);
+                unsigned int line_addr = 0;
+                sscanf(full_addr_str, "%x", &line_addr);
+                
+                // Check if this line has a breakpoint
+                int has_breakpoint = 0;
+                for (int bp = 0; bp < 5; bp++) {
+                    // Compare the lower 16 bits of the breakpoint address with the line address
+                    if (db->breakpoints[bp] != 0 && (db->breakpoints[bp] & 0xFFFF) == line_addr) {
+                        has_breakpoint = 1;
+                        break;
+                    }
+                }
+                
                 // Print formatted line
                 if (i == pc_line_index) {
-                    printf("██=>%s %s", addr, instr_text);  // Mark the PC line
+                    if (has_breakpoint) {
+                        printf("██⏺>%s %s", addr, instr_text);  // Mark the PC line with breakpoint
+                    } else {
+                        printf("██=>%s %s", addr, instr_text);  // Mark the PC line
+                    }
                 } else {
-                    printf("██\033[47m\033[0;30m  %s %s", addr, instr_text);
-                    printf("\033[0m");
+                    if (has_breakpoint) {
+                        printf("██\033[47m\033[0;30m⏺ %s %s", addr, instr_text);
+                        printf("\033[0m");
+                    } else {
+                        printf("██\033[47m\033[0;30m  %s %s", addr, instr_text);
+                        printf("\033[0m");
+                    }
                 }
             } else {
                 // For non-instruction lines (like function headers), print as is
@@ -311,33 +336,33 @@ void print_debugger_state(debugger_state_t* db) {
     for (int i = 0; i < 17; i++) {
         if (i <= 12) {
             if (!db->changed_regs[i]) {
-                offset += sprintf(buf + offset, "██ r%-2d : \033[47m\033[0;30m%11d  0x%08x\033[0m\n", i, db->regs[i], db->regs[i]);
+                offset += sprintf(buf + offset, "██  r%-2d : \033[47m\033[0;30m%11d  0x%08x\033[0m\n", i, db->regs[i], db->regs[i]);
             } else {
-                offset += sprintf(buf + offset, "██ r%-2d : %11d  0x%08x\n", i, db->regs[i], db->regs[i]);
+                offset += sprintf(buf + offset, "██  r%-2d : %11d  0x%08x\n", i, db->regs[i], db->regs[i]);
             }
         } else if (i == 13) {
             if (!db->changed_regs[i]) {
-                offset += sprintf(buf + offset, "██ sp  : \033[47m\033[0;30m%11d  0x%08x\033[0m\n", db->regs[i], db->regs[i]);
+                offset += sprintf(buf + offset, "██  sp  : \033[47m\033[0;30m%11d  0x%08x\033[0m\n", db->regs[i], db->regs[i]);
             } else {
-                offset += sprintf(buf + offset, "██ sp  : %11d  0x%08x\n", db->regs[i], db->regs[i]);
+                offset += sprintf(buf + offset, "██  sp  : %11d  0x%08x\n", db->regs[i], db->regs[i]);
             }
         } else if (i == 14) {
             if (!db->changed_regs[i]) {
-                offset += sprintf(buf + offset, "██ lr  : \033[47m\033[0;30m%11d  0x%08x\033[0m\n", db->regs[i], db->regs[i]);
+                offset += sprintf(buf + offset, "██  lr  : \033[47m\033[0;30m%11d  0x%08x\033[0m\n", db->regs[i], db->regs[i]);
             } else {
-                offset += sprintf(buf + offset, "██ lr  : %11d  0x%08x\n", db->regs[i], db->regs[i]);
+                offset += sprintf(buf + offset, "██  lr  : %11d  0x%08x\n", db->regs[i], db->regs[i]);
             }
         } else if (i == 15) {
             if (!db->changed_regs[i]) {
-                offset += sprintf(buf + offset, "██ pc  : \033[47m\033[0;30m%11d  0x%08x\033[0m\n", db->regs[i], db->regs[i]);
+                offset += sprintf(buf + offset, "██  pc  : \033[47m\033[0;30m%11d  0x%08x\033[0m\n", db->regs[i], db->regs[i]);
             } else {
-                offset += sprintf(buf + offset, "██ pc  : %11d  0x%08x\n", db->regs[i], db->regs[i]);
+                offset += sprintf(buf + offset, "██  pc  : %11d  0x%08x\n", db->regs[i], db->regs[i]);
             }
         } else if (i == 16) {
             if (!db->changed_regs[i]) {
-                offset += sprintf(buf + offset, "██ cpsr: \033[47m\033[0;30m%11d  0x%08x\033[0m\n", db->regs[i], db->regs[i]);
+                offset += sprintf(buf + offset, "██  cpsr: \033[47m\033[0;30m%11d  0x%08x\033[0m\n", db->regs[i], db->regs[i]);
             } else {
-                offset += sprintf(buf + offset, "██ cpsr: %11d  0x%08x\n", db->regs[i], db->regs[i]);
+                offset += sprintf(buf + offset, "██  cpsr: %11d  0x%08x\n", db->regs[i], db->regs[i]);
             }
         }
     }
@@ -347,7 +372,7 @@ void print_debugger_state(debugger_state_t* db) {
     int has_bps = 0;
     for (int i = 0; i < 5; i++) {
         if (db->breakpoints[i] != 0x0) {
-            offset += sprintf(buf + offset, "██ bp%-2d: 0x%08x\n", i+1, db->breakpoints[i]);
+            offset += sprintf(buf + offset, "██  bp%-2d: 0x%08x\n", i+1, db->breakpoints[i]);
             has_bps = 1;
         }
     }
@@ -359,7 +384,7 @@ void print_debugger_state(debugger_state_t* db) {
     int has_wps = 0;
     for (int i = 0; i < 2; i++) {
         if (db->watchpoints[i] != 0xffffffff) {
-            offset += sprintf(buf + offset, "██ wp%-2d: 0x%08x\n", i+1, db->watchpoints[i]);
+            offset += sprintf(buf + offset, "██  wp%-2d: 0x%08x\n", i+1, db->watchpoints[i]);
             has_wps = 1;
         }
     }

@@ -29,7 +29,7 @@ void foo5(int x) {
 
 int fib(int n) {
     if (n <= 1) return n;
-    GET32(0xdeadbeef);
+    GET32(0xdeadbee0);
     return fib(n-1) + fib(n-2);
 }
 
