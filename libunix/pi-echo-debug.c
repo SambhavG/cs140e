@@ -10,6 +10,8 @@ static int num_lines_last_printed = 0;
 typedef struct debugger_state {
     int regs[17];
     int changed_regs[17];
+    int breakpoints[5];
+    int watchpoints[2];
 } debugger_state_t;
 
 enum debugger_action{
@@ -31,30 +33,85 @@ unsigned parse_input(char* input) {
     if (input[0] == '\n' || strncmp(input, "s\n", 2) == 0) {
         input[0] = STEP;
         input[1] = 0;
-        return 1;
+        return 2;
     }
 
     if (strncmp(input, "b ", 2) == 0) {
         input[0] = ADD_BP;
         //write 1,2,3,4 with the int
-        unsigned *addr = (unsigned *) input;
-        *addr = atoi(input+2);
+        unsigned *addr = (unsigned *) (input+1);
+        *addr = (unsigned) strtol(input+2, NULL, 0);
+        unsigned addr_sending = *(unsigned *)(input+1);
         input[5] = 0;
-        return 1;
+        return 6;
     }
-
+    //bc - breakpoint clear
+    if (strncmp(input, "bc ", 3) == 0) {
+        input[0] = REMOVE_BP;
+        unsigned *addr = (unsigned *) (input+1);
+        *addr = (unsigned) strtol(input+3, NULL, 0);
+        input[5] = 0;
+        return 6;
+    }
     if (strncmp(input, "w ", 2) == 0) {
         input[0] = ADD_WP;
-        unsigned *addr = (unsigned *) input;
-        *addr = atoi(input+2);
+        unsigned *addr = (unsigned *) (input+1);
+        *addr = (unsigned) strtol(input+2, NULL, 0);
         input[5] = 0;
-        return 1;
+        return 6;
+    }
+    // wc - watchpoint clear
+    if (strncmp(input, "wc ", 3) == 0) {
+        input[0] = REMOVE_WP;
+        unsigned *addr = (unsigned *) (input+1);
+        *addr = (unsigned) strtol(input+3, NULL, 0);
+        input[5] = 0;
+        return 6;
     }
 
     if (strncmp(input, "c", 1) == 0) {
         input[0] = CONTINUE;
         input[1] = 0;
-        return 1;
+        return 2;
+    }
+
+    //*(addr) = (value)
+    //If first character is * and contains =, then it's a write to memory
+    if (strncmp(input, "*", 1) == 0 && strchr(input, '=') != NULL) {
+        input[0] = WRITE_ADDR;
+        unsigned addr = strtol(input+1, NULL, 0);
+        char *equals_char = strchr(input, '=');
+        unsigned value = strtol(equals_char+1, NULL, 0);
+        //bytes 1-4 are addr, bytes 5-8 are value
+        unsigned *addr_ptr = (unsigned *) (input+1);
+        *addr_ptr = addr;
+        unsigned *value_ptr = (unsigned *) (input+5);
+        *value_ptr = value;
+        input[9] = 0;
+        return 10;
+    }
+    //*(addr)
+    //If first character is * and didn't hit other case, then it's a read from memory
+    if (strncmp(input, "*", 1) == 0) {
+        input[0] = READ_ADDR;
+        unsigned addr = strtol(input+1, NULL, 0);
+        unsigned *addr_ptr = (unsigned *) (input+1);
+        *addr_ptr = addr;
+        input[5] = 0;
+        return 10;
+    }
+    //r[1-15] = (value)
+    //If first character is r and contains =, then it's a write to register
+    if (strncmp(input, "r", 1) == 0 && strchr(input, '=') != NULL) {
+        input[0] = WRITE_REG;
+        unsigned reg = strtol(input+1, NULL, 0);
+        unsigned value = strtol(strchr(input, '=')+1, NULL, 0);
+        unsigned *reg_ptr = (unsigned *) (input+1);
+        *reg_ptr = reg;
+        unsigned *value_ptr = (unsigned *) (input+5);
+        *value_ptr = value;
+        input[9] = 0;
+        return 10;
     }
     printf("UNIX: when parsing input \"%s\", couldn't find command\n", input);
     return 0;
@@ -67,12 +124,11 @@ void wait_and_send_input(int unix_fd, int pi_fd) {
     int n;
     if((n=read_timeout(unix_fd, buf, sizeof buf, 100))) {
         buf[n] = 0;
-
-        if (parse_input((char *) buf) == 0) {
+        int parsed_len = parse_input((char *) buf);
+        if (parsed_len == 0) {
             printf("UNIX: Unrecognized input!\n");
             return;
         }
-        unsigned parsed_len = strlen(buf);
         // printf("UNIX: user provided input that was parsed to be %u bytes long\n", parsed_len);
 
         put_uint8(pi_fd, parsed_len);
@@ -84,7 +140,7 @@ void wait_and_send_input(int unix_fd, int pi_fd) {
 
 void print_debugger_state(debugger_state_t* db) {
     //clear terminal
-    printf("\033c");
+    // printf("\033c");
     //Process program
     //Replace the final .bin in the path with .list
     unsigned pc = db->regs[15];
@@ -287,6 +343,31 @@ void print_debugger_state(debugger_state_t* db) {
     }
     offset += sprintf(buf + offset, "████████████████████████████████████████████████████████\n");
 
+    //Print breakpoints, any that isn't 0x0
+    int has_bps = 0;
+    for (int i = 0; i < 5; i++) {
+        if (db->breakpoints[i] != 0x0) {
+            offset += sprintf(buf + offset, "██ bp%-2d: 0x%08x\n", i+1, db->breakpoints[i]);
+            has_bps = 1;
+        }
+    }
+    if (has_bps) {
+        offset += sprintf(buf + offset, "████████████████████████████████████████████████████████\n");
+    }
+
+    //Print watchpoints, any that isn't 0xffffffff
+    int has_wps = 0;
+    for (int i = 0; i < 2; i++) {
+        if (db->watchpoints[i] != 0xffffffff) {
+            offset += sprintf(buf + offset, "██ wp%-2d: 0x%08x\n", i+1, db->watchpoints[i]);
+            has_wps = 1;
+        }
+    }
+    if (has_wps) {
+        offset += sprintf(buf + offset, "████████████████████████████████████████████████████████\n");
+    }
+
+
     printf("%s", buf);
     // printf("\033[10A");
     // printf("\033[K");
@@ -324,7 +405,24 @@ unsigned parse_debugger_state(debugger_state_t* db, char* buf) {
         }
         return 1;
     }
-
+    if (buf[5] == 2) {
+        buf += 8;
+        //Unserialize
+        for (int i = 0; i < 5; i++) {
+            db->breakpoints[i] = *(int*)buf;
+            buf += 4;
+        }
+        return 1;
+    }
+    if (buf[5] == 3) {
+        buf += 8;
+        //Unserialize
+        for (int i = 0; i < 2; i++) {
+            db->watchpoints[i] = *(int*)buf;
+            buf += 4;
+        }
+        return 1;
+    }
     if (buf[5] == 9) {
         //done
         print_debugger_state(db);

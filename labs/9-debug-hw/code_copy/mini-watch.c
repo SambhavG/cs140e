@@ -20,19 +20,18 @@
 // we have a single handler: so just use globals.
 // static watch_handler_t watchpt_handler = 0;
 // static void *watchpt_data = 0;
-// static void *watchpoint_addr;
+void *wp_addr[2] = {0};
+int which_wp_on[2] = {0};
 
 static watch_handler_t watchpt_handler[2];
 static void *watchpt_data[2];
-static void *watchpoint_addr[2];
-static int which_wp_on[2];
 static int num_watchpoints = 0;
 
 
 //Tells you which watchpoint is the one looking at this address
 static int which_wp(void* addr) {
     for (int i = 0; i < 2; i++) {
-        if (which_wp_on[i] && watchpoint_addr[i] == addr) {
+        if (which_wp_on[i] && wp_addr[i] == addr) {
             return i;
         }
     }
@@ -154,7 +153,7 @@ void mini_watch_addr(void *addr, watch_handler_t h, void *data) {
 
     watchpt_handler[this_wp_index] = h;
     watchpt_data[this_wp_index] = data;
-    watchpoint_addr[this_wp_index] = addr;
+    wp_addr[this_wp_index] = addr;
 
     assert(wp_ctrl_is_enabled(this_wp_index));
     num_watchpoints++;

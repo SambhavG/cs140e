@@ -7,6 +7,10 @@
 #include "mini-step.h"
 #include "full-except.h"
 
+// Define the global variables that were declared as extern in the header
+void *bp_addr_list[6] = {0};
+int which_bp_on[6] = {0};
+
 //Only the first breakpoint register will be used for single stepping (mismatch)
 //The other five are used for regular breakpoints
 
@@ -15,8 +19,6 @@ static void *step_handler_data = 0;
 
 static step_handler_t bp_handlers[6] = {0};
 static void *bp_handler_data[6] = {0};
-static void *bp_addr[6] = {0};
-static int which_bp_on[6] = {0};
 static int num_bps = 0;
 
 // special function.  never runs, but we know if the traced code
@@ -32,7 +34,7 @@ static regs_t start_regs;
 
 static int which_bp(void* addr) {
     for (int i = 1; i <= 5; i++) {
-        if (which_bp_on[i] && bp_addr[i] == addr) {
+        if (which_bp_on[i] && bp_addr_list[i] == addr) {
             return i;
         }
     }
@@ -196,7 +198,7 @@ static void mismatch_fault(regs_t *r) {
         not_reached();
     }
     step_fault_t f = step_fault_mk(pc, r);
-    enum step_handler_res handler_return = step_handler(step_handler_data, &f);
+    step_handler(step_handler_data, &f);
     if (single_step_on_p) {
         mismatch_pc_set(pc);
     }
@@ -291,11 +293,10 @@ void mini_bp_addr(void *addr, step_handler_t h, void *data) {
     //Get the next available breakpoint index
     int bp_index = get_next_available_bp();
     which_bp_on[bp_index] = 1;
-    bp_addr[bp_index] = addr;
+    bp_addr_list[bp_index] = addr;
     bp_handlers[bp_index] = h;
     bp_handler_data[bp_index] = data;
     num_bps++;
-
     // see 13-17 for how to set bits
     uint32_t b = bp_ctrl_get(bp_index);
 
@@ -323,8 +324,12 @@ void mini_bp_disable(void *addr) {
     assert(bp_index != -1);
     bp_ctrl_disable(bp_index);
     which_bp_on[bp_index] = 0;
-    bp_addr[bp_index] = 0;
+    bp_addr_list[bp_index] = 0;
     num_bps--;
+}
+
+int mini_bp_is_breakpoint(void *addr) {
+    return which_bp(addr) != -1;
 }
 
 int mini_bp_enabled() {

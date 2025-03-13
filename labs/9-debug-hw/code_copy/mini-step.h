@@ -9,6 +9,8 @@
 // these four routines can be used in isolation.  you
 // would have to check for a mismatch fault in the 
 // exception handler.
+extern void *bp_addr_list[6];
+extern int which_bp_on[6];
 
 // turn mismatching (single-step) on. 
 void mismatch_on(void);
@@ -45,16 +47,12 @@ step_fault_mk(
         .regs = regs
     };
 }
-//enum for step handler return values
-enum step_handler_res {
-    STOP_SS,
-    START_SS
-};
+
 // step handler registered by the client.
 //   - <data> is provided by the client and passed on each
 //    handler invocation.
 //   - <fault> describes the fault location.
-typedef enum step_handler_res (*step_handler_t)(void *data, step_fault_t *fault);
+typedef void (*step_handler_t)(void *data, step_fault_t *fault);
 
 // one time initialize.  setup to call <h> with <data> on
 // each fault.
@@ -76,6 +74,9 @@ void mini_bp_addr(void *addr, step_handler_t h, void *data);
 
 // Disable breakpoint at the given address
 void mini_bp_disable(void *addr);
+
+// Check if the given address is a breakpoint
+int mini_bp_is_breakpoint(void *addr);
 
 // Returns number of currently enabled breakpoints
 int mini_bp_enabled(void);

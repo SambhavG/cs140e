@@ -3,6 +3,9 @@
 #include "armv6-debug-impl.h"
 #include "full-except.h"
 
+extern void *wp_addr[2];
+extern int which_wp_on[2];
+
 // structure describing a watchpoint: makes it easy
 // to add other information without messing with
 // client code.
