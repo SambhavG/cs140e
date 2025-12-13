@@ -11,3 +11,5 @@ staff-*.c
 staff
 
 *.d
+
+*.o
