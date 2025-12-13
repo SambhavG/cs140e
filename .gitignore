@@ -14,3 +14,6 @@ staff
 
 *.o
 */objs/*
+*.elf
+*.bin
+*.list
