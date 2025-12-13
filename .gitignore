@@ -13,3 +13,4 @@ staff
 *.d
 
 *.o
+*/objs/*
