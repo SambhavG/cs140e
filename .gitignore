@@ -17,3 +17,5 @@ staff
 *.elf
 *.bin
 *.list
+*.out
+*.DS_Store
