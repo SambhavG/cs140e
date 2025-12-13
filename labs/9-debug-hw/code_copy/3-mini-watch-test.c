@@ -59,7 +59,7 @@ void notmain(void) {
     assert(!mini_watch_enabled());
     got = GET32(addr2);
     if(got != val2)
-        panic("expected GET(%x)=%x, have %x\n", addr2, val1, got);
+        panic("expected GET(%x)=%x, have %x\n", addr2, val2, got);
     
     trace("SUCCESS\n");
 }
