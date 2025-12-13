@@ -16,13 +16,14 @@ unsigned gpio_peds0 = GPIO_BASE + 0x40;
 // note: we can only get interrupts for <GPIO_INT0> since the
 // (the other pins are inaccessible for external devices).
 int gpio_has_interrupt(void) {
-    // p113: IRQ 49 has this
-    // p115: IRQ_pending_2 has the value
-    dev_barrier();
-    unsigned val = GET32(IRQ_pending_2) & (0b1 << (49 - 32));
-    dev_barrier();
-    if (val != 0) return 1;
-    return 0;
+  // p113: IRQ 49 has this
+  // p115: IRQ_pending_2 has the value
+  dev_barrier();
+  unsigned val = GET32(IRQ_pending_2) & (0b1 << (49 - 32));
+  dev_barrier();
+  if (val != 0)
+    return 1;
+  return 0;
 }
 
 // p97 set to detect rising edge (0->1) on <pin>.
@@ -31,15 +32,15 @@ int gpio_has_interrupt(void) {
 // *after* a 1 reading has been sampled twice, so there will be delay.
 // if you want lower latency, you should us async rising edge (p99)
 void gpio_int_rising_edge(unsigned pin) {
-    if (pin >= 32)
-        return;
-    dev_barrier();
-    // p97: GPRENn has this
-    OR32(gpio_ren0, 0b1 << pin);
-    dev_barrier();
-    // enable irq_2
-    PUT32(IRQ_Enable_2, 0b1 << (49 - 32));
-    dev_barrier();
+  if (pin >= 32)
+    return;
+  dev_barrier();
+  // p97: GPRENn has this
+  OR32(gpio_ren0, 0b1 << pin);
+  dev_barrier();
+  // enable irq_2
+  PUT32(IRQ_Enable_2, 0b1 << (49 - 32));
+  dev_barrier();
 }
 
 // p98: detect falling edge (1->0).  sampled using the system clock.
@@ -48,34 +49,34 @@ void gpio_int_rising_edge(unsigned pin) {
 // interrupt is delayed two clock cycles.   if you want  lower latency,
 // you should use async falling edge. (p99)
 void gpio_int_falling_edge(unsigned pin) {
-    if (pin >= 32)
-        return;
-    dev_barrier();
-    // p97: GPRENn has this
-    OR32(gpio_fen0, 0b1 << pin);
-    dev_barrier();
-    // enable irq_2
-    PUT32(IRQ_Enable_2, 0b1 << (49 - 32));
-    dev_barrier();
+  if (pin >= 32)
+    return;
+  dev_barrier();
+  // p97: GPRENn has this
+  OR32(gpio_fen0, 0b1 << pin);
+  dev_barrier();
+  // enable irq_2
+  PUT32(IRQ_Enable_2, 0b1 << (49 - 32));
+  dev_barrier();
 }
 
 // p96: a 1<<pin is set in EVENT_DETECT if <pin> triggered an interrupt.
 // if you configure multiple events to lead to interrupts, you will have to
 // read the pin to determine which caused it.
 int gpio_event_detected(unsigned pin) {
-    if (pin >= 32)
-        return 0;
-    dev_barrier();
-    int val = GET32(gpio_peds0) & (1 << pin);
-    dev_barrier();
-    return val;
+  if (pin >= 32)
+    return 0;
+  dev_barrier();
+  int val = GET32(gpio_peds0) & (1 << pin);
+  dev_barrier();
+  return val;
 }
 
 // p96: have to write a 1 to the pin to clear the event.
 void gpio_event_clear(unsigned pin) {
-    if (pin >= 32)
-        return;
-    dev_barrier();
-    PUT32(gpio_peds0, 1 << pin);
-    dev_barrier();
+  if (pin >= 32)
+    return;
+  dev_barrier();
+  PUT32(gpio_peds0, 1 << pin);
+  dev_barrier();
 }

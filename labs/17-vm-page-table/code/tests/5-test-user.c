@@ -11,12 +11,12 @@
 //
 //  there are some page numbers: if they start with a "B" they
 //  are from the armv6 pdf, if with a number, from arm1176 pdf
-#include "rpi.h"
-#include "pinned-vm.h"
 #include "full-except.h"
 #include "memmap.h"
+#include "pinned-vm.h"
 #include "procmap.h"
 #include "pt-vm.h"
+#include "rpi.h"
 
 // #define MB(x) ((x) * 1024 * 1024)
 
@@ -80,202 +80,189 @@ static volatile uint32_t illegal_addr;
 cp_asm_get(cp15_fault_addr, p15, 0, c6, c0, 0)
     cp_asm_get(dfsr, p15, 0, c5, c0, 0)
 
-        cp_asm(dacr, p15, 0, c3, c0, 0)
-            cp_asm(ifsr, p15, 0, c5, c0, 1)
+        cp_asm(dacr, p15, 0, c3, c0, 0) cp_asm(ifsr, p15, 0, c5, c0, 1)
 
     // a trivial data abort handler that checks that we
     // faulted on the address that we expected.
     //   - note: bad form that we don't actually check
     //     that its a data abort.
     static uint32_t num_faults = 0;
-static void data_abort_handler(regs_t *r)
-{
-    num_faults++;
-    uint32_t fault_addr = cp15_fault_addr_get();
-    // printk("Got data abort fault!\n");
+static void data_abort_handler(regs_t *r) {
+  num_faults++;
+  uint32_t fault_addr = cp15_fault_addr_get();
+  // printk("Got data abort fault!\n");
 
-    uint32_t reason = bits_get(dfsr_get(), 0, 3);
-    // printk("Reason: %x\n", reason);
-    if (reason == 0b1001)
-    {
-        printk("Domain section fault\n");
-    }
-    else
-    {
-        printk("Access fault triggered!\n");
-    }
-    printk("The pc was at %x when this fault occurred\n", r->regs[15]);
+  uint32_t reason = bits_get(dfsr_get(), 0, 3);
+  // printk("Reason: %x\n", reason);
+  if (reason == 0b1001) {
+    printk("Domain section fault\n");
+  } else {
+    printk("Access fault triggered!\n");
+  }
+  printk("The pc was at %x when this fault occurred\n", r->regs[15]);
 
-    // Reenable dom perms
-    // uint32_t access_perms = dacr_get(); // staff_domain_access_ctrl_get();
-    // access_perms = access_perms | (0b11 << 7 * 2);
-    // Print ifsr
-    // if (num_faults == 3) {
-    //     //temp thing for checkoff
-    //     //this is caused by instruction jump, so unrecoverable
-    //     clean_reboot();
-    // }
-    // printk("Giving back access.... New access perms: %x\n", access_perms);
-    // domain_access_ctrl_set(dom_perms);
-    printk("SUCCESS!\n");
-    clean_reboot();
+  // Reenable dom perms
+  // uint32_t access_perms = dacr_get(); // staff_domain_access_ctrl_get();
+  // access_perms = access_perms | (0b11 << 7 * 2);
+  // Print ifsr
+  // if (num_faults == 3) {
+  //     //temp thing for checkoff
+  //     //this is caused by instruction jump, so unrecoverable
+  //     clean_reboot();
+  // }
+  // printk("Giving back access.... New access perms: %x\n", access_perms);
+  // domain_access_ctrl_set(dom_perms);
+  printk("SUCCESS!\n");
+  clean_reboot();
 }
 
-void notmain(void)
-{
-    // ******************************************************
-    // 1. one-time initialization.
-    //   - create an empty page table (to catch errors).
-    //   - setup exception handlers.
-    //   - compute permissions for no-user-access.
+void notmain(void) {
+  // ******************************************************
+  // 1. one-time initialization.
+  //   - create an empty page table (to catch errors).
+  //   - setup exception handlers.
+  //   - compute permissions for no-user-access.
 
-    // initialize the heap.  as stated above,
-    // starts at 1MB, and is 1MB big.
-    kmalloc_init_set_start((void *)SEG_HEAP, MB(1));
+  // initialize the heap.  as stated above,
+  // starts at 1MB, and is 1MB big.
+  kmalloc_init_set_start((void *)SEG_HEAP, MB(1));
 
-    // example sanity check that entire process fits
-    // within 1MB segment: these symbols are in <memmap.h>
-    // and defined in <libpi/memmap> (we've used in previous
-    // labs).
-    assert((uint32_t)__prog_end__ < SEG_CODE + MB(1));
-    assert((uint32_t)__code_start__ >= SEG_CODE);
+  // example sanity check that entire process fits
+  // within 1MB segment: these symbols are in <memmap.h>
+  // and defined in <libpi/memmap> (we've used in previous
+  // labs).
+  assert((uint32_t)__prog_end__ < SEG_CODE + MB(1));
+  assert((uint32_t)__code_start__ >= SEG_CODE);
 
-    // setup a data abort handler (just like last lab).
-    full_except_install(0);
-    full_except_set_data_abort(data_abort_handler);
-    full_except_set_prefetch(data_abort_handler);
+  // setup a data abort handler (just like last lab).
+  full_except_install(0);
+  full_except_set_data_abort(data_abort_handler);
+  full_except_set_prefetch(data_abort_handler);
 
-    // allocate a page table with invalid
-    // entries.
-    //
-    // we will TLB pin all valid mappings.
-    // if the code is correct, the hardware
-    // will never look anything up in the page
-    // table.
-    //
-    // however, if the code is buggy and does a
-    // a wild memory access that isn't in any
-    // pinnned entry, the hardware would then try
-    // to look the address up in the page table
-    // pointed to by the tlbwr0 register.
-    //
-    // if this page table isn't explicitly
-    // initialized to invalid entries, the hardware
-    // would interpret the garbage bits there
-    // valid and potentially insert them (very
-    // hard bug to find).
-    //
-    // to prevent this we allocate a zero-filled
-    // page table.
-    //  - 4GB/1MB section * 4 bytes = 4096*4.
-    //  - zero-initialized will set each entry's
-    //    valid bit to 0 (invalid).
-    //  - lower 14 bits (16k aligned) as required
-    //    by the hardware.
-    void *null_pt = kmalloc_aligned(4096 * 4, 1 << 14);
-    assert((uint32_t)null_pt % (1 << 14) == 0);
+  // allocate a page table with invalid
+  // entries.
+  //
+  // we will TLB pin all valid mappings.
+  // if the code is correct, the hardware
+  // will never look anything up in the page
+  // table.
+  //
+  // however, if the code is buggy and does a
+  // a wild memory access that isn't in any
+  // pinnned entry, the hardware would then try
+  // to look the address up in the page table
+  // pointed to by the tlbwr0 register.
+  //
+  // if this page table isn't explicitly
+  // initialized to invalid entries, the hardware
+  // would interpret the garbage bits there
+  // valid and potentially insert them (very
+  // hard bug to find).
+  //
+  // to prevent this we allocate a zero-filled
+  // page table.
+  //  - 4GB/1MB section * 4 bytes = 4096*4.
+  //  - zero-initialized will set each entry's
+  //    valid bit to 0 (invalid).
+  //  - lower 14 bits (16k aligned) as required
+  //    by the hardware.
+  void *null_pt = kmalloc_aligned(4096 * 4, 1 << 14);
+  assert((uint32_t)null_pt % (1 << 14) == 0);
 
-    // in <mmu.h>: checks cp15 control reg 1.
-    //  - will implement in next vm lab.
-    assert(!mmu_is_enabled());
+  // in <mmu.h>: checks cp15 control reg 1.
+  //  - will implement in next vm lab.
+  assert(!mmu_is_enabled());
 
-    // no access for user (r/w privileged only)
-    // defined in <mem-attr.h>.
-    //
-    // is APX and AP fields bit-wise or'd
-    // together: (APX << 2 | AP) see
-    //  - 3-151 for table, or B4-9
-    enum
-    {
-        no_user = perm_rw_priv
-    };
+  // no access for user (r/w privileged only)
+  // defined in <mem-attr.h>.
+  //
+  // is APX and AP fields bit-wise or'd
+  // together: (APX << 2 | AP) see
+  //  - 3-151 for table, or B4-9
+  enum { no_user = perm_rw_priv };
 
-    // armv6 has 16 different domains with their own privileges.
-    // just pick one for the kernel.
-    enum
-    {
-        dom_kern = 1,
-        dom_fault = 7
-    };
+  // armv6 has 16 different domains with their own privileges.
+  // just pick one for the kernel.
+  enum { dom_kern = 1, dom_fault = 7 };
 
-    // attribute for device memory (see <pin.h>).  this
-    // is needed when pinning device memory:
-    //   - permissions: kernel domain, no user access,
-    //   - memory rules: strongly ordered, not shared.
-    //     see <mem-attr.h> for <MEM_device>
-    pin_t dev = pin_mk_global(dom_kern, no_user, MEM_device);
+  // attribute for device memory (see <pin.h>).  this
+  // is needed when pinning device memory:
+  //   - permissions: kernel domain, no user access,
+  //   - memory rules: strongly ordered, not shared.
+  //     see <mem-attr.h> for <MEM_device>
+  pin_t dev = pin_mk_global(dom_kern, no_user, MEM_device);
 
-    // attribute for kernel memory (see <pin.h>)
-    //   - protection: same as device; we don't want the
-    //     user to read/write it.
-    //   - memory rules: uncached access.  you can start
-    //     messing with this for speed, though have to
-    //     do cache coherency maintance
-    pin_t kern = pin_mk_global(dom_kern, no_user, MEM_uncached);
+  // attribute for kernel memory (see <pin.h>)
+  //   - protection: same as device; we don't want the
+  //     user to read/write it.
+  //   - memory rules: uncached access.  you can start
+  //     messing with this for speed, though have to
+  //     do cache coherency maintance
+  pin_t kern = pin_mk_global(dom_kern, no_user, MEM_uncached);
 
-    pin_t fault = pin_mk_global(dom_fault, no_user, MEM_uncached);
+  pin_t fault = pin_mk_global(dom_fault, no_user, MEM_uncached);
 
-    // Q1: if you uncomment this, what happens / why?
-    // kern = pin_mk_global(dom_kern, perm_ro_priv, MEM_uncached);
+  // Q1: if you uncomment this, what happens / why?
+  // kern = pin_mk_global(dom_kern, perm_ro_priv, MEM_uncached);
 
-    // ******************************************************
-    // 2. map the process's memory.  We use the enums
-    //    above that define where everything is.
+  // ******************************************************
+  // 2. map the process's memory.  We use the enums
+  //    above that define where everything is.
 
-    // <mmu.h>: one-time initialize of MMU hardware
-    //  - invalidate TLB, caches, etc.
-    //  - will implement in next vm lab.
-    // mmu_init();
-    procmap_t p;
-    p.n = 7;
-    p.map[0] = pr_ent_mk(SEG_CODE, MB(1), MEM_RW, dom_kern);
-    p.map[1] = pr_ent_mk(SEG_HEAP, MB(1), MEM_RW, dom_fault);
-    p.map[2] = pr_ent_mk(SEG_STACK, MB(1), MEM_RW, dom_kern);
-    p.map[3] = pr_ent_mk(SEG_INT_STACK, MB(1), MEM_RW, dom_kern);
-    p.map[4] = pr_ent_mk(SEG_BCM_0, MB(1), MEM_RW, dom_kern);
-    p.map[5] = pr_ent_mk(SEG_BCM_1, MB(1), MEM_RW, dom_kern);
-    p.map[6] = pr_ent_mk(SEG_BCM_2, MB(1), MEM_RW, dom_kern);
-    p.dom_ids = (1 << dom_kern) | (1 << dom_fault);
-    // procmap_t p = procmap_default_mk((1 << dom_kern) | (1 << dom_fault));
-    // map kernel
-    vm_pt_t *pt = vm_map_kernel(&p, 1);
+  // <mmu.h>: one-time initialize of MMU hardware
+  //  - invalidate TLB, caches, etc.
+  //  - will implement in next vm lab.
+  // mmu_init();
+  procmap_t p;
+  p.n = 7;
+  p.map[0] = pr_ent_mk(SEG_CODE, MB(1), MEM_RW, dom_kern);
+  p.map[1] = pr_ent_mk(SEG_HEAP, MB(1), MEM_RW, dom_fault);
+  p.map[2] = pr_ent_mk(SEG_STACK, MB(1), MEM_RW, dom_kern);
+  p.map[3] = pr_ent_mk(SEG_INT_STACK, MB(1), MEM_RW, dom_kern);
+  p.map[4] = pr_ent_mk(SEG_BCM_0, MB(1), MEM_RW, dom_kern);
+  p.map[5] = pr_ent_mk(SEG_BCM_1, MB(1), MEM_RW, dom_kern);
+  p.map[6] = pr_ent_mk(SEG_BCM_2, MB(1), MEM_RW, dom_kern);
+  p.dom_ids = (1 << dom_kern) | (1 << dom_fault);
+  // procmap_t p = procmap_default_mk((1 << dom_kern) | (1 << dom_fault));
+  // map kernel
+  vm_pt_t *pt = vm_map_kernel(&p, 1);
 
-    // identiy map all segments in one of the available
-    // 0..7 TLB pinned entries.
-    // pin_mmu_sec(0, SEG_CODE, SEG_CODE, kern);
-    // pin_mmu_sec(1, SEG_HEAP, SEG_HEAP, fault);
-    // Q2: if you comment this out, what happens?
-    // pin_mmu_sec(2, SEG_STACK, SEG_STACK, kern);
-    // Q3: if you comment this out, what happens?
-    // pin_mmu_sec(3, SEG_INT_STACK, SEG_INT_STACK, kern);
+  // identiy map all segments in one of the available
+  // 0..7 TLB pinned entries.
+  // pin_mmu_sec(0, SEG_CODE, SEG_CODE, kern);
+  // pin_mmu_sec(1, SEG_HEAP, SEG_HEAP, fault);
+  // Q2: if you comment this out, what happens?
+  // pin_mmu_sec(2, SEG_STACK, SEG_STACK, kern);
+  // Q3: if you comment this out, what happens?
+  // pin_mmu_sec(3, SEG_INT_STACK, SEG_INT_STACK, kern);
 
-    // map all device memory to itself.  ("identity map")
-    // pin_mmu_sec(4, SEG_BCM_0, SEG_BCM_0, dev);
-    // pin_mmu_sec(5, SEG_BCM_1, SEG_BCM_1, dev);
-    // pin_mmu_sec(6, SEG_BCM_2, SEG_BCM_2, dev);
+  // map all device memory to itself.  ("identity map")
+  // pin_mmu_sec(4, SEG_BCM_0, SEG_BCM_0, dev);
+  // pin_mmu_sec(5, SEG_BCM_1, SEG_BCM_1, dev);
+  // pin_mmu_sec(6, SEG_BCM_2, SEG_BCM_2, dev);
 
-    // ******************************************************
-    // 3. setup virtual address context.
-    //  - domain permissions.
-    //  - page table, asid, pid.
+  // ******************************************************
+  // 3. setup virtual address context.
+  //  - domain permissions.
+  //  - page table, asid, pid.
 
-    // b4-42: give permissions for all domains.
-    // Q4: if you set this to ~0, what happens w.r.t. Q1?
-    // Q5: if you set this to 0, what happens?
-    domain_access_ctrl_set(DOM_client << dom_kern * 2);
+  // b4-42: give permissions for all domains.
+  // Q4: if you set this to ~0, what happens w.r.t. Q1?
+  // Q5: if you set this to 0, what happens?
+  domain_access_ctrl_set(DOM_client << dom_kern * 2);
 
-    // USER TEST ***
-    switchto_user();
-    // translate and store in pa
-    unsigned pa = SEG_CODE + 0xBEEF; // addr in heap
-    unsigned old_value = GET32(pa);
-    printk("Writing bx lr to addr %x\n", pa);
-    PUT32(pa, 0XDEADBEEF);
-    assert(GET32(pa) == old_value);
-    // uint32_t res, pa, va;
-    // vm_xlate(&pa, pt, va);
-    // unsigned old_value = GET32(pa);
-    // write to this physical address
-    // PUT32(pa, 0xdeadbeef);
-    // assert(GET32(pa) == old_value);
+  // USER TEST ***
+  switchto_user();
+  // translate and store in pa
+  unsigned pa = SEG_CODE + 0xBEEF; // addr in heap
+  unsigned old_value = GET32(pa);
+  printk("Writing bx lr to addr %x\n", pa);
+  PUT32(pa, 0XDEADBEEF);
+  assert(GET32(pa) == old_value);
+  // uint32_t res, pa, va;
+  // vm_xlate(&pa, pt, va);
+  // unsigned old_value = GET32(pa);
+  // write to this physical address
+  // PUT32(pa, 0xdeadbeef);
+  // assert(GET32(pa) == old_value);
 }

@@ -19,3 +19,4 @@ staff
 *.list
 *.out
 *.DS_Store
+*.a

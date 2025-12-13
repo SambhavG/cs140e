@@ -7,10 +7,10 @@
 
 //*******************************************************
 // these four routines can be used in isolation.  you
-// would have to check for a mismatch fault in the 
+// would have to check for a mismatch fault in the
 // exception handler.
 
-// turn mismatching (single-step) on. 
+// turn mismatching (single-step) on.
 void mismatch_on(void);
 
 // turn mismatch (single-step) off.
@@ -31,19 +31,12 @@ void mismatch_run(regs_t *r);
 // but do their own exception handling so are less flexible.
 
 typedef struct {
-    uint32_t    fault_pc;      // pc faulted at.
-    regs_t      *regs;           // full set of registers.
+  uint32_t fault_pc; // pc faulted at.
+  regs_t *regs;      // full set of registers.
 } step_fault_t;
 
-static inline step_fault_t 
-step_fault_mk(
-    uint32_t fault_pc,
-    regs_t *regs) 
-{
-    return (step_fault_t) { 
-        .fault_pc = fault_pc, 
-        .regs = regs
-    };
+static inline step_fault_t step_fault_mk(uint32_t fault_pc, regs_t *regs) {
+  return (step_fault_t){.fault_pc = fault_pc, .regs = regs};
 }
 
 // step handler registered by the client.
@@ -56,6 +49,6 @@ typedef void (*step_handler_t)(void *data, step_fault_t *fault);
 // each fault.
 void mini_step_init(step_handler_t h, void *data);
 
-// run <fn> in single step mode with <arg> 
-uint32_t mini_step_run(void (*fn)(void*), void *arg);
+// run <fn> in single step mode with <arg>
+uint32_t mini_step_run(void (*fn)(void *), void *arg);
 #endif

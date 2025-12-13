@@ -4,22 +4,22 @@
 #include "trace.h"
 
 void notmain(void) {
-    uart_init();
+  uart_init();
 
-    trace_start(0);
-    const int led = 10;
-    const int input = 9;
+  trace_start(0);
+  const int led = 10;
+  const int input = 9;
 
-    gpio_set_output(led);
-    gpio_set_input(input);
-    for(int i = 0; i < 10; i++) {
-        // could also do: 
-        //  gpio_write(input, gpio_read(led));
-        if(gpio_read(input))
-            gpio_set_on(led);
-        else
-            gpio_set_off(led);
-    }
-    trace_stop();
-    clean_reboot();
+  gpio_set_output(led);
+  gpio_set_input(input);
+  for (int i = 0; i < 10; i++) {
+    // could also do:
+    //  gpio_write(input, gpio_read(led));
+    if (gpio_read(input))
+      gpio_set_on(led);
+    else
+      gpio_set_off(led);
+  }
+  trace_stop();
+  clean_reboot();
 }

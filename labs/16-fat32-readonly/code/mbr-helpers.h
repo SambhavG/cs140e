@@ -1,6 +1,6 @@
 #ifndef __RPI_MBR_HELPERS_H__
 #define __RPI_MBR_HELPERS_H__
-/* 
+/*
  * engler, cs140e: useful structures for dealing with fat32 and sd cards.
  * the definitive source is the microsoft specification (which actually
  * isn't too bad and is fairly short).   but the links below give even
@@ -13,13 +13,12 @@
  *      ****** DO NOT MODIFY THIS FILE ********
  */
 
-
 /**********************************************************************
  * mbr + helpers.
  */
 
 /*
-  Copied from from: 
+  Copied from from:
    https://www.win.tue.nl/~aeb/linux/fs/fat/fat-1.html
 
   layout:
@@ -41,8 +40,6 @@
     entire sectors).
 */
 
-
-
 /*
 Byte Range | Description              | Essential
 0-445      | Boot Code                | No
@@ -63,25 +60,19 @@ partition_entry` below.  You have to copy (not cast) because the entries are
 annoyingly not aligned.
 */
 typedef struct mbr {
-    uint8_t     code[446],
-                part_tab1[16],
-                part_tab2[16],
-                part_tab3[16],
-                part_tab4[16];
-    uint16_t sigval;
+  uint8_t code[446], part_tab1[16], part_tab2[16], part_tab3[16], part_tab4[16];
+  uint16_t sigval;
 } mbr_t;
 _Static_assert(sizeof(struct mbr) == 512, "mbr size wrong");
 
 // partition entry.
 typedef struct partition_entry {
-    uint32_t bootable_p:8,
-             chs_start:24,
-             part_type:8,
-             chs_end:24;
-    uint32_t lba_start;
-    uint32_t nsec;
-} __attribute__ ((packed)) mbr_partition_ent_t;
-_Static_assert (sizeof(struct partition_entry) == 16, "partition_entry: size wrong");
+  uint32_t bootable_p : 8, chs_start : 24, part_type : 8, chs_end : 24;
+  uint32_t lba_start;
+  uint32_t nsec;
+} __attribute__((packed)) mbr_partition_ent_t;
+_Static_assert(sizeof(struct partition_entry) == 16,
+               "partition_entry: size wrong");
 
 // check if a `part_type` corresponds to FAT32
 static inline int mbr_part_is_fat32(int t) { return t == 0xb || t == 0xc; }

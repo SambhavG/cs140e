@@ -17,12 +17,12 @@
 // 5. then can turn the mmu off.
 //
 // NOTE: there are generally single hardware instructions
-// for each of the above, HOWEVER, just issuing the 
+// for each of the above, HOWEVER, just issuing the
 // instruction is rarely enough. there is typically
 // a recipe to follow to ensure that hardware state
 // is consistent.  See the upcoming vm coherence lab.
 
-// One time hardware initialization.  
+// One time hardware initialization.
 // Do before anything else!
 void staff_mmu_init(void);
 void mmu_init(void);
@@ -36,8 +36,7 @@ void domain_access_ctrl_set(uint32_t d);
 uint32_t staff_domain_access_ctrl_get(void);
 uint32_t domain_access_ctrl_get(void);
 
-
-// internal routine to set the hardware state: 
+// internal routine to set the hardware state:
 //   - <asid> is address space identifier.
 //   - <pt> is the 2^14 aligned page table.
 //
@@ -56,12 +55,9 @@ void staff_sync_tlb(void);
 void staff_mmu_set_ctx(uint32_t pid, uint32_t asid, void *pt);
 void mmu_set_ctx(uint32_t pid, uint32_t asid, void *pt);
 
-
 // called to sync after a set of pte modifications: flushes everything.
 void mmu_sync_pte_mods(void);
 void staff_mmu_sync_pte_mods(void);
-
-
 
 #if 0
 static inline void 
@@ -79,10 +75,10 @@ mmu_set_ctx(uint32_t pid, uint32_t asid, void *pt) {
 }
 #endif
 
-// turn the MMU on: 
+// turn the MMU on:
 // you must have previously done:
 //  - <mmu_init> or hardware could have garbage.
-//  - <mmu_set_ctx>: or there is no asid and page 
+//  - <mmu_set_ctx>: or there is no asid and page
 //    table for the hw to use.
 //  - <domain_access_control_set> or no domain
 //    permissions will be setup and you will immediately

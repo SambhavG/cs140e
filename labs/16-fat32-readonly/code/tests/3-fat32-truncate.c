@@ -1,6 +1,6 @@
-#include "rpi.h"
-#include "pi-sd.h"
 #include "fat32.h"
+#include "pi-sd.h"
+#include "rpi.h"
 
 void notmain() {
   kmalloc_init(FAT32_HEAP_MB);
@@ -33,7 +33,8 @@ void notmain() {
     if (x) {
       old = "B.TXT";
     } else {
-      panic("Found neither A.TXT nor B.TXT! Make sure you created one of them on the SD card!\n");
+      panic("Found neither A.TXT nor B.TXT! Make sure you created one of them "
+            "on the SD card!\n");
     }
   }
   printk("Truncating <%s> from %d bytes to 0\n", old, x->nbytes);

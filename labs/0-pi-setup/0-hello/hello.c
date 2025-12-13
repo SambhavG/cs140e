@@ -3,6 +3,6 @@
 #include "rpi.h"
 
 void notmain(void) {
-    putk("hello world from the pi\n");
-    clean_reboot();
+  putk("hello world from the pi\n");
+  clean_reboot();
 }

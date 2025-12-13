@@ -51,8 +51,8 @@ static int called_sw_uart_p = 0;
 
 // a sw-uart putc implementation.
 static int sw_uart_putc(int chr) {
-    sw_uart_put8(&sw_uart, chr);
-    return chr;
+  sw_uart_put8(&sw_uart, chr);
+  return chr;
 }
 
 // call this routine to print stuff.
@@ -60,35 +60,34 @@ static int sw_uart_putc(int chr) {
 // note the function pointer hack: after you call it
 // once can call the regular printk etc.
 static void emergency_printk(const char *fmt, ...) {
-    // track if we ever called it.
-    called_sw_uart_p = 1;
+  // track if we ever called it.
+  called_sw_uart_p = 1;
 
-    // we forcibly initialize each time it got called
-    // in case the GPIO got reset.
-    // setup gpio 14,15 for sw-uart.
-    sw_uart = sw_uart_default();
+  // we forcibly initialize each time it got called
+  // in case the GPIO got reset.
+  // setup gpio 14,15 for sw-uart.
+  sw_uart = sw_uart_default();
 
-    // all libpi output is via a <putc>
-    // function pointer: this installs ours
-    // instead of the default
-    rpi_putchar_set(sw_uart_putc);
+  // all libpi output is via a <putc>
+  // function pointer: this installs ours
+  // instead of the default
+  rpi_putchar_set(sw_uart_putc);
 
-    printk("NOTE: HW UART GPIO is in a bad state now\n");
+  printk("NOTE: HW UART GPIO is in a bad state now\n");
 
-    // do print
-    va_list args;
-    va_start(args, fmt);
-    vprintk(fmt, args);
-    va_end(args);
+  // do print
+  va_list args;
+  va_start(args, fmt);
+  vprintk(fmt, args);
+  va_end(args);
 }
 
 #undef todo
-#define todo(msg)                                      \
-    do {                                               \
-        emergency_printk("%s:%d:%s\nDONE!!!\n",        \
-                         __FUNCTION__, __LINE__, msg); \
-        rpi_reboot();                                  \
-    } while (0)
+#define todo(msg)                                                              \
+  do {                                                                         \
+    emergency_printk("%s:%d:%s\nDONE!!!\n", __FUNCTION__, __LINE__, msg);      \
+    rpi_reboot();                                                              \
+  } while (0)
 
 // END of the bit bang code.
 #endif
@@ -97,16 +96,16 @@ static void emergency_printk(const char *fmt, ...) {
 // the rest you should implement.
 
 enum {
-    AUX_BASE = 0x20215000,
-    AUX_IRQ = AUX_BASE,
-    AUX_ENB = AUX_BASE + 0x4,
-    AUX_MU_IO_REG = AUX_BASE + 0x40,
-    AUX_MU_IER_REG = AUX_BASE + 0x44,
-    AUX_MU_IIR_REG = AUX_BASE + 0x48,
-    AUX_MU_LCR_REG = AUX_BASE + 0x4c,
-    AUX_MU_CNTL_REG = AUX_BASE + 0x60,
-    AUX_MU_STAT_REG = AUX_BASE + 0x64,
-    AUX_MU_BAUD = AUX_BASE + 0x68,
+  AUX_BASE = 0x20215000,
+  AUX_IRQ = AUX_BASE,
+  AUX_ENB = AUX_BASE + 0x4,
+  AUX_MU_IO_REG = AUX_BASE + 0x40,
+  AUX_MU_IER_REG = AUX_BASE + 0x44,
+  AUX_MU_IIR_REG = AUX_BASE + 0x48,
+  AUX_MU_LCR_REG = AUX_BASE + 0x4c,
+  AUX_MU_CNTL_REG = AUX_BASE + 0x60,
+  AUX_MU_STAT_REG = AUX_BASE + 0x64,
+  AUX_MU_BAUD = AUX_BASE + 0x68,
 };
 
 // called first to setup uart to 8n1 115200  baud,
@@ -115,150 +114,150 @@ enum {
 //
 //  later: should add an init that takes a baud rate.
 void uart_init(void) {
-    // NOTE: make sure you delete all print calls when
-    // done!
-    unsigned read;
-    unsigned modify;
-    // perhaps confusingly: at this point normal printk works
-    // since we overrode the system putc routine.
-    dev_barrier();
-    gpio_set_function(GPIO_TX, GPIO_FUNC_ALT5);
-    gpio_set_function(GPIO_RX, GPIO_FUNC_ALT5);
-    dev_barrier();
+  // NOTE: make sure you delete all print calls when
+  // done!
+  unsigned read;
+  unsigned modify;
+  // perhaps confusingly: at this point normal printk works
+  // since we overrode the system putc routine.
+  dev_barrier();
+  gpio_set_function(GPIO_TX, GPIO_FUNC_ALT5);
+  gpio_set_function(GPIO_RX, GPIO_FUNC_ALT5);
+  dev_barrier();
 
-    // Enable uart (p9)
-    OR32(AUX_ENB, 0b1);
-    dev_barrier();
+  // Enable uart (p9)
+  OR32(AUX_ENB, 0b1);
+  dev_barrier();
 
-    // Disable tx,rx, auto flow control (p16,17)
-    // Write 0000 to bottom four of AUX_MU_CNTL_REG
-    // read = GET32(AUX_MU_CNTL_REG);
-    // modify = read >> 2 << 2;
-    // PUT32(AUX_MU_CNTL_REG, modify);
-    PUT32(AUX_MU_CNTL_REG, 0);
+  // Disable tx,rx, auto flow control (p16,17)
+  // Write 0000 to bottom four of AUX_MU_CNTL_REG
+  // read = GET32(AUX_MU_CNTL_REG);
+  // modify = read >> 2 << 2;
+  // PUT32(AUX_MU_CNTL_REG, modify);
+  PUT32(AUX_MU_CNTL_REG, 0);
 
-    // Clear the FIFOs (p13)
-    // write 1 to bits 1 and 2 of AUX_MU_IIR_REG
-    // OR32(AUX_MU_IIR_REG, 0b110);
-    PUT32(AUX_MU_IIR_REG, 0b110);
+  // Clear the FIFOs (p13)
+  // write 1 to bits 1 and 2 of AUX_MU_IIR_REG
+  // OR32(AUX_MU_IIR_REG, 0b110);
+  PUT32(AUX_MU_IIR_REG, 0b110);
 
-    // Set uart to 8n1 (p14)
-    // Write 11 to bottom two bits of AUX_MU_LCR_REG
-    // OR32(AUX_MU_LCR_REG, 0b11);
-    PUT32(AUX_MU_LCR_REG, 0b11);
+  // Set uart to 8n1 (p14)
+  // Write 11 to bottom two bits of AUX_MU_LCR_REG
+  // OR32(AUX_MU_LCR_REG, 0b11);
+  PUT32(AUX_MU_LCR_REG, 0b11);
 
-    // 115200 baud
-    // Write 270 to AUX_MU_BAUD (computed from formula)
-    PUT32(AUX_MU_BAUD, 270);
+  // 115200 baud
+  // Write 270 to AUX_MU_BAUD (computed from formula)
+  PUT32(AUX_MU_BAUD, 270);
 
-    // Disable interrupts (p12, errata)
-    // Write 0 to bottom two bits of AUX_MU_IER_REG
-    // read = GET32(AUX_MU_IER_REG);
-    // modify = read >> 2 << 2;
-    // PUT32(AUX_MU_IER_REG, modify);
-    PUT32(AUX_MU_IER_REG, 0);
+  // Disable interrupts (p12, errata)
+  // Write 0 to bottom two bits of AUX_MU_IER_REG
+  // read = GET32(AUX_MU_IER_REG);
+  // modify = read >> 2 << 2;
+  // PUT32(AUX_MU_IER_REG, modify);
+  PUT32(AUX_MU_IER_REG, 0);
 
-    // Reenable transmitter and receiver (p17)
-    // OR32(AUX_MU_CNTL_REG, 0b11);
-    PUT32(AUX_MU_CNTL_REG, 0b11);
-    dev_barrier();
+  // Reenable transmitter and receiver (p17)
+  // OR32(AUX_MU_CNTL_REG, 0b11);
+  PUT32(AUX_MU_CNTL_REG, 0b11);
+  dev_barrier();
 
-    // delete everything to do w/ sw-uart when done since
-    // it trashes your hardware state and the system
-    // <putc>.
-    // demand(!called_sw_uart_p,
-    //        delete all sw - uart uses or hw UART in bad state);
+  // delete everything to do w/ sw-uart when done since
+  // it trashes your hardware state and the system
+  // <putc>.
+  // demand(!called_sw_uart_p,
+  //        delete all sw - uart uses or hw UART in bad state);
 }
 
 // disable the uart: make sure all bytes have been
 //
 void uart_disable(void) {
-    // Check that all bytes have been transmitted (transmitter is idle)
-    // Wait for TX to be idle (p18)
-    // Wait until bit 3 of AUX_MU_STAT_REG is 1
-    // while (!(GET32(AUX_MU_STAT_REG) && 0b1000)) {
-    // }
-    uart_flush_tx();
-    dev_barrier();
+  // Check that all bytes have been transmitted (transmitter is idle)
+  // Wait for TX to be idle (p18)
+  // Wait until bit 3 of AUX_MU_STAT_REG is 1
+  // while (!(GET32(AUX_MU_STAT_REG) && 0b1000)) {
+  // }
+  uart_flush_tx();
+  dev_barrier();
 
-    // Disable tx,rx
-    // Write 00 to bottom two of AUX_MU_CNTL_REG
-    unsigned read = GET32(AUX_MU_CNTL_REG);
-    unsigned modify = read >> 2 << 2;
-    PUT32(AUX_MU_CNTL_REG, modify);
+  // Disable tx,rx
+  // Write 00 to bottom two of AUX_MU_CNTL_REG
+  unsigned read = GET32(AUX_MU_CNTL_REG);
+  unsigned modify = read >> 2 << 2;
+  PUT32(AUX_MU_CNTL_REG, modify);
 
-    // Disable uart (p9)
-    // Write 0 to first bit of AUXENB
-    read = GET32(AUX_ENB);
-    modify = read >> 1 << 1;
-    PUT32(AUX_ENB, modify);
-    dev_barrier();
+  // Disable uart (p9)
+  // Write 0 to first bit of AUXENB
+  read = GET32(AUX_ENB);
+  modify = read >> 1 << 1;
+  PUT32(AUX_ENB, modify);
+  dev_barrier();
 }
 
 // returns one byte from the RX (input) hardware
 // FIFO.  if FIFO is empty, blocks until there is
 // at least one byte.
 int uart_get8(void) {
-    dev_barrier();
-    // Wait for there to be a byte in RX (p19)
-    // Block until bit 9 of AUX_MU_STAT_REG is 1
-    while (!(GET32(AUX_MU_STAT_REG) & (0b1 << 9))) {
-        rpi_wait();
-    }
+  dev_barrier();
+  // Wait for there to be a byte in RX (p19)
+  // Block until bit 9 of AUX_MU_STAT_REG is 1
+  while (!(GET32(AUX_MU_STAT_REG) & (0b1 << 9))) {
+    rpi_wait();
+  }
 
-    // Pop from receive queue (p11)
-    // Bottom 8 bits from AUX_MU_IO_REG
-    int ret = (int)(GET32(AUX_MU_IO_REG) & 0b11111111);
-    dev_barrier();
-    return ret;
+  // Pop from receive queue (p11)
+  // Bottom 8 bits from AUX_MU_IO_REG
+  int ret = (int)(GET32(AUX_MU_IO_REG) & 0b11111111);
+  dev_barrier();
+  return ret;
 }
 
 // returns 1 if the hardware TX (output) FIFO has room
 // for at least one byte.  returns 0 otherwise.
 int uart_can_put8(void) {
-    // Check TX has space (p18)
-    // Need bit 1 of AUX_MU_STAT_REG = 1
-    return (GET32(AUX_MU_STAT_REG) & 0b10);
+  // Check TX has space (p18)
+  // Need bit 1 of AUX_MU_STAT_REG = 1
+  return (GET32(AUX_MU_STAT_REG) & 0b10);
 }
 
 // put one byte on the TX FIFO, if necessary, waits
 // until the FIFO has space.
 int uart_put8(uint8_t c) {
-    dev_barrier();
-    while (!uart_can_put8()) {
-        rpi_wait();
-    };
-    // Write c to AUX_MU_IO_REG bottom 8 bits (p11)
-    PUT32(AUX_MU_IO_REG, c);
-    dev_barrier();
-    return 1;
+  dev_barrier();
+  while (!uart_can_put8()) {
+    rpi_wait();
+  };
+  // Write c to AUX_MU_IO_REG bottom 8 bits (p11)
+  PUT32(AUX_MU_IO_REG, c);
+  dev_barrier();
+  return 1;
 }
 
 // returns:
 //  - 1 if at least one byte on the hardware RX FIFO.
 //  - 0 otherwise
 int uart_has_data(void) {
-    dev_barrier();
-    // Check if bottom bit of AUX_MU_STAT_REG is 1
-    return GET32(AUX_MU_STAT_REG) & 0b1;
+  dev_barrier();
+  // Check if bottom bit of AUX_MU_STAT_REG is 1
+  return GET32(AUX_MU_STAT_REG) & 0b1;
 }
 
 // returns:
 //  -1 if no data on the RX FIFO.
 //  otherwise reads a byte and returns it.
 int uart_get8_async(void) {
-    if (!uart_has_data())
-        return -1;
-    return uart_get8();
+  if (!uart_has_data())
+    return -1;
+  return uart_get8();
 }
 
 // returns:
 //  - 1 if TX FIFO empty AND idle.
 //  - 0 if not empty.
 int uart_tx_is_empty(void) {
-    dev_barrier();
-    // Check if bit 9 of AUX_MU_STAT_REG is set (p18)
-    return (GET32(AUX_MU_STAT_REG) & (0b1 << 9));
+  dev_barrier();
+  // Check if bit 9 of AUX_MU_STAT_REG is set (p18)
+  return (GET32(AUX_MU_STAT_REG) & (0b1 << 9));
 }
 
 // return only when the TX FIFO is empty AND the
@@ -270,6 +269,6 @@ int uart_tx_is_empty(void) {
 // if reboot happens before all bytes have been
 // received.
 void uart_flush_tx(void) {
-    while (!uart_tx_is_empty())
-        rpi_wait();
+  while (!uart_tx_is_empty())
+    rpi_wait();
 }

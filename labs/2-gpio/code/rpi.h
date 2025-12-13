@@ -35,7 +35,7 @@ void put32(volatile void *addr, uint32_t v);
 void PUT32(uint32_t addr, uint32_t v);
 
 /**
- * Used to read from device memory.  Use this instead of a raw 
+ * Used to read from device memory.  Use this instead of a raw
  * dereference. Returns the 32-bit value at address <addr>.
  *
  * Safer alternative to *(uint32_t *)addr.
@@ -45,7 +45,7 @@ void PUT32(uint32_t addr, uint32_t v);
 uint32_t get32(const volatile void *addr);
 
 /**
- * Used to read from device memory.  Use this instead of a 
+ * Used to read from device memory.  Use this instead of a
  * raw dereference. Returns the 32-bit value at address <addr>.
  *
  * Safer alternative to *(uint32_t *)addr.
@@ -56,7 +56,7 @@ uint32_t GET32(uint32_t addr);
 
 /**
  * An assembly routine that does nothing.
- * The compiler cannot optimize away an external function call, 
+ * The compiler cannot optimize away an external function call,
  * so we can use it to prevent the compiler optimizing away loops.
  */
 void nop(void);
@@ -72,16 +72,15 @@ void delay_cycles(unsigned ticks);
 
 // different functions we can set GPIO pins to.
 typedef enum {
-    GPIO_FUNC_INPUT   = 0,
-    GPIO_FUNC_OUTPUT  = 1,
-    GPIO_FUNC_ALT0    = 4,
-    GPIO_FUNC_ALT1    = 5,
-    GPIO_FUNC_ALT2    = 6,
-    GPIO_FUNC_ALT3    = 7,
-    GPIO_FUNC_ALT4    = 3,
-    GPIO_FUNC_ALT5    = 2,
+  GPIO_FUNC_INPUT = 0,
+  GPIO_FUNC_OUTPUT = 1,
+  GPIO_FUNC_ALT0 = 4,
+  GPIO_FUNC_ALT1 = 5,
+  GPIO_FUNC_ALT2 = 6,
+  GPIO_FUNC_ALT3 = 7,
+  GPIO_FUNC_ALT4 = 3,
+  GPIO_FUNC_ALT5 = 2,
 } gpio_func_t;
-
 
 /**
  * Configure GPIO <pin> as an output pin.
@@ -106,7 +105,7 @@ void gpio_set_off(unsigned pin);
 /**
  * Set GPIO <pin> to <v>.
  *
- * <v> should be interepreted as a C "boolean"; i.e., 0 is 
+ * <v> should be interepreted as a C "boolean"; i.e., 0 is
  * false, anything else is true.
  */
 void gpio_write(unsigned pin, unsigned v);
@@ -118,9 +117,9 @@ void gpio_write(unsigned pin, unsigned v);
 int gpio_read(unsigned pin);
 
 /***********************************************************
- * GPIO Pullup/Down routines; these aren't necessary for many 
- * things, but can be useful.  They let an input pin have a 
- * "default" state when the pin isn't connected, instead of 
+ * GPIO Pullup/Down routines; these aren't necessary for many
+ * things, but can be useful.  They let an input pin have a
+ * "default" state when the pin isn't connected, instead of
  * randomly reading as 0 or 1.
  */
 

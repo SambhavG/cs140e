@@ -20,72 +20,67 @@
 //    - <cycle_cnt_read()> counts cycles
 //    - <timer_get_usec()> counts microseconds.
 void sw_uart_put8(sw_uart_t *uart, uint8_t b) {
-    // use local variables to minimize any loads or stores
-    int tx = uart->tx;
-    uint32_t n = uart->cycle_per_bit,
-             u = n,
-             s = cycle_cnt_read();
+  // use local variables to minimize any loads or stores
+  int tx = uart->tx;
+  uint32_t n = uart->cycle_per_bit, u = n, s = cycle_cnt_read();
 
-    // Write 0
-    gpio_set_off(tx);
+  // Write 0
+  gpio_set_off(tx);
+  delay_ncycles(s, n);
+  s += n;
+  // Write bits 0..7
+  for (int i = 0; i < 8; i++) {
+    unsigned b_i = (b >> i) & 0b1;
+    if (b_i) {
+      gpio_set_on(tx);
+    } else {
+      gpio_set_off(tx);
+    }
     delay_ncycles(s, n);
     s += n;
-    // Write bits 0..7
-    for (int i = 0; i < 8; i++) {
-        unsigned b_i = (b >> i) & 0b1;
-        if (b_i) {
-            gpio_set_on(tx);
-        } else {
-            gpio_set_off(tx);
-        }
-        delay_ncycles(s, n);
-        s += n;
-    }
-    // Write 1
-    gpio_set_on(tx);
-    delay_ncycles(s, n);
+  }
+  // Write 1
+  gpio_set_on(tx);
+  delay_ncycles(s, n);
 }
 
 // optional: do receive.
 //      EASY BUG: if you are reading input, but you do not get here in
 //      time it will disappear.
 int sw_uart_get8_timeout(sw_uart_t *uart, uint32_t timeout_usec) {
-    unsigned rx = uart->rx;
+  unsigned rx = uart->rx;
 
-    // right away (used to be return never).
-    while (!wait_until_usec(rx, 0, timeout_usec))
-        return -1;
+  // right away (used to be return never).
+  while (!wait_until_usec(rx, 0, timeout_usec))
     return -1;
+  return -1;
 }
 
 // finish implementing this routine.
-sw_uart_t sw_uart_init_helper(unsigned tx, unsigned rx,
-                              unsigned baud,
-                              unsigned cyc_per_bit,
-                              unsigned usec_per_bit) {
-    // remedial sanity checking
-    assert(tx && tx < 31);
-    assert(rx && rx < 31);
-    assert(cyc_per_bit && cyc_per_bit > usec_per_bit);
-    assert(usec_per_bit);
+sw_uart_t sw_uart_init_helper(unsigned tx, unsigned rx, unsigned baud,
+                              unsigned cyc_per_bit, unsigned usec_per_bit) {
+  // remedial sanity checking
+  assert(tx && tx < 31);
+  assert(rx && rx < 31);
+  assert(cyc_per_bit && cyc_per_bit > usec_per_bit);
+  assert(usec_per_bit);
 
-    // basic sanity checking.  if this fails lmk
-    unsigned mhz = 700 * 1000 * 1000;
-    unsigned derived = cyc_per_bit * baud;
-    if (!((mhz - baud) <= derived && derived <= (mhz + baud)))
-        panic("too much diff: cyc_per_bit = %d * baud = %d\n",
-              cyc_per_bit, cyc_per_bit * baud);
+  // basic sanity checking.  if this fails lmk
+  unsigned mhz = 700 * 1000 * 1000;
+  unsigned derived = cyc_per_bit * baud;
+  if (!((mhz - baud) <= derived && derived <= (mhz + baud)))
+    panic("too much diff: cyc_per_bit = %d * baud = %d\n", cyc_per_bit,
+          cyc_per_bit * baud);
 
-    // make sure you set TX to its correct default!
-    // todo("setup rx,tx and initial state of tx pin.");
-    gpio_set_input(rx);
-    gpio_set_output(tx);
-    gpio_set_on(tx);
+  // make sure you set TX to its correct default!
+  // todo("setup rx,tx and initial state of tx pin.");
+  gpio_set_input(rx);
+  gpio_set_output(tx);
+  gpio_set_on(tx);
 
-    return (sw_uart_t){
-        .tx = tx,
-        .rx = rx,
-        .baud = baud,
-        .cycle_per_bit = cyc_per_bit,
-        .usec_per_bit = usec_per_bit};
+  return (sw_uart_t){.tx = tx,
+                     .rx = rx,
+                     .baud = baud,
+                     .cycle_per_bit = cyc_per_bit,
+                     .usec_per_bit = usec_per_bit};
 }

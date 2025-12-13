@@ -1,8 +1,8 @@
 #ifndef __MINI_WATCH_H__
 #define __MINI_WATCH_H__
-#include "rpi.h"
 #include "armv6-debug-impl.h"
 #include "full-except.h"
+#include "rpi.h"
 
 extern void *wp_addr[2];
 extern int which_wp_on[2];
@@ -11,26 +11,20 @@ extern int which_wp_on[2];
 // to add other information without messing with
 // client code.
 typedef struct {
-    uint32_t    fault_pc;       // pc fault happened at.
-    void        *fault_addr;    // actual fault address
-    unsigned    is_load_p;      // was it a load?
-    regs_t      *regs;          // full set of registers at fault.
-                                // *client can modify these* and
-                                // the code continue execution using them.
+  uint32_t fault_pc;  // pc fault happened at.
+  void *fault_addr;   // actual fault address
+  unsigned is_load_p; // was it a load?
+  regs_t *regs;       // full set of registers at fault.
+                      // *client can modify these* and
+                      // the code continue execution using them.
 } watch_fault_t;
 
-static inline watch_fault_t watch_fault_mk(
-    uint32_t fault_pc,
-    void *fault_addr,
-    unsigned is_load_p,
-    regs_t *regs) 
-{
-    return (watch_fault_t) { 
-        .fault_pc = fault_pc, 
-        .fault_addr = fault_addr,
-        .is_load_p = is_load_p,
-        .regs = regs
-    };
+static inline watch_fault_t watch_fault_mk(uint32_t fault_pc, void *fault_addr,
+                                           unsigned is_load_p, regs_t *regs) {
+  return (watch_fault_t){.fault_pc = fault_pc,
+                         .fault_addr = fault_addr,
+                         .is_load_p = is_load_p,
+                         .regs = regs};
 }
 
 // watchpoint handler: call client routine with
@@ -40,7 +34,7 @@ typedef void (*watch_handler_t)(void *data, watch_fault_t *fault);
 
 void watchpt_fault(regs_t *r);
 
-// initialize watchpoint: any fault will call 
+// initialize watchpoint: any fault will call
 // <h> passing <data> and a structure with info about
 // current fault.
 void mini_watch_init();
@@ -56,7 +50,7 @@ void mini_watch_disable(void *addr);
 // are we watching anything at all?
 int mini_watch_enabled(void);
 
-// called from exception handler: if the current 
+// called from exception handler: if the current
 // fault is a watchpoint, return 1
 int mini_watch_is_fault(void);
 

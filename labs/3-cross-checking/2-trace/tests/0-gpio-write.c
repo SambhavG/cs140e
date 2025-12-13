@@ -4,9 +4,9 @@
 #include "trace.h"
 
 void notmain(void) {
-    uart_init();
+  uart_init();
 
-    trace_fn(gpio_write(20, 1));
+  trace_fn(gpio_write(20, 1));
 
-    clean_reboot();
+  clean_reboot();
 }

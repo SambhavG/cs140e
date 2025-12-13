@@ -37,24 +37,24 @@ static uint32_t is_profiling;
 // - allocate <hist> with <kmalloc> using <pc_min> and
 //   <pc_max> to compute code size.
 static unsigned gprof_init(void) {
-    pc_min = (uint32_t)__code_start__;
-    pc_max = (uint32_t)__code_end__;
-    uint32_t code_size = (pc_max - pc_min) / 4 + 1;
-    assert(pc_min <= pc_max);
-    hist_n = (uint32_t)kmalloc(code_size);
+  pc_min = (uint32_t)__code_start__;
+  pc_max = (uint32_t)__code_end__;
+  uint32_t code_size = (pc_max - pc_min) / 4 + 1;
+  assert(pc_min <= pc_max);
+  hist_n = (uint32_t)kmalloc(code_size);
 
-    return hist_n;
+  return hist_n;
 }
 
 // increment histogram associated w/ pc.
 //    few lines of code
 static void gprof_inc(unsigned pc) {
-    if (is_profiling) {
-        is_profiling = 0;
-        assert(pc >= pc_min && pc <= pc_max);
-        ((uint32_t *)hist_n)[(pc - pc_min) / 4]++;
-        is_profiling = 1;
-    }
+  if (is_profiling) {
+    is_profiling = 0;
+    assert(pc >= pc_min && pc <= pc_max);
+    ((uint32_t *)hist_n)[(pc - pc_min) / 4]++;
+    is_profiling = 1;
+  }
 }
 
 // print out all samples whose count > min_val
@@ -67,18 +67,18 @@ static void gprof_inc(unsigned pc) {
 //  - we expect pc's to be in GET32, PUT32, different
 //    uart routines, or rpi_wait.  (why?)
 static void gprof_dump(unsigned min_val) {
-    is_profiling = 0;
-    uint32_t length = (pc_max - pc_min) / 4 + 1;
-    for (int i = 0; i < length; i++) {
-        uint32_t *hist = (uint32_t *)hist_n;
-        uint32_t count = hist[i];
-        if (count > min_val) {
-            printk("%x\n", pc_min + i * 4, count);
-            // printk("%x | %u\n", hist + i, count);
-        }
+  is_profiling = 0;
+  uint32_t length = (pc_max - pc_min) / 4 + 1;
+  for (int i = 0; i < length; i++) {
+    uint32_t *hist = (uint32_t *)hist_n;
+    uint32_t count = hist[i];
+    if (count > min_val) {
+      printk("%x\n", pc_min + i * 4, count);
+      // printk("%x | %u\n", hist + i, count);
     }
+  }
 
-    is_profiling = 1;
+  is_profiling = 1;
 }
 
 /**************************************************************
@@ -90,47 +90,47 @@ static volatile unsigned period;
 
 // client has to define this.
 void interrupt_vector(unsigned pc) {
-    dev_barrier();
-    unsigned pending = GET32(IRQ_basic_pending);
-    if ((pending & ARM_Timer_IRQ) == 0)
-        return;
+  dev_barrier();
+  unsigned pending = GET32(IRQ_basic_pending);
+  if ((pending & ARM_Timer_IRQ) == 0)
+    return;
 
-    PUT32(ARM_Timer_IRQ_Clear, 1);
-    cnt++;
+  PUT32(ARM_Timer_IRQ_Clear, 1);
+  cnt++;
 
-    // increment the counter for <pc>.
-    gprof_inc(pc);
+  // increment the counter for <pc>.
+  gprof_inc(pc);
 
-    // this doesn't need to stay here.
-    static unsigned last_clk = 0;
-    unsigned clk = timer_get_usec();
-    period = last_clk ? clk - last_clk : 0;
-    last_clk = clk;
+  // this doesn't need to stay here.
+  static unsigned last_clk = 0;
+  unsigned clk = timer_get_usec();
+  period = last_clk ? clk - last_clk : 0;
+  last_clk = clk;
 
-    dev_barrier();
+  dev_barrier();
 }
 
 // trivial program to test gprof implementation.
 // 	- look at output: do you see weird patterns?
 void notmain() {
-    interrupt_init();
-    timer_init(16, 0x100);
+  interrupt_init();
+  timer_init(16, 0x100);
 
-    // Q: if you move these below interrupt enable?
-    uint32_t oneMB = 1024 * 1024;
-    kmalloc_init_set_start((void *)oneMB, oneMB);
-    gprof_init();
+  // Q: if you move these below interrupt enable?
+  uint32_t oneMB = 1024 * 1024;
+  kmalloc_init_set_start((void *)oneMB, oneMB);
+  gprof_init();
 
-    printk("gonna enable ints globally!\n");
-    enable_interrupts();
+  printk("gonna enable ints globally!\n");
+  enable_interrupts();
 
-    // caches_enable(); 	// Q: what happens if you enable cache?
-    unsigned iter = 0;
-    while (cnt < 200) {
-        printk("iter=%d: cnt = %d, period = %dusec, %x\n",
-               iter, cnt, period, period);
-        iter++;
-        if (iter % 10 == 0)
-            gprof_dump(2);
-    }
+  // caches_enable(); 	// Q: what happens if you enable cache?
+  unsigned iter = 0;
+  while (cnt < 200) {
+    printk("iter=%d: cnt = %d, period = %dusec, %x\n", iter, cnt, period,
+           period);
+    iter++;
+    if (iter % 10 == 0)
+      gprof_dump(2);
+  }
 }

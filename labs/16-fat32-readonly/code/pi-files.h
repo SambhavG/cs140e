@@ -6,8 +6,8 @@
 // file into RAM), but this is a simple way to start.
 typedef struct {
   char *data;
-  size_t n_alloc,    // total bytes allocated.
-         n_data;     // how many bytes of data
+  size_t n_alloc, // total bytes allocated.
+      n_data;     // how many bytes of data
 } pi_file_t;
 
 // A memory representation of a directory entry.

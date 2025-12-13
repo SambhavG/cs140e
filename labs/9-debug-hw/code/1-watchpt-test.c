@@ -9,138 +9,136 @@
  * shows how to use the full_except/switchto interface.
  */
 // handle a store to address 0 (null)
-#include "rpi.h"
-#include "vector-base.h"
 #include "armv6-debug-impl.h"
 #include "full-except.h"
+#include "rpi.h"
+#include "vector-base.h"
 
 static int load_fault_n, store_fault_n;
 
 // change to passing in the saved registers.
 
 static void watchpt_fault(regs_t *r) {
-    if(was_brkpt_fault())
-        panic("should only get debug faults!\n");
+  if (was_brkpt_fault())
+    panic("should only get debug faults!\n");
 
-    if(!was_watchpt_fault())
-        panic("should only get watchpoint faults!\n");
+  if (!was_watchpt_fault())
+    panic("should only get watchpoint faults!\n");
 
-    assert(cp14_wcr0_is_enabled());
+  assert(cp14_wcr0_is_enabled());
 
-    // we get the fault *after* the read or write occurs and
-    // the pc value is the next instruction that would run.
-    // e.g., a store or a load to a non-pc value expect this
-    // to be +4.    if they write to the pc can be anywhere.
-    uint32_t pc = r->regs[15];
+  // we get the fault *after* the read or write occurs and
+  // the pc value is the next instruction that would run.
+  // e.g., a store or a load to a non-pc value expect this
+  // to be +4.    if they write to the pc can be anywhere.
+  uint32_t pc = r->regs[15];
 
-    // the actual instruction that caused watchpoint.  pc holds the
-    // address of the next instruction.
-    uint32_t fault_pc = watchpt_fault_pc();
+  // the actual instruction that caused watchpoint.  pc holds the
+  // address of the next instruction.
+  uint32_t fault_pc = watchpt_fault_pc();
 
-    trace("faulting instruction at pc=%x, next instruction pc=%x\n",
-        fault_pc, pc);
+  trace("faulting instruction at pc=%x, next instruction pc=%x\n", fault_pc,
+        pc);
 
-    // currently we just expect it to be +4
-    uint32_t expect_pc = pc-4;
-    if(fault_pc != expect_pc)
-        panic("exception fault pc=%p != watchpt_fault_pc() pc=%p\n", 
-            expect_pc, fault_pc);
+  // currently we just expect it to be +4
+  uint32_t expect_pc = pc - 4;
+  if (fault_pc != expect_pc)
+    panic("exception fault pc=%p != watchpt_fault_pc() pc=%p\n", expect_pc,
+          fault_pc);
 
-    // we are only using GET32/PUT32 to load/store.
-    if(datafault_from_ld()) {
-        trace("load fault at pc=%x\n", pc);
-        assert(fault_pc == (uint32_t)GET32);
-        load_fault_n++;
-    } else {
-        trace("store fault at pc=%x\n", pc);
-        assert(fault_pc == (uint32_t)PUT32);
-        store_fault_n++;
-    }
+  // we are only using GET32/PUT32 to load/store.
+  if (datafault_from_ld()) {
+    trace("load fault at pc=%x\n", pc);
+    assert(fault_pc == (uint32_t)GET32);
+    load_fault_n++;
+  } else {
+    trace("store fault at pc=%x\n", pc);
+    assert(fault_pc == (uint32_t)PUT32);
+    store_fault_n++;
+  }
 
-    // disable the watchpoint.
-    cp14_wcr0_disable();
-    assert(!cp14_wcr0_is_enabled());
+  // disable the watchpoint.
+  cp14_wcr0_disable();
+  assert(!cp14_wcr0_is_enabled());
 
-    // switch to where we should go.
-    switchto(r);
+  // switch to where we should go.
+  switchto(r);
 }
 
 void notmain(void) {
-    enum { null = 0 };
-    // initialize null.
-    PUT32(null, 0xdeadbeef);
-    trace("INITIAL VALUE: addr %x = %x\n", null, GET32(null));
+  enum { null = 0 };
+  // initialize null.
+  PUT32(null, 0xdeadbeef);
+  trace("INITIAL VALUE: addr %x = %x\n", null, GET32(null));
 
-    // install exception handlers: see <staff-full-except.c>
-    full_except_install(0);
-    full_except_set_data_abort(watchpt_fault);
+  // install exception handlers: see <staff-full-except.c>
+  full_except_install(0);
+  full_except_set_data_abort(watchpt_fault);
 
-    cp14_enable();
+  cp14_enable();
 
-    /* 
-     * see: 
-     *   - 13-47: how to set a simple watchpoint.
-     *   - 13-17 for how to set bits in the <wcr0>
-     */
+  /*
+   * see:
+   *   - 13-47: how to set a simple watchpoint.
+   *   - 13-17 for how to set bits in the <wcr0>
+   */
 
+  /**************************************************************
+   * 1. store test with PUT32.
+   */
 
+  // set watchpoint.
+  assert(!cp14_wcr0_is_enabled());
+  uint32_t b = cp14_wcr0_get();
+  b = bit_clr(b, 20);      // disable linking
+  b = bits_clr(b, 14, 15); // watchpoint matches in secure or non-secure world
+  b = bits_set(b, 5, 8,
+               0b1111); // watchpoint is triggered for any access 0x0,1,2,3
+  b = bits_set(b, 3, 4, 0b11); // for both loads and stores
+  b = bits_set(b, 1, 2, 0b11); // for both user and privileged
+  b = bit_set(b, 0);           // enable watchpoint
 
-    /**************************************************************
-     * 1. store test with PUT32.
-     */
+  if (!b)
+    panic("set b to the right bits for wcr0\n");
 
-    // set watchpoint.
-    assert(!cp14_wcr0_is_enabled());
-    uint32_t b = cp14_wcr0_get();
-    b = bit_clr(b, 20); //disable linking
-    b = bits_clr(b, 14, 15); //watchpoint matches in secure or non-secure world
-    b  = bits_set(b, 5, 8, 0b1111); //watchpoint is triggered for any access 0x0,1,2,3
-    b = bits_set(b, 3, 4, 0b11); //for both loads and stores
-    b = bits_set(b, 1, 2, 0b11); //for both user and privileged
-    b = bit_set(b, 0); //enable watchpoint
+  cp14_wcr0_set(b);
+  cp14_wvr0_set(null);
+  assert(cp14_wcr0_is_enabled());
+  prefetch_flush();
 
-    if(!b)
-        panic("set b to the right bits for wcr0\n");
+  trace("set watchpoint for addr %p\n", null);
 
-    cp14_wcr0_set(b);
-    cp14_wvr0_set(null);
-    assert(cp14_wcr0_is_enabled());
-    prefetch_flush();
+  trace("should see a store fault!\n");
+  uint32_t val = 0xfaf0faf0;
+  PUT32(null, val);
 
-    trace("set watchpoint for addr %p\n", null);
+  if (!store_fault_n)
+    panic("did not see a store fault\n");
+  assert(!cp14_wcr0_is_enabled());
 
-    trace("should see a store fault!\n");
-    uint32_t val = 0xfaf0faf0;
-    PUT32(null,val);
+  // note, this should not fault.
+  uint32_t x = GET32(null);
+  if (x == val)
+    trace("SUCCESS: correctly got a fault on addr=%x, val=%x\n", null, x);
+  else
+    panic("returned %x, expected %x\n", x, val);
 
-    if(!store_fault_n)
-        panic("did not see a store fault\n");
-    assert(!cp14_wcr0_is_enabled());
+  /**************************************************************
+   * 1. load test with GET32.
+   */
 
-   // note, this should not fault.
-    uint32_t x = GET32(null);
-    if(x == val)
-        trace("SUCCESS: correctly got a fault on addr=%x, val=%x\n", 
-                                null, x);
-    else
-        panic("returned %x, expected %x\n", x, val);
+  // set up the fault again.
+  trace("setting watchpoint for addr %p\n", null);
+  // cp14_wcr0_set(b);
+  cp14_wcr0_enable();
+  cp14_wvr0_set(null);
+  assert(cp14_wcr0_is_enabled());
 
-    /**************************************************************
-     * 1. load test with GET32.
-     */
-
-    // set up the fault again.
-    trace("setting watchpoint for addr %p\n", null);
-    // cp14_wcr0_set(b);
-    cp14_wcr0_enable();
-    cp14_wvr0_set(null);
-    assert(cp14_wcr0_is_enabled());
-
-    trace("should see a load fault!\n");
-    x = GET32(null);
-    if(!load_fault_n)
-        panic("did not see a load fault\n");
-    if(x != val)
-        panic("expected %x, got %x\n", val,x);
-    trace("SUCCESS GET32 fault worked!\n");
+  trace("should see a load fault!\n");
+  x = GET32(null);
+  if (!load_fault_n)
+    panic("did not see a load fault\n");
+  if (x != val)
+    panic("expected %x, got %x\n", val, x);
+  trace("SUCCESS GET32 fault worked!\n");
 }

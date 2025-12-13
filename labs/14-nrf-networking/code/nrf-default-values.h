@@ -15,32 +15,32 @@
 //  0xd3d3d3,
 
 enum {
-    server_addr = 0xd5d5d5,
-    client_addr = 0xe5e5e5,
+  server_addr = 0xd5d5d5,
+  client_addr = 0xe5e5e5,
 };
 
 enum {
-    nrf_default_nbytes              = 4,            // 4 byte packets.
+  nrf_default_nbytes = 4, // 4 byte packets.
 
-    // allegedly semi-safe from interference
-    // RF is really sensitive.   maybe worth writing the code to find.
-    // bounce around, send/recv and check.
-    nrf_default_channel             = 113,          
+  // allegedly semi-safe from interference
+  // RF is really sensitive.   maybe worth writing the code to find.
+  // bounce around, send/recv and check.
+  nrf_default_channel = 113,
 
-    // lower data rate ==> longer distance.
-    nrf_default_data_rate           = nrf_2Mbps,    
+  // lower data rate ==> longer distance.
+  nrf_default_data_rate = nrf_2Mbps,
 
-    // this is full power.
-    nrf_default_db                  = dBm_0,
+  // this is full power.
+  nrf_default_db = dBm_0,
 
-    // 6 retran attempts
-    nrf_default_retran_attempts     = 6,            
+  // 6 retran attempts
+  nrf_default_retran_attempts = 6,
 
-    // 2000 usec retran delay
-    nrf_default_retran_delay        = 2000,         
+  // 2000 usec retran delay
+  nrf_default_retran_delay = 2000,
 
-    // if we increase?  doesn't seem to matter; 4,5 also legal.
-    nrf_default_addr_nbytes         = 3,
+  // if we increase?  doesn't seem to matter; 4,5 also legal.
+  nrf_default_addr_nbytes = 3,
 };
 
 #endif

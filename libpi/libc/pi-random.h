@@ -1,7 +1,9 @@
 /* simplifying wrapper for random.c */
 #ifndef __PI_RANDOM_H__
 #define __PI_RANDOM_H__
-
+#include "random.h"
+#include "rpi.h"
+#include <memory.h>
 // get a random number
 uint32_t pi_random(void);
 
@@ -9,4 +11,3 @@ uint32_t pi_random(void);
 void pi_random_seed(uint32_t x);
 
 #endif
-

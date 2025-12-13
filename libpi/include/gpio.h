@@ -10,14 +10,14 @@
 
 // different functions we can set GPIO pins to.
 typedef enum {
-    GPIO_FUNC_INPUT   = 0,
-    GPIO_FUNC_OUTPUT  = 1,
-    GPIO_FUNC_ALT0    = 4,
-    GPIO_FUNC_ALT1    = 5,
-    GPIO_FUNC_ALT2    = 6,
-    GPIO_FUNC_ALT3    = 7,
-    GPIO_FUNC_ALT4    = 3,
-    GPIO_FUNC_ALT5    = 2,
+  GPIO_FUNC_INPUT = 0,
+  GPIO_FUNC_OUTPUT = 1,
+  GPIO_FUNC_ALT0 = 4,
+  GPIO_FUNC_ALT1 = 5,
+  GPIO_FUNC_ALT2 = 6,
+  GPIO_FUNC_ALT3 = 7,
+  GPIO_FUNC_ALT4 = 3,
+  GPIO_FUNC_ALT5 = 2,
 } gpio_func_t;
 
 // set GPIO function for <pin> (input, output, alt...).  settings for other
@@ -57,16 +57,15 @@ int gpio_get_pud(unsigned pin);
  * use the following to configure interrupts on pins.
  */
 
-
 // gpio_int_rising_edge and gpio_int_falling_edge (and any other) should
 // call this routine (you must implement) to setup the right GPIO event.
-// as with setting up functions, you should bitwise-or in the value for the 
+// as with setting up functions, you should bitwise-or in the value for the
 // pin you are setting with the existing pin values.  (otherwise you will
 // lose their configuration).  you also need to enable the right IRQ.   make
 // sure to use device barriers!!
 enum { GPIO_INT0 = 49, GPIO_INT1, GPIO_INT2, GPIO_INT3 };
 
-// returns 1 if there is currently a GPIO_INT0 interrupt, 
+// returns 1 if there is currently a GPIO_INT0 interrupt,
 // 0 otherwise.
 //
 // note: we can only get interrupts for <GPIO_INT0> since the
@@ -80,14 +79,14 @@ int gpio_has_interrupt(void);
 // if you want lower latency, you should us async rising edge (p99)
 void gpio_int_rising_edge(unsigned pin);
 
-// p98: detect falling edge (1->0).  sampled using the system clock.  
+// p98: detect falling edge (1->0).  sampled using the system clock.
 // similarly to rising edge detection, it suppresses noise by looking for
-// "100" --- i.e., is triggered after two readings of "0" and so the 
+// "100" --- i.e., is triggered after two readings of "0" and so the
 // interrupt is delayed two clock cycles.   if you want  lower latency,
 // you should use async falling edge. (p99)
 void gpio_int_falling_edge(unsigned pin);
 
-// p98: detect when input pin=1.  must clear the source of the 
+// p98: detect when input pin=1.  must clear the source of the
 // interrupt before clearing the event or it will just retrigger.
 void gpio_enable_hi_int(unsigned pin);
 
@@ -95,9 +94,8 @@ void gpio_enable_hi_int(unsigned pin);
 // will just retrigger.
 void gpio_int_low(unsigned pin);
 
-
 // p96: a 1<<pin is set in EVENT_DETECT if <pin> triggered an interrupt.
-// if you configure multiple events to lead to interrupts, you will have to 
+// if you configure multiple events to lead to interrupts, you will have to
 // read the pin to determine which caused it.
 int gpio_event_detected(unsigned pin);
 

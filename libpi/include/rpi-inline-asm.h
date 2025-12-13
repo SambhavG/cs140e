@@ -5,19 +5,19 @@
 
 // get the status register.
 static inline uint32_t cpsr_get(void) {
-    uint32_t cpsr;
-    asm volatile("mrs %0,cpsr" : "=r"(cpsr));
-    return cpsr;
+  uint32_t cpsr;
+  asm volatile("mrs %0,cpsr" : "=r"(cpsr));
+  return cpsr;
 }
 // set the status register
 static inline void cpsr_set(uint32_t cpsr) {
-    asm volatile("msr cpsr, %0" :: "r"(cpsr));
+  asm volatile("msr cpsr, %0" ::"r"(cpsr));
 }
 
 // check if interrupts are enabled.
 static inline int cpsr_int_enabled(void) {
-    // 7ths bit = 1 ===> disabled.
-    return ((cpsr_get() >> 7) & 1) == 0;
+  // 7ths bit = 1 ===> disabled.
+  return ((cpsr_get() >> 7) & 1) == 0;
 }
 
 /*
@@ -30,9 +30,9 @@ static inline int cpsr_int_enabled(void) {
         bx lr               @ return.
 */
 static inline uint32_t cpsr_int_enable(void) {
-    uint32_t cpsr = cpsr_get();
-    cpsr_set(cpsr & ~(1<<7));
-    return cpsr;
+  uint32_t cpsr = cpsr_get();
+  cpsr_set(cpsr & ~(1 << 7));
+  return cpsr;
 }
 
 /*
@@ -47,26 +47,26 @@ static inline uint32_t cpsr_int_enable(void) {
         bx lr
  */
 static inline uint32_t cpsr_int_disable(void) {
-    uint32_t cpsr = cpsr_get();
-    cpsr_set(cpsr | (1<<7));
-    return cpsr;
+  uint32_t cpsr = cpsr_get();
+  cpsr_set(cpsr | (1 << 7));
+  return cpsr;
 }
 
-// reset cpsr to a previous state.  returns the 
+// reset cpsr to a previous state.  returns the
 // current value.
 //
 // the if/else is a bit clearer than doing bit
 // manipulations.
 //
-// we don't just reset the entire cpsr in order to 
-// preserve the condition code flags. 
+// we don't just reset the entire cpsr in order to
+// preserve the condition code flags.
 //
 // NOTE: i think there is a suffix we can give
 // to the cpsr write to get around this.  check manual.
 static inline uint32_t cpsr_int_reset(uint32_t cpsr) {
-    if(cpsr & (1<<7))
-        return cpsr_int_disable();
-    else
-        return cpsr_int_enable();
+  if (cpsr & (1 << 7))
+    return cpsr_int_disable();
+  else
+    return cpsr_int_enable();
 }
 #endif

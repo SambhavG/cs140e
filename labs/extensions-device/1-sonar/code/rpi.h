@@ -8,25 +8,22 @@
 
 #define RPI_COMPILED
 
-
 // We are running without an OS, but these will get pulled from gcc's include's,
 // not your laptops.
-// 
+//
 // however, we don't want to do this too much, since unfortunately header files
 // have a bunch of code we cannot run, which can lead to problems.
 //
 // XXX: These are dangerous since we are not doing any initialization (e.g., of
-// locale).  
+// locale).
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdarg.h>
 #include <string.h>
-
 
 /*****************************************************************************
  * output routines.
  */
-
 
 // let the user override the system putchar routine.
 
@@ -91,18 +88,18 @@ void uart_flush_tx(void);
  */
 
 // delays for <ticks> (each tick = a few cycles)
-void delay_cycles(uint32_t ticks) ;
+void delay_cycles(uint32_t ticks);
 
 // delay for <us> microseconds.
-void delay_us(uint32_t us) ;
+void delay_us(uint32_t us);
 
 // delay for <ms> milliseconds
-void delay_ms(uint32_t ms) ;
+void delay_ms(uint32_t ms);
 
 // returns time in usec.
 // NOTE: this can wrap around!   do not do direct comparisons.
 // this does a memory barrier.
-uint32_t timer_get_usec(void) ;
+uint32_t timer_get_usec(void);
 
 // no memory barrier.
 uint32_t timer_get_usec_raw(void);
@@ -136,16 +133,16 @@ void dev_barrier(void);
  */
 
 // returns 0-filled memory.
-void *kmalloc(unsigned nbytes) ;
-void *kmalloc_notzero(unsigned nbytes) ;
+void *kmalloc(unsigned nbytes);
+void *kmalloc_notzero(unsigned nbytes);
 void *kmalloc_aligned(unsigned nbytes, unsigned alignment);
 
 // initialize and set where the heap starts and give a maximum
 // size in bytes
 void kmalloc_init_set_start(void *addr, unsigned max_nbytes);
 static inline void kmalloc_init(void) {
-    unsigned long MB = 1024*1024;
-    kmalloc_init_set_start((void*)MB, 64*MB);
+  unsigned long MB = 1024 * 1024;
+  kmalloc_init_set_start((void *)MB, 64 * MB);
 }
 
 // return pointer to the first free byte.  used for
@@ -173,18 +170,16 @@ void put8(volatile void *addr, uint8_t x);
 void PUT8(uint32_t addr, uint8_t x);
 
 // flip around so it just calls or32.
-static inline uint32_t 
-OR32(uint32_t addr, uint32_t x) {
-    uint32_t v = GET32(addr);
-    v |= x;
-    PUT32(addr,v);
-    return v;
+static inline uint32_t OR32(uint32_t addr, uint32_t x) {
+  uint32_t v = GET32(addr);
+  v |= x;
+  PUT32(addr, v);
+  return v;
 }
 #define ptr_to_uint32(x) ((uint32_t)(ptrdiff_t)x)
 
-static inline uint32_t 
-or32(volatile void *addr, uint32_t x) {
-    return OR32(ptr_to_uint32(addr), x);
+static inline uint32_t or32(volatile void *addr, uint32_t x) {
+  return OR32(ptr_to_uint32(addr), x);
 }
 
 uint8_t GET8(unsigned addr);
@@ -203,27 +198,27 @@ void memcpy256(void *dst, const void *src, size_t nbytes);
 /* #include <string.h> */
 
 #ifndef RPI_UNIX
-#   define asm_align(x)    asm volatile (".align " _XSTRING(x))
+#define asm_align(x) asm volatile(".align " _XSTRING(x))
 
-    // called for testing.
-    static inline uint32_t DEV_VAL32(uint32_t x) { return x; }
+// called for testing.
+static inline uint32_t DEV_VAL32(uint32_t x) { return x; }
 #else
-#   include <string.h>
-#   include <stdlib.h>
-#   include <assert.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
 
-    // it's gross that we have to add this.  what should do about this?
-#   include "fake-pi.h"
+// it's gross that we have to add this.  what should do about this?
+#include "fake-pi.h"
 
-    // call this to annotate that we computed an unsigned 32-bit 
-    // integer from a device.
-    uint32_t DEV_VAL32(uint32_t x);
+// call this to annotate that we computed an unsigned 32-bit
+// integer from a device.
+uint32_t DEV_VAL32(uint32_t x);
 #endif
 
 // entry point definition
 void notmain(void);
 
-// provide your own implementation if you want to 
+// provide your own implementation if you want to
 // do something during a busy wait.
 void rpi_wait(void);
 
@@ -233,16 +228,14 @@ void caches_enable(void);
 void caches_disable(void);
 int caches_is_enabled(void);
 
-
 int memiszero(const void *_p, unsigned n);
-
 
 /*********************************************************
  * some gcc helpers.
  */
 
 // gcc memory barrier.
-#define gcc_mb() asm volatile ("" : : : "memory")
+#define gcc_mb() asm volatile("" : : : "memory")
 
 // from linux --- can help gcc make better code layout
 // decisions.  can sometimes help when we want nanosec
@@ -253,8 +246,8 @@ int memiszero(const void *_p, unsigned n);
 // example use:
 //   if(unlikely(!(p = kmalloc(4))))
 //      panic("kmalloc failed\n");
-#define likely(x)       __builtin_expect((x),1)
-#define unlikely(x)     __builtin_expect((x),0)
+#define likely(x) __builtin_expect((x), 1)
+#define unlikely(x) __builtin_expect((x), 0)
 
 #include "gpio.h"
 #include "rpi-constants.h"
@@ -263,8 +256,8 @@ int memiszero(const void *_p, unsigned n);
 #define let __auto_type
 
 // returns start of heap if ran: cstart will skip 0'ing the
-// bss.  
-void * custom_c_runtime_init(void);
+// bss.
+void *custom_c_runtime_init(void);
 
 // make a symbol weak.
 #define WEAK(fn) __attribute__((weak)) fn

@@ -1,16 +1,16 @@
 #ifndef __UNIX_BOOT_H__
 #define __UNIX_BOOT_H__
 #ifndef __RPI__
-#   include "libunix.h"
+#include "libunix.h"
 #else
-#   include "rpi.h"
+#include "rpi.h"
 #endif
 #include "boot-defs.h"
 
 // hack to trace put/get.
-// if 
-//  <trace_p> = 1 
-// you can see the stream of put/gets: makes it easy 
+// if
+//  <trace_p> = 1
+// you can see the stream of put/gets: makes it easy
 // to compare your bootloader to the ours and others.
 //
 // there are other ways to do this --- this is

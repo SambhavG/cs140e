@@ -37,23 +37,23 @@
 
 #define THREAD_MAXSTACK (1024 * 8 / 4)
 typedef struct rpi_thread {
-    // SUGGESTION:
-    //     check that this is within <stack> (see last field)
-    //     should never point outside.
-    uint32_t *saved_sp;
+  // SUGGESTION:
+  //     check that this is within <stack> (see last field)
+  //     should never point outside.
+  uint32_t *saved_sp;
 
-    struct rpi_thread *next;
-    uint32_t tid;
+  struct rpi_thread *next;
+  uint32_t tid;
 
-    // only used for part1: useful for testing without cswitch
-    void (*fn)(void *arg);
-    void *arg;  // this can serve as private data.
+  // only used for part1: useful for testing without cswitch
+  void (*fn)(void *arg);
+  void *arg; // this can serve as private data.
 
-    const char *annot;
-    // threads waiting on the current one to exit.
-    // struct rpi_thread *waiters;
+  const char *annot;
+  // threads waiting on the current one to exit.
+  // struct rpi_thread *waiters;
 
-    uint32_t stack[THREAD_MAXSTACK];
+  uint32_t stack[THREAD_MAXSTACK];
 } rpi_thread_t;
 _Static_assert(offsetof(rpi_thread_t, stack) % 8 == 0,
                "must be 8 byte aligned");
@@ -115,10 +115,10 @@ static inline void rpi_arg_put(rpi_thread_t *t, void *arg) {
 }
 #endif
 static inline unsigned rpi_tid(void) {
-    rpi_thread_t *t = rpi_cur_thread();
-    if (!t)
-        panic("rpi_threads not running\n");
-    return t->tid;
+  rpi_thread_t *t = rpi_cur_thread();
+  if (!t)
+    panic("rpi_threads not running\n");
+  return t->tid;
 }
 
 #endif

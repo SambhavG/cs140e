@@ -3,9 +3,7 @@
 
 void baz(void);
 
-void passthrough(void) {
-    baz();
-}
+void passthrough(void) { baz(); }
 
 #if 0
 // warm-up: what will the compiler do?

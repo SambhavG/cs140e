@@ -1,4 +1,2 @@
 #include "rpi.h"
-void notmain(void) {
-    gpio_set_off(20);
-}
+void notmain(void) { gpio_set_off(20); }

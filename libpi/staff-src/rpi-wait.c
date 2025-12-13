@@ -1,2 +1,2 @@
 // default does nothing.
-void rpi_wait(void) { }
+void rpi_wait(void) {}

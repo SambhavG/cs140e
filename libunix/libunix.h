@@ -5,20 +5,20 @@
 // in one place.
 //
 #include <assert.h>
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 // roundup <x> to a multiple of <n>: taken from the lcc compiler.
-#define pi_roundup(x,n) (((x)+((n)-1))&(~((n)-1)))
+#define pi_roundup(x, n) (((x) + ((n) - 1)) & (~((n) - 1)))
 
 // bunch of useful macros for debugging/error checking.
 #include "demand.h"
 
 // read and echo the characters from the pi's usbtty to unix
 // and from unix to pi until the ttyusb disappears (the hardware got
-// pulled out) or we see a <DONE!!!> string, used to indicate 
+// pulled out) or we see a <DONE!!!> string, used to indicate
 // a clean shutdown.
 void pi_cat(int pi_fd, const char *portname);
 
@@ -57,19 +57,18 @@ int tty_gone(const char *ttyname);
 // call this to check errors for closing a descriptor:
 #define close_nofail(fd) no_fail(close(fd))
 
-
 uint32_t our_crc32(const void *buf, unsigned size);
-// our_crc32_inc(buf,size,0) is the same as our_crc32 
+// our_crc32_inc(buf,size,0) is the same as our_crc32
 uint32_t our_crc32_inc(const void *buf, unsigned size, uint32_t crc);
 
 // fill in <fmt,..> using <...> and strcat it to <dst>
 char *strcatf(char *dst, const char *fmt, ...);
 
-// print the format string into a buffer and return 
+// print the format string into a buffer and return
 // an allocated copy of it.
 char *strdupf(const char *fmt, ...);
 // print the format string into a buffer and return an
-// allocated copy of it 
+// allocated copy of it
 char *vstrdupf(const char *fmt, va_list ap);
 // concat src1 with the result of fmt... and return strdup'd result
 char *str2dupf(const char *src1, const char *fmt, ...);
@@ -88,18 +87,18 @@ int suffix_cmp(const char *s, const char *suffix);
 int prefix_cmp(const char *s, const char *prefix);
 
 void run_system(const char *fmt, ...);
-int run_system_err_ok(int verbose_p, const char *fmt, ...) ;
-
+int run_system_err_ok(int verbose_p, const char *fmt, ...);
 
 // lookup <name> in directory <path> and return <path>/<name>
 char *name_lookup(const char *path, const char *name);
 
 void pi_echo(int unix_fd, int pi_fd, const char *portname);
-void pi_echo_debug(int unix_fd, int pi_fd, const char *portname, const char *progname);
+void pi_echo_debug(int unix_fd, int pi_fd, const char *portname,
+                   const char *progname);
 
 int exists(const char *name);
 
-// looks in /dev for a ttyusb device. 
+// looks in /dev for a ttyusb device.
 // returns:
 //  - device name.
 // panic's if 0 or more than 1.
@@ -110,12 +109,11 @@ char *find_ttyusb_last(void);
 // read in file <name>
 // returns:
 //  - pointer to the code.  pad code with 0s up to the
-//    next multiple of 4.  
+//    next multiple of 4.
 //  - bytes of code in <size>
 //
 // fatal error open/read of <name> fails.
 void *read_file(unsigned *size, const char *name);
-
 
 // create file <name>: truncates if already exists.
 int create_file(const char *name);
@@ -127,9 +125,7 @@ FILE *fcreate_file(const char *name);
 // uncomment if you want time macros
 // #include "time-macros.h"
 
-
 // add any other prototypes you want!
-
 
 // waits for <usec>
 int can_read_timeout(int fd, unsigned usec);
@@ -138,23 +134,20 @@ int can_read(int fd);
 
 int read_timeout(int fd, void *data, unsigned n, unsigned timeout);
 
-
 // print argv style string.
 void argv_print(const char *msg, char *argv[]);
 
-
 // roundup <x> to a multiple of <n>: taken from the lcc compiler.
-#define pi_roundup(x,n) (((x)+((n)-1))&(~((n)-1)))
+#define pi_roundup(x, n) (((x) + ((n) - 1)) & (~((n) - 1)))
 
 // non-blocking check if <pid> exited cleanly.
 // returns:
 //   - 0 if not exited;
-//   - 1 if exited cleanly (exitcode in <status>, 
+//   - 1 if exited cleanly (exitcode in <status>,
 //   - -1 if exited with a crash (status holds reason)
 int child_clean_exit_noblk(int pid, int *status);
 // blocking version.
 int child_clean_exit(int pid, int *status);
-
 
 // return current number of usec --- probably better to make a larger datatype.
 // makes printing kinda annoying however.
@@ -178,10 +171,10 @@ void close_open_fds(void);
 #include "fast-hash32.h"
 
 // look for a pi binary in "./" or colon-seperated list in
-// <PI_PATH> 
+// <PI_PATH>
 const char *find_pi_binary(const char *name);
 
-#define gcc_mb() asm volatile ("" : : : "memory")
+#define gcc_mb() asm volatile("" : : : "memory")
 
 #include "demand.h"
 

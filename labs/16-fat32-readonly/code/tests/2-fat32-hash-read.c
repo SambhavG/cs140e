@@ -1,29 +1,27 @@
-#include "rpi.h"
-#include "pi-sd.h"
 #include "fat32.h"
 #include "libc/fast-hash32.h"
+#include "pi-sd.h"
+#include "rpi.h"
 
-static pi_file_t *
-read_and_hash(fat32_fs_t *fs, pi_dirent_t *root, 
-        char *name, uint32_t expected_hash) {
+static pi_file_t *read_and_hash(fat32_fs_t *fs, pi_dirent_t *root, char *name,
+                                uint32_t expected_hash) {
 
-    printk("Looking for %s.\n", name);
-    pi_dirent_t *d = fat32_stat(fs, root, name);
-    if(!d)
-        panic("%s: not found!\n", name);
+  printk("Looking for %s.\n", name);
+  pi_dirent_t *d = fat32_stat(fs, root, name);
+  if (!d)
+    panic("%s: not found!\n", name);
 
-    printk("Reading %s\n", name);
-    pi_file_t *f = fat32_read(fs, root, name);
-    assert(f);
+  printk("Reading %s\n", name);
+  pi_file_t *f = fat32_read(fs, root, name);
+  assert(f);
 
-    uint32_t hash = fast_hash(f->data,f->n_data);
-    printk("crc of %s (nbytes=%d) = %x\n", name, f->n_data, hash);
-    if(expected_hash && hash != expected_hash)
-        panic("expected hash = %x, computed hash = %x\n", expected_hash, hash);
+  uint32_t hash = fast_hash(f->data, f->n_data);
+  printk("crc of %s (nbytes=%d) = %x\n", name, f->n_data, hash);
+  if (expected_hash && hash != expected_hash)
+    panic("expected hash = %x, computed hash = %x\n", expected_hash, hash);
 
-    return f;
+  return f;
 }
-
 
 void notmain() {
   kmalloc_init(FAT32_HEAP_MB);
@@ -57,20 +55,21 @@ void notmain() {
   }
 #endif
 
-    // check that you can read data correctly.
-    read_and_hash(&fs, &root, "BOOTCODE.BIN", 0xfd8d57d1);
-    read_and_hash(&fs, &root, "START.ELF", 0xf36a80ce);
+  // check that you can read data correctly.
+  read_and_hash(&fs, &root, "BOOTCODE.BIN", 0xfd8d57d1);
+  read_and_hash(&fs, &root, "START.ELF", 0xf36a80ce);
 
-    // this could possibly fail if you have a different gcc
-    // version --- change the cksum if so.
-    output("if the hash of <hello-f.bin> fails: make sure its hash is correct\n");
-    read_and_hash(&fs, &root, "HELLO-F.BIN", 0xbd2b38c2);
+  // this could possibly fail if you have a different gcc
+  // version --- change the cksum if so.
+  output("if the hash of <hello-f.bin> fails: make sure its hash is correct\n");
+  read_and_hash(&fs, &root, "HELLO-F.BIN", 0xbd2b38c2);
 
-    // fill in the cksum values for these.
-    // todo("fill in the checksum for these next three files (use `hash-files`)\n");
-    read_and_hash(&fs, &root, "BOOTL~14.BIN", 0xed7e8fc7);
-    read_and_hash(&fs, &root, "CONFIG.TXT", 0xfd52a31c);
-    read_and_hash(&fs, &root, "KERNEL.IMG", 0x44be2a6b);
+  // fill in the cksum values for these.
+  // todo("fill in the checksum for these next three files (use
+  // `hash-files`)\n");
+  read_and_hash(&fs, &root, "BOOTL~14.BIN", 0xed7e8fc7);
+  read_and_hash(&fs, &root, "CONFIG.TXT", 0xfd52a31c);
+  read_and_hash(&fs, &root, "KERNEL.IMG", 0x44be2a6b);
 
-    printk("PASS: %s\n", __FILE__);
+  printk("PASS: %s\n", __FILE__);
 }

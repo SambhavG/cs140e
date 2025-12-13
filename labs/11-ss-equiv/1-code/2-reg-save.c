@@ -1,4 +1,4 @@
-/* 
+/*
     save all registers in ascending order.
 
         TRACE:do_syscall:reg[1]=0x1
@@ -19,21 +19,21 @@
         TRACE:do_syscall:reg[16]=0x10
 
  */
-#include "rpi.h"
 #include "asm-helpers.h"
 #include "cpsr-util.h"
+#include "rpi.h"
 #include "vector-base.h"
 
 int do_syscall(uint32_t regs[17]) {
-    int sysno = regs[0];
-    trace("in syscall: sysno=%d\n", sysno);
+  int sysno = regs[0];
+  trace("in syscall: sysno=%d\n", sysno);
 
-    for(unsigned i = 0; i < 17; i++)
-        if(regs[i])
-            trace("reg(%d)=%x\n", i, regs[i]);
+  for (unsigned i = 0; i < 17; i++)
+    if (regs[i])
+      trace("reg(%d)=%x\n", i, regs[i]);
 
-    assert(sysno == 0);
-    clean_reboot();
+  assert(sysno == 0);
+  clean_reboot();
 }
 
 #if 0
@@ -63,16 +63,15 @@ void nop_10(void);
 void mov_ident(void);
 
 void notmain(void) {
-    extern uint32_t swi_test_handlers[];
-    vector_base_set(swi_test_handlers);
-    // brkpt_mismatch_start(); 
+  extern uint32_t swi_test_handlers[];
+  vector_base_set(swi_test_handlers);
+  // brkpt_mismatch_start();
 
-    output("about to check that swi test works\n");
-    // from <1-srs-rfe.c>
-    uint32_t regs[2];
-    regs[0] = (uint32_t)mov_ident;   // in <start.S>
-    regs[1] = USER_MODE;
-    trace("about to jump to pc=[%x] with cpsr=%x\n",
-            regs[0], regs[1]);
-    rfe_asm(regs);
+  output("about to check that swi test works\n");
+  // from <1-srs-rfe.c>
+  uint32_t regs[2];
+  regs[0] = (uint32_t)mov_ident; // in <start.S>
+  regs[1] = USER_MODE;
+  trace("about to jump to pc=[%x] with cpsr=%x\n", regs[0], regs[1]);
+  rfe_asm(regs);
 }

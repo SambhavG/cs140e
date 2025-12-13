@@ -4,8 +4,8 @@
 
 enum { pin = 17 };
 void notmain(void) {
-    output("about to turn pin=%d on\n", pin);
-    gpio_write(pin,1);
-    output("about to turn pin=%d off\n", pin);
-    gpio_write(pin,0);
+  output("about to turn pin=%d on\n", pin);
+  gpio_write(pin, 1);
+  output("about to turn pin=%d off\n", pin);
+  gpio_write(pin, 0);
 }

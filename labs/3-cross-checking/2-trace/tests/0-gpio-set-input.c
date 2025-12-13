@@ -2,9 +2,9 @@
 #include "trace.h"
 
 void notmain(void) {
-    uart_init();
+  uart_init();
 
-    trace_fn(gpio_set_input(20));
+  trace_fn(gpio_set_input(20));
 
-    clean_reboot();
+  clean_reboot();
 }

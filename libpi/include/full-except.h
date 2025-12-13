@@ -7,7 +7,7 @@
 // for the register definition.
 #include "switchto.h"
 
-// can always pull <spsr> and <pc> from <regs> but they are 
+// can always pull <spsr> and <pc> from <regs> but they are
 // already around and this saves a cache miss.
 //
 // if we track the data internally, this gives the option of
@@ -20,9 +20,9 @@ typedef int (*full_excepti_t)(regs_t *r);
 void full_except_install(int override_p);
 
 // get exception vectors.
-static inline void * full_except_get_vec(void) {
-    extern uint32_t full_except_ints[];
-    return full_except_ints;
+static inline void *full_except_get_vec(void) {
+  extern uint32_t full_except_ints[];
+  return full_except_ints;
 }
 
 // call to set prefetch

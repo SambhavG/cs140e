@@ -1,7 +1,7 @@
-#include "rpi.h"
-#include "pi-sd.h"
 #include "fat32.h"
 #include "libc/fast-hash32.h"
+#include "pi-sd.h"
+#include "rpi.h"
 
 void notmain() {
   kmalloc_init(FAT32_HEAP_MB);
@@ -35,57 +35,55 @@ void notmain() {
   }
 #endif
 
-    char *name = "BOOTCODE.BIN";
-    printk("Looking for %s.\n", name);
-    pi_dirent_t *d = fat32_stat(&fs, &root, name);
-    demand(d, "bootcode.bin not found!\n");
+  char *name = "BOOTCODE.BIN";
+  printk("Looking for %s.\n", name);
+  pi_dirent_t *d = fat32_stat(&fs, &root, name);
+  demand(d, "bootcode.bin not found!\n");
 
-    printk("Reading %s\n", name);
-    pi_file_t *f = fat32_read(&fs, &root, name);
-    assert(f);
+  printk("Reading %s\n", name);
+  pi_file_t *f = fat32_read(&fs, &root, name);
+  assert(f);
 
-    printk("crc of %s (nbytes=%d) = %x\n", name, f->n_data, 
-            fast_hash(f->data,f->n_data));
+  printk("crc of %s (nbytes=%d) = %x\n", name, f->n_data,
+         fast_hash(f->data, f->n_data));
 
-    name = "HELLO-F.BIN";
-    printk("Looking for %s.\n", name);
-    d = fat32_stat(&fs, &root, name);
-    demand(d, "%s: not found!  Did you copy to microSD?\n", name);
+  name = "HELLO-F.BIN";
+  printk("Looking for %s.\n", name);
+  d = fat32_stat(&fs, &root, name);
+  demand(d, "%s: not found!  Did you copy to microSD?\n", name);
 
-    printk("Reading %s\n", name);
-    f = fat32_read(&fs, &root, name);
-    assert(f);
+  printk("Reading %s\n", name);
+  f = fat32_read(&fs, &root, name);
+  assert(f);
 
-    printk("crc of %s (nbytes=%d) = %x\n", name, f->n_data, 
-            fast_hash(f->data,f->n_data));
+  printk("crc of %s (nbytes=%d) = %x\n", name, f->n_data,
+         fast_hash(f->data, f->n_data));
 
-    uint32_t *p = (void*)f->data;
-    for(int i = 0; i < 4; i++) 
-        printk("p[%d]=%x (%d)\n", i,p[i],p[i]);
+  uint32_t *p = (void *)f->data;
+  for (int i = 0; i < 4; i++)
+    printk("p[%d]=%x (%d)\n", i, p[i], p[i]);
 
-    // magic cookie at offset 0.
-    assert(p[0] == 0x12345678);
+  // magic cookie at offset 0.
+  assert(p[0] == 0x12345678);
 
-    // address to copy at is at offset 2
-    uint32_t addr = p[2];
-    assert(addr == 0x9000000);
+  // address to copy at is at offset 2
+  uint32_t addr = p[2];
+  assert(addr == 0x9000000);
 
+  trace("about to call <%s>\n", name);
 
-    trace("about to call <%s>\n", name);
+  // jump to it using BRANCHTO.  make sure
+  // you skip the header!  (see in hello-f.list
+  // and memmap.fixed in 13-fat32/hello-fixed
+  // unimplemented();
 
-    // jump to it using BRANCHTO.  make sure
-    // you skip the header!  (see in hello-f.list
-    // and memmap.fixed in 13-fat32/hello-fixed
-    // unimplemented();
-    
-    for (int i = 0; i < f->n_data; i++) {
-      *((uint8_t*) addr+i) = f->data[i];
-    }
+  for (int i = 0; i < f->n_data; i++) {
+    *((uint8_t *)addr + i) = f->data[i];
+  }
 
+  BRANCHTO(p[2] + p[1]);
 
-    BRANCHTO(p[2]+p[1]);
-
-    trace("returned from <%s>!\n", name);
+  trace("returned from <%s>!\n", name);
 
   printk("PASS: %s\n", __FILE__);
 }

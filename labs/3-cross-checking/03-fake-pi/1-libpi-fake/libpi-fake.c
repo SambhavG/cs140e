@@ -8,20 +8,20 @@
 #include "rpi.h"
 
 int printk(const char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-        int res = vprintf(fmt, ap);
-    va_end(ap);
+  va_list ap;
+  va_start(ap, fmt);
+  int res = vprintf(fmt, ap);
+  va_end(ap);
 
-    return res;
+  return res;
 }
 
 void clean_reboot(void) {
-    printk("DONE!!!\n");
-    exit(0);
+  printk("DONE!!!\n");
+  exit(0);
 }
 
 int main(void) {
-    notmain();
-    return 0;
+  notmain();
+  return 0;
 }

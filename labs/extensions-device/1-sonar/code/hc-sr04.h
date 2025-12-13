@@ -7,7 +7,7 @@
 // common pattern: devices usually have various bits of internal state.  wrap
 // it up in a structure.  we return a copy to we don't have to malloc/free it.
 typedef struct {
-    unsigned trigger, echo;
+  unsigned trigger, echo;
 } hc_sr04_t;
 
 // initialize:

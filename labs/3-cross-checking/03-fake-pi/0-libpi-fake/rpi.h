@@ -3,7 +3,7 @@
 // simplest way to rewrap --- just define replacements in header --- don't
 // even need .c
 //
-// easy, but two downsides: 
+// easy, but two downsides:
 //   1. we are polluting the pi program namespace with system includes.
 //   2. we aren't using the raw rpi.h so can get different behavior.
 #include <stdio.h>
@@ -13,8 +13,8 @@
 #define printk(args...) fprintf(stderr, args)
 
 static void inline clean_reboot(void) {
-    printk("DONE!!!\n");
-    exit(0);
+  printk("DONE!!!\n");
+  exit(0);
 }
 
 void notmain(void);

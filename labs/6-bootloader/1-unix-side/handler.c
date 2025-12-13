@@ -7,12 +7,11 @@
 #include "libunix.h"
 #include "put-code.h"
 
+int main(int argc, char *argv[]) {
+  debug_output("handler started\n");
 
-int main(int argc, char *argv[]) { 
-    debug_output("handler started\n");
+  // Wait for 100 seconds
+  sleep(100);
 
-    //Wait for 100 seconds
-    sleep(100);
-
-    return 0;
+  return 0;
 }

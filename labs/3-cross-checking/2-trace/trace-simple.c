@@ -5,8 +5,8 @@
 //  without capture it's unsafe to call during UART operations since infinitely
 //  recursive and, also, will mess with the UART state.
 //
-//  record the calls in a log (just declare a statically sized array until we get malloc)
-//  for later emit by trace_dump()
+//  record the calls in a log (just declare a statically sized array until we
+//  get malloc) for later emit by trace_dump()
 //
 // extension: keep adding more functions!
 //      often it's useful to trace at a higher level, for example, doing
@@ -27,9 +27,9 @@ void __real_PUT32(unsigned addr, unsigned val);
 
 // simple state machine to track what set of options we're called with.
 enum {
-    TRACE_OFF = 0,
-    TRACE_ON,
-    TRACE_SKIP  // if running w/o buffering, stop printing trace
+  TRACE_OFF = 0,
+  TRACE_ON,
+  TRACE_SKIP // if running w/o buffering, stop printing trace
 };
 static int state = TRACE_OFF;
 
@@ -40,24 +40,24 @@ static int state = TRACE_OFF;
 //
 //  is an error: if you were already tracing.
 void trace_start(int buffer_p) {
-    assert(state == TRACE_OFF);
-    state = TRACE_ON;
+  assert(state == TRACE_OFF);
+  state = TRACE_ON;
 }
 
 // stop tracing
 //  - error: if you were not already tracing.
 void trace_stop(void) {
-    assert(state == TRACE_ON);
-    state = TRACE_OFF;
-    // we would print things out if output was being buffered.
+  assert(state == TRACE_ON);
+  state = TRACE_OFF;
+  // we would print things out if output was being buffered.
 }
 
 // call these to emit so everyone can compare!
 static void emit_put32(uint32_t addr, uint32_t val) {
-    printk("TRACE:PUT32(%x)=%x\n", addr, val);
+  printk("TRACE:PUT32(%x)=%x\n", addr, val);
 }
 static void emit_get32(uint32_t addr, uint32_t val) {
-    printk("TRACE:GET32(%x)=%x\n", addr, val);
+  printk("TRACE:GET32(%x)=%x\n", addr, val);
 }
 
 // NOTE: you will also have to implement wrappers for get32 and
@@ -65,25 +65,25 @@ static void emit_get32(uint32_t addr, uint32_t val) {
 
 // the linker will change all calls to GET32 to call __wrap_GET32
 void __wrap_PUT32(unsigned addr, unsigned val) {
-    if (state == TRACE_ON) {
-        trace_stop();
-        emit_put32(addr, val);
-        trace_start(state);
-    }
+  if (state == TRACE_ON) {
+    trace_stop();
+    emit_put32(addr, val);
+    trace_start(state);
+  }
 
-    __real_PUT32(addr, val);
+  __real_PUT32(addr, val);
 }
 
 // the linker will change all calls to GET32 to call __wrap_GET32
 unsigned __wrap_GET32(unsigned addr) {
-    unsigned v = 0;
-    v = __real_GET32(addr);
+  unsigned v = 0;
+  v = __real_GET32(addr);
 
-    if (state == TRACE_ON) {
-        trace_stop();
-        emit_get32(addr, v);
-        trace_start(state);
-    }
+  if (state == TRACE_ON) {
+    trace_stop();
+    emit_get32(addr, v);
+    trace_start(state);
+  }
 
-    return v;
+  return v;
 }

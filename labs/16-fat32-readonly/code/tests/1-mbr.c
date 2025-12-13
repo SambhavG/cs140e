@@ -1,5 +1,5 @@
-#include "rpi.h"
 #include "mbr.h"
+#include "rpi.h"
 
 void notmain() {
   kmalloc_init(8);

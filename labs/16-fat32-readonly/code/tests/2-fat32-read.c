@@ -1,6 +1,6 @@
-#include "rpi.h"
-#include "pi-sd.h"
 #include "fat32.h"
+#include "pi-sd.h"
+#include "rpi.h"
 
 void notmain() {
   kmalloc_init(FAT32_HEAP_MB);
@@ -26,9 +26,11 @@ void notmain() {
   printk("Got %d files.\n", files.ndirents);
   for (int i = 0; i < files.ndirents; i++) {
     if (files.dirents[i].is_dir_p) {
-      printk("\tD: %s (cluster %d)\n", files.dirents[i].name, files.dirents[i].cluster_id);
+      printk("\tD: %s (cluster %d)\n", files.dirents[i].name,
+             files.dirents[i].cluster_id);
     } else {
-      printk("\tF: %s (cluster %d; %d bytes)\n", files.dirents[i].name, files.dirents[i].cluster_id, files.dirents[i].nbytes);
+      printk("\tF: %s (cluster %d; %d bytes)\n", files.dirents[i].name,
+             files.dirents[i].cluster_id, files.dirents[i].nbytes);
     }
   }
 

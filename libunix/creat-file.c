@@ -1,20 +1,20 @@
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "libunix.h"
 
 int create_file(const char *name) {
-    // XXX: without O_TRUNC can get really messed up.
-    int fd = open(name, O_RDWR | O_CREAT | O_TRUNC, S_IRWXU);
-    if(fd < 0)
-        sys_die(open, "could not open file: <%s>", name);
-    return fd;
+  // XXX: without O_TRUNC can get really messed up.
+  int fd = open(name, O_RDWR | O_CREAT | O_TRUNC, S_IRWXU);
+  if (fd < 0)
+    sys_die(open, "could not open file: <%s>", name);
+  return fd;
 }
 
 FILE *fcreate_file(const char *name) {
-    FILE *f = fopen(name, "w");
-    if(!f)
-        sys_die(open, "could not open file: <%s>", name);
-    return f;
+  FILE *f = fopen(name, "w");
+  if (!f)
+    sys_die(open, "could not open file: <%s>", name);
+  return f;
 }

@@ -17,16 +17,16 @@
 //  - integers: use PUT32/GET32.
 //  semantics are the same.
 enum {
-    GPIO_BASE = 0x20200000,
-    GPIO_fsel0 = GPIO_BASE,
-    GPIO_fsel_offset = 4,
-    gpio_set0 = (GPIO_BASE + 0x1C),
-    gpio_clr0 = (GPIO_BASE + 0x28),
-    gpio_lev0 = (GPIO_BASE + 0x34),
-    gpio_ren0 = (GPIO_BASE + 0x4C),
-    gpio_fen0 = (GPIO_BASE + 0x58)
+  GPIO_BASE = 0x20200000,
+  GPIO_fsel0 = GPIO_BASE,
+  GPIO_fsel_offset = 4,
+  gpio_set0 = (GPIO_BASE + 0x1C),
+  gpio_clr0 = (GPIO_BASE + 0x28),
+  gpio_lev0 = (GPIO_BASE + 0x34),
+  gpio_ren0 = (GPIO_BASE + 0x4C),
+  gpio_fen0 = (GPIO_BASE + 0x58)
 
-    // <you may need other values.>
+  // <you may need other values.>
 };
 
 //
@@ -38,92 +38,94 @@ enum {
 // note: fsel0, fsel1, fsel2 are contiguous in memory, so you
 // can (and should) use array calculations!
 void gpio_set_output(unsigned pin) {
-    gpio_set_function(pin, GPIO_FUNC_OUTPUT);
+  gpio_set_function(pin, GPIO_FUNC_OUTPUT);
+  return;
+  if (pin >= 32 && pin != 47)
     return;
-    if (pin >= 32 && pin != 47)
-        return;
 
-    // implement this
-    // use <gpio_fsel0>
+  // implement this
+  // use <gpio_fsel0>
 
-    uint32_t bit = 1;
-    uint32_t addr = GPIO_BASE;
-    uint32_t mask = 0b111;
+  uint32_t bit = 1;
+  uint32_t addr = GPIO_BASE;
+  uint32_t mask = 0b111;
 
-    // number of offsets is pin / 10
-    addr += GPIO_fsel_offset * (pin / 10);
+  // number of offsets is pin / 10
+  addr += GPIO_fsel_offset * (pin / 10);
 
-    bit <<= 3 * (pin % 10);
-    mask <<= 3 * (pin % 10);
+  bit <<= 3 * (pin % 10);
+  mask <<= 3 * (pin % 10);
 
-    // Get addr, mask it, | with bit, put
-    uint32_t cur = GET32(addr);
-    cur &= ~mask;
-    cur |= bit;
+  // Get addr, mask it, | with bit, put
+  uint32_t cur = GET32(addr);
+  cur &= ~mask;
+  cur |= bit;
 
-    PUT32(addr, cur);
+  PUT32(addr, cur);
 }
 
 void gpio_set_function(unsigned pin, gpio_func_t function) {
-    if (pin >= 32 && pin != 47) return;
+  if (pin >= 32 && pin != 47)
+    return;
 
-    if (function >= 8) return;
+  if (function >= 8)
+    return;
 
-    // implement this
-    // use <gpio_fsel0>
+  // implement this
+  // use <gpio_fsel0>
 
-    uint32_t bit = function;
-    uint32_t addr = GPIO_BASE;
-    uint32_t mask = 0b111;
+  uint32_t bit = function;
+  uint32_t addr = GPIO_BASE;
+  uint32_t mask = 0b111;
 
-    // number of offsets is pin / 10
-    addr += GPIO_fsel_offset * (pin / 10);
+  // number of offsets is pin / 10
+  addr += GPIO_fsel_offset * (pin / 10);
 
-    bit <<= 3 * (pin % 10);
-    mask <<= 3 * (pin % 10);
+  bit <<= 3 * (pin % 10);
+  mask <<= 3 * (pin % 10);
 
-    // Get addr, mask it, | with bit, put
-    uint32_t cur = GET32(addr);
-    cur &= ~mask;
-    cur |= bit;
+  // Get addr, mask it, | with bit, put
+  uint32_t cur = GET32(addr);
+  cur &= ~mask;
+  cur |= bit;
 
-    PUT32(addr, cur);
+  PUT32(addr, cur);
 }
 
 // set GPIO <pin> on.
 void gpio_set_on(unsigned pin) {
-    if (pin >= 32 && pin != 47)
-        return;
-    // implement this
-    // use <gpio_set0>
+  if (pin >= 32 && pin != 47)
+    return;
+  // implement this
+  // use <gpio_set0>
 
-    // Write 1 to gpioset0 left shifted by pin
-    if (pin <= 31) {
-        PUT32(gpio_set0, ((unsigned)1) << pin);
-    } else {
-        PUT32(gpio_set0 + 4, ((unsigned)1) << (pin - 32));
-    }
+  // Write 1 to gpioset0 left shifted by pin
+  if (pin <= 31) {
+    PUT32(gpio_set0, ((unsigned)1) << pin);
+  } else {
+    PUT32(gpio_set0 + 4, ((unsigned)1) << (pin - 32));
+  }
 }
 
 // set GPIO <pin> off
 void gpio_set_off(unsigned pin) {
-    if (pin >= 32 && pin != 47)
-        return;
-    // implement this
-    // use <gpio_clr0>
-    if (pin <= 31) {
-        PUT32(gpio_clr0, ((unsigned)1) << pin);
-    } else {
-        PUT32(gpio_clr0 + 4, ((unsigned)1) << (pin - 32));
-    }
+  if (pin >= 32 && pin != 47)
+    return;
+  // implement this
+  // use <gpio_clr0>
+  if (pin <= 31) {
+    PUT32(gpio_clr0, ((unsigned)1) << pin);
+  } else {
+    PUT32(gpio_clr0 + 4, ((unsigned)1) << (pin - 32));
+  }
 }
 
 // set <pin> to <v> (v \in {0,1})
 void gpio_write(unsigned pin, unsigned v) {
-    if (v)
-        gpio_set_on(pin);
-    else
-        gpio_set_off(pin);
+  if (v)
+    gpio_set_on(pin);
+  else
+    gpio_set_off(pin);
 }
 
 //
@@ -132,40 +134,40 @@ void gpio_write(unsigned pin, unsigned v) {
 
 // set <pin> to input.
 void gpio_set_input(unsigned pin) {
-    gpio_set_function(pin, GPIO_FUNC_INPUT);
-    return;
+  gpio_set_function(pin, GPIO_FUNC_INPUT);
+  return;
 
-    uint32_t bit = 1;
-    uint32_t addr = GPIO_BASE;
-    uint32_t mask = 0b111;
+  uint32_t bit = 1;
+  uint32_t addr = GPIO_BASE;
+  uint32_t mask = 0b111;
 
-    // number of offsets is pin / 10
-    addr += GPIO_fsel_offset * (pin / 10);
+  // number of offsets is pin / 10
+  addr += GPIO_fsel_offset * (pin / 10);
 
-    mask <<= 3 * (pin % 10);
+  mask <<= 3 * (pin % 10);
 
-    // Get addr, mask it, | with bit, put
-    uint32_t cur = GET32(addr);
-    cur &= ~mask;
+  // Get addr, mask it, | with bit, put
+  uint32_t cur = GET32(addr);
+  cur &= ~mask;
 
-    PUT32(addr, cur);
+  PUT32(addr, cur);
 }
 
 // return the value of <pin>
 int gpio_read(unsigned pin) {
-    // if (pin > 32) {
-    //     return -1;
-    // }
-    unsigned v = 0;
+  // if (pin > 32) {
+  //     return -1;
+  // }
+  unsigned v = 0;
 
-    if (pin <= 31) {
-        v = GET32(gpio_lev0);
-    } else {
-        pin -= 32;
-        v = GET32(gpio_lev0 + 4);
-    }
-    v &= ((unsigned)1) << pin;
-    v >>= pin;
+  if (pin <= 31) {
+    v = GET32(gpio_lev0);
+  } else {
+    pin -= 32;
+    v = GET32(gpio_lev0 + 4);
+  }
+  v &= ((unsigned)1) << pin;
+  v >>= pin;
 
-    return DEV_VAL32(v);
+  return DEV_VAL32(v);
 }

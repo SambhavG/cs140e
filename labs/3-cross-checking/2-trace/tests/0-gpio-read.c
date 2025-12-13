@@ -4,13 +4,13 @@
 #include "trace.h"
 
 void notmain(void) {
-    uart_init();
+  uart_init();
 
-    printk("about to trace gpio_read(20):\n");
-    trace_start(0);
-    int v = gpio_read(20);
-    trace_stop();
-    printk("done: gpio_read(20)=%d\n", v);
+  printk("about to trace gpio_read(20):\n");
+  trace_start(0);
+  int v = gpio_read(20);
+  trace_stop();
+  printk("done: gpio_read(20)=%d\n", v);
 
-    clean_reboot();
+  clean_reboot();
 }

@@ -16,8 +16,8 @@
 
 #ifndef __GETCODE_H__
 #define __GETCODE_H__
-#include "boot-crc32.h"  // has the crc32 implementation.
-#include "boot-defs.h"   // protocol opcode values.
+#include "boot-crc32.h" // has the crc32 implementation.
+#include "boot-defs.h"  // protocol opcode values.
 #include "memmap.h"
 /***************************************************************
  * Helper routines.  You shouldn't need to modify these for
@@ -33,20 +33,20 @@
 // After you get the simple version working, you should fix
 // it by making a timeout version.
 static inline uint32_t boot_get32(void) {
-    uint32_t u = boot_get8();
-    u |= boot_get8() << 8;
-    u |= boot_get8() << 16;
-    u |= boot_get8() << 24;
-    return u;
+  uint32_t u = boot_get8();
+  u |= boot_get8() << 8;
+  u |= boot_get8() << 16;
+  u |= boot_get8() << 24;
+  return u;
 }
 
 // send 32-bits on network connection.  (possibly let the
 // network implementation override for efficiency)
 static inline void boot_put32(uint32_t u) {
-    boot_put8((u >> 0) & 0xff);
-    boot_put8((u >> 8) & 0xff);
-    boot_put8((u >> 16) & 0xff);
-    boot_put8((u >> 24) & 0xff);
+  boot_put8((u >> 0) & 0xff);
+  boot_put8((u >> 8) & 0xff);
+  boot_put8((u >> 16) & 0xff);
+  boot_put8((u >> 24) & 0xff);
 }
 
 // send a string <msg> to the unix side to print.
@@ -68,33 +68,32 @@ static inline void boot_put32(uint32_t u) {
 // received a message and the laptop side is quietly waiting
 // for a response.
 static inline void boot_putk(const char *msg) {
-    // send the <PRINT_STRING> opcode
-    boot_put32(PRINT_STRING);
+  // send the <PRINT_STRING> opcode
+  boot_put32(PRINT_STRING);
 
-    unsigned n = strlen(msg);
-    // send length.
-    boot_put32(strlen(msg));
+  unsigned n = strlen(msg);
+  // send length.
+  boot_put32(strlen(msg));
 
-    // send the bytes in the string [we don't include 0]
-    for (n = 0; msg[n]; n++)
-        boot_put8(msg[n]);
+  // send the bytes in the string [we don't include 0]
+  for (n = 0; msg[n]; n++)
+    boot_put8(msg[n]);
 }
 
 // example of how to use macros to get file and lineno info
 // if we don't do the LINE_STR() hack (see assert.h),
 // what happens?
-#define boot_todo(msg) \
-    boot_err(BOOT_ERROR, __FILE__ ":" LINE_STR() ":TODO:" msg "\n")
+#define boot_todo(msg)                                                         \
+  boot_err(BOOT_ERROR, __FILE__ ":" LINE_STR() ":TODO:" msg "\n")
 
 // send back an error and die.   note: we have to flush the output
 // otherwise rebooting could trash the TX queue (example of a hardware
 // race condition since both reboot and TX share hardware state)
-static inline void
-boot_err(uint32_t error_opcode, const char *msg) {
-    boot_putk(msg);
-    boot_put32(error_opcode);
-    uart_flush_tx();
-    rpi_reboot();
+static inline void boot_err(uint32_t error_opcode, const char *msg) {
+  boot_putk(msg);
+  boot_put32(error_opcode);
+  uart_flush_tx();
+  rpi_reboot();
 }
 
 /*****************************************************************
@@ -113,15 +112,15 @@ boot_err(uint32_t error_opcode, const char *msg) {
 //   - look at <delay_us()> : for how to correctly
 //     wait for <n> microseconds given that the hardware
 //     counter can overflow.
-static unsigned
-has_data_timeout(unsigned timeout) {
-    uint32_t s = timer_get_usec();
-    while (1) {
-        if (uart_has_data() == 1) return 1;
-        uint32_t e = timer_get_usec();
-        if ((e - s) >= timeout)
-            return 0;
-    }
+static unsigned has_data_timeout(unsigned timeout) {
+  uint32_t s = timer_get_usec();
+  while (1) {
+    if (uart_has_data() == 1)
+      return 1;
+    uint32_t e = timer_get_usec();
+    if ((e - s) >= timeout)
+      return 0;
+  }
 }
 
 // iterate:
@@ -138,94 +137,95 @@ has_data_timeout(unsigned timeout) {
 //      Its from this loop (since the LED goes on for each
 //      received packet)
 static void wait_for_data(unsigned usec_timeout) {
-    while (1) {
-        boot_put32(GET_PROG_INFO);
-        if (has_data_timeout(usec_timeout)) return;
-    }
+  while (1) {
+    boot_put32(GET_PROG_INFO);
+    if (has_data_timeout(usec_timeout))
+      return;
+  }
 }
 
 // IMPLEMENT this routine.
 //
 // Simple bootloader: put all of your code here.
 uint32_t get_code(void) {
-    // 0. keep sending GET_PROG_INFO every 300ms until
-    // there is data: implement this.
-    wait_for_data(300 * 1000);
+  // 0. keep sending GET_PROG_INFO every 300ms until
+  // there is data: implement this.
+  wait_for_data(300 * 1000);
 
-    /****************************************************************
-     * Add your code below: 2,3,4,5,6
-     */
-    uint32_t addr = 0;
+  /****************************************************************
+   * Add your code below: 2,3,4,5,6
+   */
+  uint32_t addr = 0;
 
-    // 2. expect: [PUT_PROG_INFO, addr, nbytes, cksum]
-    //    we echo cksum back in step 4 to help debugging.
+  // 2. expect: [PUT_PROG_INFO, addr, nbytes, cksum]
+  //    we echo cksum back in step 4 to help debugging.
 
-    if (boot_get32() != PUT_PROG_INFO) {
-        return 0;
-    }
+  if (boot_get32() != PUT_PROG_INFO) {
+    return 0;
+  }
 
-    addr = boot_get32();
-    uint32_t nbytes = boot_get32();
-    uint32_t received_cksum = boot_get32();
+  addr = boot_get32();
+  uint32_t nbytes = boot_get32();
+  uint32_t received_cksum = boot_get32();
 
-    // 3. If the binary will collide with us, abort with a BOOT_ERROR.
-    //
-    //    check that the sent code (<base_addr> through
-    //    <base_addr>+<nbytes>) doesn't collide with
-    //    the bootloader code using the address of <PUT32>
-    //    (the first code address we need) to __prog_end__
-    //    (the last).
-    //
-    //    refer back to:
-    //       - your gprof lab code
-    //       - libpi/include/memmap.h
-    //       - libpi/memmap
-    //    for definitions.
+  // 3. If the binary will collide with us, abort with a BOOT_ERROR.
+  //
+  //    check that the sent code (<base_addr> through
+  //    <base_addr>+<nbytes>) doesn't collide with
+  //    the bootloader code using the address of <PUT32>
+  //    (the first code address we need) to __prog_end__
+  //    (the last).
+  //
+  //    refer back to:
+  //       - your gprof lab code
+  //       - libpi/include/memmap.h
+  //       - libpi/memmap
+  //    for definitions.
 
-    uint32_t my_start = (uint32_t)&PUT32;
-    uint32_t my_end = (uint32_t)__prog_end__;
-    assert(my_start < my_end);
-    assert((addr + nbytes < my_start) || (my_end < addr));
+  uint32_t my_start = (uint32_t)&PUT32;
+  uint32_t my_end = (uint32_t)__prog_end__;
+  assert(my_start < my_end);
+  assert((addr + nbytes < my_start) || (my_end < addr));
 
-    // 4. send [GET_CODE, cksum] back.
-    boot_put32(GET_CODE);
-    boot_put32(received_cksum);
+  // 4. send [GET_CODE, cksum] back.
+  boot_put32(GET_CODE);
+  boot_put32(received_cksum);
 
-    // 5. we expect: [PUT_CODE, <code>]
-    //  read each sent byte and write it starting at
-    //  <addr> using PUT8
-    //
-    // common mistake: computing the offset incorrectly.
-    if (boot_get32() != PUT_CODE) {
-        return 0;
-    }
-    char *addr_char = (char *)addr;
-    for (int i = 0; i < nbytes; i++) {
-        addr_char[i] = boot_get8();
-    }
+  // 5. we expect: [PUT_CODE, <code>]
+  //  read each sent byte and write it starting at
+  //  <addr> using PUT8
+  //
+  // common mistake: computing the offset incorrectly.
+  if (boot_get32() != PUT_CODE) {
+    return 0;
+  }
+  char *addr_char = (char *)addr;
+  for (int i = 0; i < nbytes; i++) {
+    addr_char[i] = boot_get8();
+  }
 
-    // 6. verify the cksum of the copied code using:
-    //         boot-crc32.h:crc32.
-    //    if fails, abort with a BOOT_ERROR.
-    uint32_t computed_cksum = crc32((void *)addr, nbytes);
-    if (computed_cksum != received_cksum) {
-        boot_err(BOOT_ERROR, "Wrong checksum; code may have been corrupted");
-    }
+  // 6. verify the cksum of the copied code using:
+  //         boot-crc32.h:crc32.
+  //    if fails, abort with a BOOT_ERROR.
+  uint32_t computed_cksum = crc32((void *)addr, nbytes);
+  if (computed_cksum != received_cksum) {
+    boot_err(BOOT_ERROR, "Wrong checksum; code may have been corrupted");
+  }
 
-    // 7. send back a BOOT_SUCCESS!
-    boot_putk("Sambhav Gupta w/ custom UART: success: Received the program!");
+  // 7. send back a BOOT_SUCCESS!
+  boot_putk("Sambhav Gupta w/ custom UART: success: Received the program!");
 
-    // woo!
-    boot_put32(BOOT_SUCCESS);
+  // woo!
+  boot_put32(BOOT_SUCCESS);
 
-    // We used to have these delays to stop the unix side from getting
-    // confused.  I believe it's b/c the code we call re-initializes the
-    // uart.  Instead we now flush the hardware tx buffer.   If this
-    // isn't working, put the delay back.  However, it makes it much faster
-    // to test multiple programs without it.
-    // delay_ms(500);
-    uart_flush_tx();
+  // We used to have these delays to stop the unix side from getting
+  // confused.  I believe it's b/c the code we call re-initializes the
+  // uart.  Instead we now flush the hardware tx buffer.   If this
+  // isn't working, put the delay back.  However, it makes it much faster
+  // to test multiple programs without it.
+  // delay_ms(500);
+  uart_flush_tx();
 
-    return addr;
+  return addr;
 }
 #endif

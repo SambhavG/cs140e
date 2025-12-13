@@ -1,8 +1,8 @@
-// we need to keep this in another file or gcc inlines / removes it. 
-#include <stdio.h>
+// we need to keep this in another file or gcc inlines / removes it.
 #include "foo.h"
+#include <stdio.h>
 
 unsigned foo(unsigned arg0, unsigned arg1) {
-    printf("in real foo: have arguments (%d,%d)\n", arg0,arg1);
-    return arg0 + arg1;
+  printf("in real foo: have arguments (%d,%d)\n", arg0, arg1);
+  return arg0 + arg1;
 }

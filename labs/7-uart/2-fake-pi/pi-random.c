@@ -1,7 +1,7 @@
 // engler,cs140e: we need a test RNG, and it's important that everyone gets the
-// same answers (otherwise we can't compare code outputs).   
+// same answers (otherwise we can't compare code outputs).
 //
-// removed a bunch of stuff we don't need and prefixed with pi_*.  anyone not in 
+// removed a bunch of stuff we don't need and prefixed with pi_*.  anyone not in
 // the class: just use the original.
 //
 // test:
@@ -31,9 +31,8 @@
  * Rewritten to be reentrant by Ulrich Drepper, 1995
  */
 
-#include <stddef.h>
 #include "pi-random.h"
-
+#include <stddef.h>
 
 /* An improved random number generation package.  In addition to the standard
    rand()/srand() like interface, this package also has a special state info
@@ -68,8 +67,6 @@
    dominant factor.  With deg equal to seven, the period is actually much
    longer than the 7*(2**7 - 1) predicted by this formula.  */
 
-
-
 /* For each of the currently supported random number generators, we have a
    break value on the amount of state information (you need at least this many
    bytes of state info to support this random number generator), a degree for
@@ -77,55 +74,47 @@
    separation between the two lower order coefficients of the trinomial.  */
 
 /* Linear congruential.  */
-#define	TYPE_0		0
-#define	BREAK_0		8
-#define	DEG_0		0
-#define	SEP_0		0
+#define TYPE_0 0
+#define BREAK_0 8
+#define DEG_0 0
+#define SEP_0 0
 
 /* x**7 + x**3 + 1.  */
-#define	TYPE_1		1
-#define	BREAK_1		32
-#define	DEG_1		7
-#define	SEP_1		3
+#define TYPE_1 1
+#define BREAK_1 32
+#define DEG_1 7
+#define SEP_1 3
 
 /* x**15 + x + 1.  */
-#define	TYPE_2		2
-#define	BREAK_2		64
-#define	DEG_2		15
-#define	SEP_2		1
+#define TYPE_2 2
+#define BREAK_2 64
+#define DEG_2 15
+#define SEP_2 1
 
 /* x**31 + x**3 + 1.  */
-#define	TYPE_3		3
-#define	BREAK_3		128
-#define	DEG_3		31
-#define	SEP_3		3
+#define TYPE_3 3
+#define BREAK_3 128
+#define DEG_3 31
+#define SEP_3 3
 
 /* x**63 + x + 1.  */
-#define	TYPE_4		4
-#define	BREAK_4		256
-#define	DEG_4		63
-#define	SEP_4		1
-
+#define TYPE_4 4
+#define BREAK_4 256
+#define DEG_4 63
+#define SEP_4 1
 
 /* Array versions of the above information to make code run faster.
    Relies on fact that TYPE_i == i.  */
 
-#define	MAX_TYPES	5	/* Max number of types above.  */
+#define MAX_TYPES 5 /* Max number of types above.  */
 
-struct random_poly_info
-{
-    int seps[MAX_TYPES];
-    int degrees[MAX_TYPES];
+struct random_poly_info {
+  int seps[MAX_TYPES];
+  int degrees[MAX_TYPES];
 };
 
-static const struct random_poly_info random_poly_info =
-{
-    { SEP_0, SEP_1, SEP_2, SEP_3, SEP_4 },
-    { DEG_0, DEG_1, DEG_2, DEG_3, DEG_4 }
-};
-
-
-
+static const struct random_poly_info random_poly_info = {
+    {SEP_0, SEP_1, SEP_2, SEP_3, SEP_4}, {DEG_0, DEG_1, DEG_2, DEG_3, DEG_4}};
 
 /* If we are using the trivial TYPE_0 R.N.G., just do the old linear
    congruential bit.  Otherwise, we do our fancy trinomial stuff, which is the
@@ -137,51 +126,44 @@ static const struct random_poly_info random_poly_info =
    Note: The code takes advantage of the fact that both the front and
    rear pointers can't wrap on the same call by not testing the rear
    pointer if the front one has wrapped.  Returns a 31-bit random number.  */
-int pi_random_r(struct pi_random_data *buf, int32_t *result)
-{
-    int32_t *state;
+int pi_random_r(struct pi_random_data *buf, int32_t *result) {
+  int32_t *state;
 
-    if (buf == NULL || result == NULL)
-	goto fail;
+  if (buf == NULL || result == NULL)
+    goto fail;
 
-    state = buf->state;
+  state = buf->state;
 
-    if (buf->rand_type == TYPE_0)
-    {
-	int32_t val = state[0];
-	val = ((state[0] * 1103515245) + 12345) & 0x7fffffff;
-	state[0] = val;
-	*result = val;
+  if (buf->rand_type == TYPE_0) {
+    int32_t val = state[0];
+    val = ((state[0] * 1103515245) + 12345) & 0x7fffffff;
+    state[0] = val;
+    *result = val;
+  } else {
+    int32_t *fptr = buf->fptr;
+    int32_t *rptr = buf->rptr;
+    int32_t *end_ptr = buf->end_ptr;
+    int32_t val;
+
+    val = *fptr += *rptr;
+    /* Chucking least random bit.  */
+    *result = (val >> 1) & 0x7fffffff;
+    ++fptr;
+    if (fptr >= end_ptr) {
+      fptr = state;
+      ++rptr;
+    } else {
+      ++rptr;
+      if (rptr >= end_ptr)
+        rptr = state;
     }
-    else
-    {
-	int32_t *fptr = buf->fptr;
-	int32_t *rptr = buf->rptr;
-	int32_t *end_ptr = buf->end_ptr;
-	int32_t val;
-
-	val = *fptr += *rptr;
-	/* Chucking least random bit.  */
-	*result = (val >> 1) & 0x7fffffff;
-	++fptr;
-	if (fptr >= end_ptr)
-	{
-	    fptr = state;
-	    ++rptr;
-	}
-	else
-	{
-	    ++rptr;
-	    if (rptr >= end_ptr)
-		rptr = state;
-	}
-	buf->fptr = fptr;
-	buf->rptr = rptr;
-    }
-    return 0;
+    buf->fptr = fptr;
+    buf->rptr = rptr;
+  }
+  return 0;
 
 fail:
-    return -1;
+  return -1;
 }
 
 /* Initialize the random number generator based on the given seed.  If the
@@ -192,58 +174,56 @@ fail:
    information a given number of times to get rid of any initial dependencies
    introduced by the L.C.R.N.G.  Note that the initialization of randtbl[]
    for default usage relies on values produced by this routine.  */
-int pi_srandom_r (unsigned int seed, struct pi_random_data *buf) {
-    int type;
-    int32_t *state;
-    long int i;
-    long int word;
-    int32_t *dst;
-    int kc;
+int pi_srandom_r(unsigned int seed, struct pi_random_data *buf) {
+  int type;
+  int32_t *state;
+  long int i;
+  long int word;
+  int32_t *dst;
+  int kc;
 
-    if (buf == NULL)
-	goto fail;
-    type = buf->rand_type;
-    if ((unsigned int) type >= MAX_TYPES)
-	goto fail;
+  if (buf == NULL)
+    goto fail;
+  type = buf->rand_type;
+  if ((unsigned int)type >= MAX_TYPES)
+    goto fail;
 
-    state = buf->state;
-    /* We must make sure the seed is not 0.  Take arbitrarily 1 in this case.  */
-    if (seed == 0)
-	seed = 1;
-    state[0] = seed;
-    if (type == TYPE_0)
-	goto done;
+  state = buf->state;
+  /* We must make sure the seed is not 0.  Take arbitrarily 1 in this case.  */
+  if (seed == 0)
+    seed = 1;
+  state[0] = seed;
+  if (type == TYPE_0)
+    goto done;
 
-    dst = state;
-    word = seed;
-    kc = buf->rand_deg;
-    for (i = 1; i < kc; ++i)
-    {
-	/* This does:
-	   state[i] = (16807 * state[i - 1]) % 2147483647;
-	   but avoids overflowing 31 bits.  */
-	long int hi = word / 127773;
-	long int lo = word % 127773;
-	word = 16807 * lo - 2836 * hi;
-	if (word < 0)
-	    word += 2147483647;
-	*++dst = word;
-    }
+  dst = state;
+  word = seed;
+  kc = buf->rand_deg;
+  for (i = 1; i < kc; ++i) {
+    /* This does:
+       state[i] = (16807 * state[i - 1]) % 2147483647;
+       but avoids overflowing 31 bits.  */
+    long int hi = word / 127773;
+    long int lo = word % 127773;
+    word = 16807 * lo - 2836 * hi;
+    if (word < 0)
+      word += 2147483647;
+    *++dst = word;
+  }
 
-    buf->fptr = &state[buf->rand_sep];
-    buf->rptr = &state[0];
-    kc *= 10;
-    while (--kc >= 0)
-    {
-	int32_t discard;
-	(void) pi_random_r (buf, &discard);
-    }
+  buf->fptr = &state[buf->rand_sep];
+  buf->rptr = &state[0];
+  kc *= 10;
+  while (--kc >= 0) {
+    int32_t discard;
+    (void)pi_random_r(buf, &discard);
+  }
 
 done:
-    return 0;
+  return 0;
 
 fail:
-    return -1;
+  return -1;
 }
 
 /* Initialize the state information in the given array of N bytes for
@@ -257,51 +237,48 @@ fail:
    Note: The first thing we do is save the current state, if any, just like
    setstate so that it doesn't matter when initstate is called.
    Returns a pointer to the old state.  */
-int pi_initstate_r (unsigned int seed, char *arg_state, size_t n, struct pi_random_data *buf)
-{
-    int type;
-    int degree;
-    int separation;
-    int32_t *state;
+int pi_initstate_r(unsigned int seed, char *arg_state, size_t n,
+                   struct pi_random_data *buf) {
+  int type;
+  int degree;
+  int separation;
+  int32_t *state;
 
-    if (buf == NULL)
-	goto fail;
+  if (buf == NULL)
+    goto fail;
 
-    if (n >= BREAK_3)
-	type = n < BREAK_4 ? TYPE_3 : TYPE_4;
-    else if (n < BREAK_1)
-    {
-	if (n < BREAK_0)
-	{
-	    goto fail;
-	}
-	type = TYPE_0;
+  if (n >= BREAK_3)
+    type = n < BREAK_4 ? TYPE_3 : TYPE_4;
+  else if (n < BREAK_1) {
+    if (n < BREAK_0) {
+      goto fail;
     }
-    else
-	type = n < BREAK_2 ? TYPE_1 : TYPE_2;
+    type = TYPE_0;
+  } else
+    type = n < BREAK_2 ? TYPE_1 : TYPE_2;
 
-    degree = random_poly_info.degrees[type];
-    separation = random_poly_info.seps[type];
+  degree = random_poly_info.degrees[type];
+  separation = random_poly_info.seps[type];
 
-    buf->rand_type = type;
-    buf->rand_sep = separation;
-    buf->rand_deg = degree;
-    state = &((int32_t *) arg_state)[1];	/* First location.  */
-    /* Must set END_PTR before srandom.  */
-    buf->end_ptr = &state[degree];
+  buf->rand_type = type;
+  buf->rand_sep = separation;
+  buf->rand_deg = degree;
+  state = &((int32_t *)arg_state)[1]; /* First location.  */
+  /* Must set END_PTR before srandom.  */
+  buf->end_ptr = &state[degree];
 
-    buf->state = state;
+  buf->state = state;
 
-    pi_srandom_r (seed, buf);
+  pi_srandom_r(seed, buf);
 
-    state[-1] = TYPE_0;
-    if (type != TYPE_0)
-	state[-1] = (buf->rptr - state) * MAX_TYPES + type;
+  state[-1] = TYPE_0;
+  if (type != TYPE_0)
+    state[-1] = (buf->rptr - state) * MAX_TYPES + type;
 
-    return 0;
+  return 0;
 
 fail:
-    return -1;
+  return -1;
 }
 
 /* Restore the state from the given state array.
@@ -312,57 +289,54 @@ fail:
    to the order in which things are done, it is OK to call setstate with the
    same state as the current state
    Returns a pointer to the old state information.  */
-int pi_setstate_r (char *arg_state, struct pi_random_data *buf)
-{
-    int32_t *new_state = 1 + (int32_t *) arg_state;
-    int type;
-    int old_type;
-    int32_t *old_state;
-    int degree;
-    int separation;
+int pi_setstate_r(char *arg_state, struct pi_random_data *buf) {
+  int32_t *new_state = 1 + (int32_t *)arg_state;
+  int type;
+  int old_type;
+  int32_t *old_state;
+  int degree;
+  int separation;
 
-    if (arg_state == NULL || buf == NULL)
-	goto fail;
+  if (arg_state == NULL || buf == NULL)
+    goto fail;
 
-    old_type = buf->rand_type;
-    old_state = buf->state;
-    if (old_type == TYPE_0)
-	old_state[-1] = TYPE_0;
-    else
-	old_state[-1] = (MAX_TYPES * (buf->rptr - old_state)) + old_type;
+  old_type = buf->rand_type;
+  old_state = buf->state;
+  if (old_type == TYPE_0)
+    old_state[-1] = TYPE_0;
+  else
+    old_state[-1] = (MAX_TYPES * (buf->rptr - old_state)) + old_type;
 
-    type = new_state[-1] % MAX_TYPES;
-    if (type < TYPE_0 || type > TYPE_4)
-	goto fail;
+  type = new_state[-1] % MAX_TYPES;
+  if (type < TYPE_0 || type > TYPE_4)
+    goto fail;
 
-    buf->rand_deg = degree = random_poly_info.degrees[type];
-    buf->rand_sep = separation = random_poly_info.seps[type];
-    buf->rand_type = type;
+  buf->rand_deg = degree = random_poly_info.degrees[type];
+  buf->rand_sep = separation = random_poly_info.seps[type];
+  buf->rand_type = type;
 
-    if (type != TYPE_0)
-    {
-	int rear = new_state[-1] / MAX_TYPES;
-	buf->rptr = &new_state[rear];
-	buf->fptr = &new_state[(rear + separation) % degree];
-    }
-    buf->state = new_state;
-    /* Set end_ptr too.  */
-    buf->end_ptr = &new_state[degree];
+  if (type != TYPE_0) {
+    int rear = new_state[-1] / MAX_TYPES;
+    buf->rptr = &new_state[rear];
+    buf->fptr = &new_state[(rear + separation) % degree];
+  }
+  buf->state = new_state;
+  /* Set end_ptr too.  */
+  buf->end_ptr = &new_state[degree];
 
-    return 0;
+  return 0;
 
 fail:
-    return -1;
+  return -1;
 }
-
 
 #ifdef TEST
 
-#include <stdlib.h>
+#include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <assert.h>
 
 #define STATESIZE 128
 
@@ -370,30 +344,30 @@ fail:
 // we provide our own.
 
 static void print_random(struct pi_random_data *r, unsigned n) {
-    for(int i = 0; i < n; i++) {
-        int x; 
-        if(pi_random_r(r, &x))
-            assert(0);
-        printf("x=%x, %d\n", x,x%1024);
-    }
+  for (int i = 0; i < n; i++) {
+    int x;
+    if (pi_random_r(r, &x))
+      assert(0);
+    printf("x=%x, %d\n", x, x % 1024);
+  }
 }
 
 int main() {
-    int seed = 0;
-    char statebuf[STATESIZE];
-    struct pi_random_data r;
+  int seed = 0;
+  char statebuf[STATESIZE];
+  struct pi_random_data r;
 
-    memset(&r, 0, sizeof r);
-    if(pi_initstate_r(seed, statebuf, STATESIZE, &r))
-        assert(0);
-    if(pi_srandom_r(seed, &r))
-        assert(0);
+  memset(&r, 0, sizeof r);
+  if (pi_initstate_r(seed, statebuf, STATESIZE, &r))
+    assert(0);
+  if (pi_srandom_r(seed, &r))
+    assert(0);
 
-    // should be same.
-    print_random(&r, 8);
-    pi_srandom_r(seed, &r);
-    print_random(&r, 8);
+  // should be same.
+  print_random(&r, 8);
+  pi_srandom_r(seed, &r);
+  print_random(&r, 8);
 
-    return 0;
+  return 0;
 }
 #endif

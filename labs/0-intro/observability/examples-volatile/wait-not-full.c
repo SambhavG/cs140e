@@ -8,15 +8,15 @@ typedef struct {
   unsigned write;
 } mailbox_t;
 
-enum { MAILBOX_FULL =  (1<<31) };
+enum { MAILBOX_FULL = (1 << 31) };
 
 // mailbox device address
-mailbox_t *mbox =  (void*)0x2000B880;
+mailbox_t *mbox = (void *)0x2000B880;
 
 // wait until mailbox status indicates space
 void mb_wait_notfull(void) {
-    while(mbox->status & MAILBOX_FULL)
-        ;
+  while (mbox->status & MAILBOX_FULL)
+    ;
 }
 
-void notmain(void){}
+void notmain(void) {}

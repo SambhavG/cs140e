@@ -1,6 +1,6 @@
-#include "rpi.h"
-#include "pi-sd.h"
 #include "fat32.h"
+#include "pi-sd.h"
+#include "rpi.h"
 
 void notmain() {
   kmalloc_init(FAT32_HEAP_MB);
@@ -36,7 +36,8 @@ void notmain() {
       old = "B.TXT";
       new = "A.TXT";
     } else {
-      panic("Found neither A.TXT nor B.TXT! Make sure you created one of them on the SD card!\n");
+      panic("Found neither A.TXT nor B.TXT! Make sure you created one of them "
+            "on the SD card!\n");
     }
   }
   printk("Renaming <%s> to <%s>\n", old, new);

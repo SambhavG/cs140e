@@ -6,6 +6,6 @@
 #include "rpi.h"
 
 int main(void) {
-    notmain();
-    return 0;
+  notmain();
+  return 0;
 }

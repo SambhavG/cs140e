@@ -1,5 +1,4 @@
-#include "rpi.h"
 #include "a.h"
-
+#include "rpi.h"
 
 void a(void) {}
