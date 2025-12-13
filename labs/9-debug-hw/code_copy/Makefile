@@ -16,6 +16,7 @@ TTYUSB =
 # if your bootloader has issues just use pi-install.
 BOOTLOADER = pi-install
 BOOTLOADER = my-install
+BOOTLOADER = ./my-install-debug
 
 # set to 0 if you don't want it to run
 RUN=1
