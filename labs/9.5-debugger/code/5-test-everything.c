@@ -33,34 +33,36 @@ void notmain(void) {
   debugger_init();
 
   // int n = 10;
-  // for(int i = 0; i < n; i++) {
-  //     bp_addr(foo1, sample_bp_handler, NULL);
-  //     bp_addr(foo2, sample_bp_handler, NULL);
-  //     bp_addr(foo3, sample_bp_handler, NULL);
-  //     bp_addr(foo4, sample_bp_handler, NULL);
-  //     bp_addr(foo5, sample_bp_handler_complex, NULL);
-  //     wp_addr((void*)0xdeadbeef, sample_wp_handler, NULL);
-  //     wp_addr((void*)0xceadbeef, sample_wp_handler_complex, NULL);
-  //     foo1(i);
-  //     foo2(i);
-  //     foo3(i);
-  //     foo4(i);
-  //     foo5(i);
-  //     PUT32(0xdeadbeef, i);
-  //     PUT32(0xceadbeef, i);
-  //     trace("n_faults=%d, i=%d\n\n\n", mini_bp_num_faults(),i);
-  //     assert(mini_bp_num_faults() == 5+i*5);
+  // for (int i = 0; i < n; i++) {
+  //   bp_addr(foo1, sample_bp_handler, NULL);
+  //   bp_addr(foo2, sample_bp_handler, NULL);
+  //   bp_addr(foo3, sample_bp_handler, NULL);
+  //   bp_addr(foo4, sample_bp_handler, NULL);
+  //   bp_addr(foo5, sample_bp_handler_complex, NULL);
+  //   wp_addr((void *)0xdeadbeef, sample_wp_handler, NULL);
+  //   wp_addr((void *)0xceadbeef, sample_wp_handler_complex, NULL);
+  //   foo1(i);
+  //   foo2(i);
+  //   foo3(i);
+  //   foo4(i);
+  //   foo5(i);
+  //   PUT32(0xdeadbeef, i);
+  //   PUT32(0xceadbeef, i);
+  //   trace("n_faults=%d, i=%d\n\n\n", mini_bp_num_faults(), i);
+  //   assert(mini_bp_num_faults() == 5 + i * 5);
   // }
 
   // Profile
   gdb_init();
+  gprof_dump(2);
+
   step_init(gdb_step_handler, 0);
 
   output("about to run fib()!\n");
   step_run((void *)fib_caller, 0);
   output("done fib()!\n");
 
-  // gprof_dump(2);
+  gprof_dump(2);
 
   clean_reboot();
 

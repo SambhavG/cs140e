@@ -7,6 +7,7 @@
 #include "mini-step.h"
 #include "armv6-debug-impl.h"
 #include "memmap.h"
+#include <assert.h>
 static unsigned hist_n, pc_min, pc_max;
 static volatile unsigned *hist;
 
@@ -75,7 +76,7 @@ static unsigned bp_to_reenable = 0; //If we step when pc is at a breakpoint, we 
 // static unsigned wp_to_reenable = 0; //If we step when pc is at a watchpoint, we disable it and set this variable
 // static int hit_wp_fault = 0; //If we hit a watchpoint fault on the previous step
 
-static unsigned gdb_handle_input(char *buf, uint32_t pc, uint32_t *regs) {
+static unsigned gdb_handle_input(char *buf, uint32_t pc) {
     //First character is the action
     enum debugger_action action = buf[0];
     if (action == STEP) {
@@ -137,8 +138,6 @@ static unsigned gdb_handle_input(char *buf, uint32_t pc, uint32_t *regs) {
         delay_ms(5);
         printk("PI: Writing value %x to register %x\n", val, reg);
         delay_ms(5);
-        regs[reg] = val;
-        return 0;
     }
     delay_ms(5);
     printk("PI: Received unimplemented command %u\n", action);
@@ -232,7 +231,7 @@ void gdb_step_handler(void *data, step_fault_t *s) {
             read_buf[i] = uart_get8();
         }
         read_buf[bytes] = 0;
-        if (gdb_handle_input(read_buf, pc, s->regs->regs)) {
+        if (gdb_handle_input(read_buf, pc)) {
             break;
         }
     }

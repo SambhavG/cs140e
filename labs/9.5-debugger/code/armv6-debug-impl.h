@@ -2,8 +2,8 @@
 #define __ARMV6_DEBUG_IMPL_H__
 // header file w/ all the cp14 (debug) assembly routines.
 
+#include <assert.h>
 #include <stdint.h>
-
 // bit_* and bits_* routines.
 #include "libc/bit-support.h"
 

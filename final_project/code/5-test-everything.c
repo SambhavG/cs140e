@@ -23,47 +23,44 @@ void foo5(int x) { trace("running foo5: %d\n", x); }
 int fib(int n) {
   if (n <= 1)
     return n;
+  GET32(0xdeadbee0);
   return fib(n - 1) + fib(n - 2);
 }
-static int ret_val = 0;
-int fib_caller(void) {
-  ret_val = fib(10);
-  return ret_val;
-}
 
-int get32_caller(void) { return GET32(0xdeadbee0); }
+int fib_caller(void) { return fib(10); }
 
 void notmain(void) {
   debugger_init();
+
+  // int n = 10;
+  // for (int i = 0; i < n; i++) {
+  //   bp_addr(foo1, sample_bp_handler, NULL);
+  //   bp_addr(foo2, sample_bp_handler, NULL);
+  //   bp_addr(foo3, sample_bp_handler, NULL);
+  //   bp_addr(foo4, sample_bp_handler, NULL);
+  //   bp_addr(foo5, sample_bp_handler_complex, NULL);
+  //   wp_addr((void *)0xdeadbeef, sample_wp_handler, NULL);
+  //   wp_addr((void *)0xceadbeef, sample_wp_handler_complex, NULL);
+  //   foo1(i);
+  //   foo2(i);
+  //   foo3(i);
+  //   foo4(i);
+  //   foo5(i);
+  //   PUT32(0xdeadbeef, i);
+  //   PUT32(0xceadbeef, i);
+  //   trace("n_faults=%d, i=%d\n\n\n", mini_bp_num_faults(), i);
+  //   assert(mini_bp_num_faults() == 5 + i * 5);
+  // }
+
+  // Profile
   gdb_init();
+  gprof_dump(2);
+
   step_init(gdb_step_handler, 0);
 
   output("about to run fib()!\n");
-  step_run((void *)get32_caller, 0);
+  step_run((void *)fib_caller, 0);
   output("done fib()!\n");
-  output("ret_val = %d\n", ret_val);
-
-  int n = 10;
-  for (int i = 0; i < n; i++) {
-    bp_addr(foo1, sample_bp_handler, NULL);
-    bp_addr(foo2, sample_bp_handler, NULL);
-    bp_addr(foo3, sample_bp_handler, NULL);
-    bp_addr(foo4, sample_bp_handler, NULL);
-    bp_addr(foo5, sample_bp_handler_complex, NULL);
-    wp_addr((void *)0xdeadbeef, sample_wp_handler, NULL);
-    wp_addr((void *)0xceadbeef, sample_wp_handler_complex, NULL);
-    foo1(i);
-    foo2(i);
-    foo3(i);
-    foo4(i);
-    foo5(i);
-    PUT32(0xdeadbeef, i);
-    PUT32(0xceadbeef, i);
-    trace("n_faults=%d, i=%d\n\n\n", mini_bp_num_faults(), i);
-    // assert(mini_bp_num_faults() == 5 + i * 5);
-  }
-
-  // Profile
 
   gprof_dump(2);
 

@@ -2,10 +2,8 @@
 // in mismatch mode.
 //
 // search for "todo" and fix.
+//
 #include "mini-step.h"
-#include "armv6-debug-impl.h"
-#include "full-except.h"
-#include "rpi.h"
 
 // Define the global variables that were declared as extern in the header
 void *bp_addr_list[6] = {0};
@@ -304,7 +302,6 @@ void brkpt_fault(regs_t *r) {
   bp_handlers[bp_index](bp_handler_data[bp_index], &s);
 
   n_faults++;
-  output("[brkpt_fault] n_faults=%d\n", n_faults);
   mini_bp_disable((void *)pc);
 
   assert(!bp_ctrl_is_enabled(bp_index));

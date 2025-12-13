@@ -2,7 +2,6 @@
 #define __RPI_INTERRUPT_H__
 
 #include "rpi.h"
-#include <assert.h>
 #include <stdint.h>
 
 // defined in <interrupts-asm.S>

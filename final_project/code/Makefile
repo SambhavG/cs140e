@@ -16,6 +16,7 @@ TTYUSB =
 # if your bootloader has issues just use pi-install.
 BOOTLOADER = pi-install
 BOOTLOADER = my-install
+BOOTLOADER = ./my-install-debug
 
 # set to 0 if you don't want it to run
 RUN=1
@@ -26,12 +27,12 @@ START_ASM = staff-start.S
 # these are all the tests.
 # PROGS := $(wildcard ./[1234567]-*.c)
 
-# PROGS := 5-test-everything.c
+PROGS := 5-test-everything.c
 # PROGS := 4-mini-step-trace-only.c
 # PROGS := 4-mini-step-diff.c
 # PROGS := 3-mini-watch-byte-access.c
 # PROGS := 3-mini-watch-test.c
-PROGS := 2-brkpt-test.c  
+# PROGS := 2-brkpt-test.c  
 # PROGS := 1-watchpt-test.c  
 
 # simplest: should run out of the box.
