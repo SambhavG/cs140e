@@ -23,6 +23,10 @@
  *
  */
 
+#include "bzt-gpio.h"
+#include "rpi.h"
+#include "uart.h"
+
 #define SD_OK 0
 #define SD_TIMEOUT -1
 #define SD_ERROR -2

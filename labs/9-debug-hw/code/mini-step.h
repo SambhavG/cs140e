@@ -3,6 +3,9 @@
 #define __MINI_WATCH_H__
 
 // defines <regs_t>
+#include "armv6-debug-impl.h"
+#include "full-except.h"
+#include "rpi.h"
 #include "switchto.h"
 
 //*******************************************************

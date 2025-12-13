@@ -1,7 +1,10 @@
 #ifndef __RPI_FAT32_H__
 #define __RPI_FAT32_H__
+#include "fat32-helpers.h"
 #include "mbr.h"
 #include "pi-files.h"
+#include "pi-sd.h"
+#include "rpi.h"
 
 // 128MB heap.
 enum { FAT32_HEAP_MB = 128 };

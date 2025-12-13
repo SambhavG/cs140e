@@ -1,6 +1,5 @@
 #include "fat32-helpers.h"
 #include "fat32.h"
-#include "rpi.h"
 
 /******************************************************************************
  * boot record helpers.

@@ -1,7 +1,5 @@
 #include "hc-sr04.h"
 
-#include "rpi.h"
-
 static uint32_t get_time_passed(uint32_t start, uint32_t end) {
   uint32_t time_elapsed = end - start;
   if (end < start) {

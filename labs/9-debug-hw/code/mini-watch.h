@@ -2,6 +2,7 @@
 #define __MINI_WATCH_H__
 #include "armv6-debug-impl.h"
 #include "full-except.h"
+#include "rpi.h"
 
 // structure describing a watchpoint: makes it easy
 // to add other information without messing with

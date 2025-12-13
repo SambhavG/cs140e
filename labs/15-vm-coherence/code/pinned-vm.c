@@ -1,13 +1,6 @@
 // put your code here.
 //
-#include "libc/bit-support.h"
-#include "rpi.h"
-
-// has useful enums and helpers.
-#include "mmu.h"
 #include "pinned-vm.h"
-#include "procmap.h"
-#include "vector-base.h"
 
 // generate the _get and _set methods.
 // (see asm-helpers.h for the cp_asm macro

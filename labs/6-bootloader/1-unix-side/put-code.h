@@ -5,6 +5,7 @@
 #else
 #include "rpi.h"
 #endif
+#include "boot-crc32.h"
 #include "boot-defs.h"
 
 // hack to trace put/get.

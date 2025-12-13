@@ -1,5 +1,4 @@
 #include "mbox.h"
-#include "rpi.h"
 
 uint32_t rpi_clock_hz_set(uint32_t clock, uint32_t hz) {
   /*

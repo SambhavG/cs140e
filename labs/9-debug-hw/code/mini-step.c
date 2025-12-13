@@ -3,9 +3,6 @@
 //
 // search for "todo" and fix.
 #include "mini-step.h"
-#include "armv6-debug-impl.h"
-#include "full-except.h"
-#include "rpi.h"
 
 // currently only handle a single breakpoint.
 static step_handler_t step_handler = 0;

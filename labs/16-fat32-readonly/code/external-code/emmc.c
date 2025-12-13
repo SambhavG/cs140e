@@ -1,6 +1,4 @@
 #include "emmc.h"
-#include "mbox.h"
-#include "rpi.h"
 
 // Raspberry Pi EMMC driver adapted from Low Level Devel:
 // https://github.com/rockytriton/LLD

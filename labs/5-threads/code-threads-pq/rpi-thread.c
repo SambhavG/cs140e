@@ -1,6 +1,4 @@
 // engler, cs140e: starter code for trivial threads package.
-#include "rpi.h"
-// asdf
 #include "rpi-thread.h"
 
 //***********************************************************

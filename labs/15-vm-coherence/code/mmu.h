@@ -1,6 +1,12 @@
 #ifndef __SIMPLE_MMU_H__
 #define __SIMPLE_MMU_H__
 #include "armv6-cp15.h"
+#include "asm-helpers.h"
+#include "libc/helper-macros.h"
+#include "mmu-internal.h"
+#include "rpi-constants.h"
+#include "rpi-interrupts.h"
+#include "rpi.h"
 
 // low level MMU hardware routines.  agnostic
 // as to whether we use a page table or pinning.

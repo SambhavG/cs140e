@@ -1,6 +1,11 @@
 #ifndef __FAKE_PI_H__
 #define __FAKE_PI_H__
 
+#include "rpi.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #define random() "do not call random() directly"
 
 // prototypes for our fake_random implementation

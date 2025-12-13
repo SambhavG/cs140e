@@ -14,8 +14,6 @@
 //     some kind of structure and pass it in as a parameter to
 //     the routines.
 #include "mini-watch.h"
-#include "full-except.h"
-#include "rpi.h"
 
 // we have a single handler: so just use globals.
 static watch_handler_t watchpt_handler = 0;

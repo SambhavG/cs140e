@@ -1,7 +1,4 @@
 #include "fat32.h"
-#include "fat32-helpers.h"
-#include "pi-sd.h"
-#include "rpi.h"
 
 // Print extra tracing info when this is enabled.  You can and should add your
 // own.

@@ -2,9 +2,6 @@
 // see <test-interrupts.h> for additional routines.
 #include "test-interrupts.h"
 
-#include "timer-interrupt.h"
-#include "vector-base.h"
-
 volatile int n_interrupt;
 
 static interrupt_fn_t interrupt_fn;

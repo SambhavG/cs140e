@@ -2,8 +2,6 @@
 // <nrf_dump> is useful to look at to figure out how to access the
 // different register values and what they mean
 #include "nrf-hw-support.h"
-#include "nrf.h"
-#include "spi.h"
 
 unsigned nrf_verbose_p = 0;
 void nrf_set_verbose(int v_p) { nrf_verbose_p = v_p; }
@@ -365,7 +363,6 @@ static inline frac_t kbytes_per_sec(unsigned tot_bytes, unsigned tot_usec) {
   return (frac_t){.whole = b / 1000, .fraction = b % 1000};
 }
 
-#include "pretty-time.h"
 void nrf_stat_print(nrf_t *nic, const char *fmt, ...) {
   uint32_t start = nic->start_usec;
   uint32_t tot_usec = timer_get_usec() - start;

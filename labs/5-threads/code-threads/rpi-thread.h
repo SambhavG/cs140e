@@ -2,6 +2,10 @@
 #ifndef __RPI_THREAD_H__
 #define __RPI_THREAD_H__
 
+#include "libc/Q.h"
+#include "redzone.h"
+#include "rpi.h"
+
 /*
  * trivial thread descriptor:
  *   - reg_save_area: space for all the registers (including

@@ -4,6 +4,12 @@
  * simple process support.
  */
 
+#include "breakpoint.h"
+#include "cpsr-util.h"
+#include "eqx-syscalls.h"
+#include "fast-hash32.h"
+#include "full-except.h"
+#include "rpi.h"
 #include "switchto.h" // needed for <regs_t>
 
 typedef struct eqx_th {

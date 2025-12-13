@@ -1,11 +1,6 @@
 // hardware mmu code: mostly they do error checking and call into
 // assembly (your-mmu-asm.S).
-#include "asm-helpers.h"
-#include "libc/helper-macros.h"
-#include "mmu-internal.h"
-#include "rpi-constants.h"
-#include "rpi-interrupts.h"
-#include "rpi.h"
+#include "mmu.h"
 
 // given.
 

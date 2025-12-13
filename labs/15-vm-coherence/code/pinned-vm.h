@@ -6,6 +6,9 @@
 #include "libc/bit-support.h"
 #include "mem-attr.h"
 #include "mmu.h"
+#include "procmap.h"
+#include "rpi.h"
+#include "vector-base.h"
 
 // you can flip these back and forth if you want debug output.
 #if 0

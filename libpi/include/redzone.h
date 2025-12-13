@@ -1,9 +1,9 @@
 #ifndef __REDZONE_H__
 #define __REDZONE_H__
 
-#include <stdint.h>
 #include "demand.h"
 #include "printk.h"
+#include <stdint.h>
 
 // simple-stupid way to check memory corruption in the
 // address range [0..4096)

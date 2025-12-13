@@ -23,13 +23,6 @@
 //  - yielding from one thread to another.
 //  - about 1/3 should be new.
 #include "eqx-threads.h"
-#include "breakpoint.h"
-#include "cpsr-util.h"
-#include "eqx-syscalls.h"
-#include "fast-hash32.h"
-#include "full-except.h"
-#include "rpi.h"
-// #include "pi-random.h"
 
 // check for initialization bugs.
 static int eqx_init_p = 0;

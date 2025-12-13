@@ -1,6 +1,4 @@
 #include "mbr.h"
-#include "pi-sd.h"
-#include "rpi.h"
 
 mbr_t *mbr_read() {
   // Be sure to call pi_sd_init() before calling this function!

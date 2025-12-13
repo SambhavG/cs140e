@@ -1,6 +1,10 @@
 #ifndef __RPI_PI_SD_H__
 #define __RPI_PI_SD_H__
 
+#include "libc/crc.h"
+#include "libc/fast-hash32.h"
+#include "rpi.h"
+
 #define NBYTES_PER_SECTOR 512
 
 // initialize the PI SD driver

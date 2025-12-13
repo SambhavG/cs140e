@@ -5,8 +5,6 @@
  * all your modifications should go here.
  */
 #include "put-code.h"
-#include "boot-crc32.h"
-#include "boot-defs.h"
 
 /************************************************************************
  * helper code: you shouldn't have to modify this.

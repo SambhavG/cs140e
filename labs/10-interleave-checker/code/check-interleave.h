@@ -4,6 +4,8 @@
 
 #include "breakpoint.h"
 #include "cpsr-util.h"
+#include "full-except.h"
+#include "pi-sys-lock.h"
 #include "rpi-constants.h"
 #include "rpi-interrupts.h"
 #include "rpi.h"

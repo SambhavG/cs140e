@@ -44,19 +44,11 @@
 // include and use it on your laptop even tho it is intended for
 // the pi.
 
-#include "rpi.h"
+#include "fake-pi.h"
 #undef output
 #undef debug
 #undef panic
 #undef trace
-
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "fake-pi.h"
-
-#include "fake-mem.h"
 static mem_t fake_mem = {};
 
 /***********************************************************************

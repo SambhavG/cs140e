@@ -6,8 +6,6 @@
 // you'll have to rewrite some of the code to do the actual switching
 // of A->B.
 #include "check-interleave.h"
-#include "full-except.h"
-#include "pi-sys-lock.h"
 
 // used to communicate with the breakpoint handler.
 static volatile checker_t *checker = 0;

@@ -6,6 +6,8 @@
 #include "rpi-inline-asm.h"
 #include "rpi-interrupts.h"
 #include "rpi.h"
+#include "timer-interrupt.h"
+#include "vector-base.h"
 
 // we provide this code: does global initialization.
 //   see <test-interrupts.c>

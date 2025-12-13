@@ -32,7 +32,6 @@
  */
 
 #include "pi-random.h"
-#include <stddef.h>
 
 /* An improved random number generation package.  In addition to the standard
    rand()/srand() like interface, this package also has a special state info

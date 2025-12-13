@@ -2,10 +2,11 @@
 #define __VM_H__
 
 #include "armv6-vm.h"
+#include "helper-macros.h"
 #include "mem-attr.h"
 #include "mmu.h"
-
 #include "procmap.h"
+#include "rpi.h"
 
 // bad design: we need <pin_t>
 #include "pinned-vm.h"

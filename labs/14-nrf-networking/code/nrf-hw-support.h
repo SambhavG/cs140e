@@ -2,7 +2,9 @@
 #define __NRF_REGISTERS_H__
 #include "libc/bit-support.h"
 #include "nrf.h"
+#include "pretty-time.h"
 #include "rpi.h"
+#include "spi.h"
 #include "src-loc.h"
 
 // simple utility routines and shared enums.
