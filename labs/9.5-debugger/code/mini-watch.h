@@ -1,5 +1,6 @@
 #ifndef __MINI_WATCH_H__
 #define __MINI_WATCH_H__
+#include "rpi.h"
 #include "armv6-debug-impl.h"
 #include "full-except.h"
 

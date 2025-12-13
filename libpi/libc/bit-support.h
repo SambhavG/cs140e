@@ -2,6 +2,9 @@
 #define __PI_BITSUPPORT_H__
 // some simple bit manipulation functions: helps make code clearer.
 
+#include <stdint.h>
+#include <assert.h>
+
 // set x[bit]=0 (leave the rest unaltered) and return the value
 static inline uint32_t 
 bit_clr(uint32_t x, unsigned bit) {

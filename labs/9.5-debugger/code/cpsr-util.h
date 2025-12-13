@@ -17,6 +17,7 @@ static inline int mode_legal(unsigned mode) {
         || mode == SYS_MODE)
             return 1;
     panic("illegal mode: %x [bits=%b]\n", mode, mode);
+    return 0;  // unreachable, but satisfies compiler
 }
 
 static inline uint32_t 
