@@ -1,5 +1,7 @@
 #ifndef __ARMV6_CP15_H__
 #define __ARMV6_CP15_H__
+
+#include <stdint.h>
 // engler, cs140e: the different data structures used by the arm coprocessor.
 
 /******************************************************************************

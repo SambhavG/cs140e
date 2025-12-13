@@ -59,6 +59,8 @@ This is far more convenient if you copy part_tab1 into a `struct
 partition_entry` below.  You have to copy (not cast) because the entries are
 annoyingly not aligned.
 */
+#include "rpi.h"
+
 typedef struct mbr {
   uint8_t code[446], part_tab1[16], part_tab2[16], part_tab3[16], part_tab4[16];
   uint16_t sigval;

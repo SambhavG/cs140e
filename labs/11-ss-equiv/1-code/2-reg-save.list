@@ -99,14 +99,14 @@ Disassembly of section .text:
     8128:	e28dd00c 	add	sp, sp, #12
     812c:	e49df004 	pop	{pc}		@ (ldr pc, [sp], #4)
     8130:	e58d0000 	str	r0, [sp]
-    8134:	e3a0302a 	mov	r3, #42	@ 0x2a
+    8134:	e3a0302c 	mov	r3, #44	@ 0x2c
     8138:	e59f2048 	ldr	r2, [pc, #72]	@ 8188 <vector_base_set+0xa4>
     813c:	e59f1048 	ldr	r1, [pc, #72]	@ 818c <vector_base_set+0xa8>
     8140:	e59f0048 	ldr	r0, [pc, #72]	@ 8190 <vector_base_set+0xac>
     8144:	eb00011a 	bl	85b4 <printk>
     8148:	eb000236 	bl	8a28 <clean_reboot>
     814c:	e58d3000 	str	r3, [sp]
-    8150:	e3a03032 	mov	r3, #50	@ 0x32
+    8150:	e3a03034 	mov	r3, #52	@ 0x34
     8154:	e59f202c 	ldr	r2, [pc, #44]	@ 8188 <vector_base_set+0xa4>
     8158:	e59f102c 	ldr	r1, [pc, #44]	@ 818c <vector_base_set+0xa8>
     815c:	e59f0030 	ldr	r0, [pc, #48]	@ 8194 <vector_base_set+0xb0>
@@ -114,7 +114,7 @@ Disassembly of section .text:
     8164:	eb00022f 	bl	8a28 <clean_reboot>
     8168:	e58d3004 	str	r3, [sp, #4]
     816c:	e58d0000 	str	r0, [sp]
-    8170:	e3a03038 	mov	r3, #56	@ 0x38
+    8170:	e3a0303a 	mov	r3, #58	@ 0x3a
     8174:	e59f200c 	ldr	r2, [pc, #12]	@ 8188 <vector_base_set+0xa4>
     8178:	e59f100c 	ldr	r1, [pc, #12]	@ 818c <vector_base_set+0xa8>
     817c:	e59f0014 	ldr	r0, [pc, #20]	@ 8198 <vector_base_set+0xb4>
@@ -786,7 +786,7 @@ Disassembly of section .text:
     8aac:	e28dd00c 	add	sp, sp, #12
     8ab0:	e8bd8030 	pop	{r4, r5, pc}
     8ab4:	e58d5000 	str	r5, [sp]
-    8ab8:	e3a0301b 	mov	r3, #27
+    8ab8:	e3a0301f 	mov	r3, #31
     8abc:	e59f2014 	ldr	r2, [pc, #20]	@ 8ad8 <redzone_check+0x90>
     8ac0:	e59f1014 	ldr	r1, [pc, #20]	@ 8adc <redzone_check+0x94>
     8ac4:	e59f0014 	ldr	r0, [pc, #20]	@ 8ae0 <redzone_check+0x98>
@@ -813,7 +813,7 @@ Disassembly of section .text:
     8b10:	e49df004 	pop	{pc}		@ (ldr pc, [sp], #4)
     8b14:	e59f3018 	ldr	r3, [pc, #24]	@ 8b34 <redzone_init+0x50>
     8b18:	e58d3000 	str	r3, [sp]
-    8b1c:	e3a03022 	mov	r3, #34	@ 0x22
+    8b1c:	e3a03026 	mov	r3, #38	@ 0x26
     8b20:	e59f2010 	ldr	r2, [pc, #16]	@ 8b38 <redzone_init+0x54>
     8b24:	e59f1010 	ldr	r1, [pc, #16]	@ 8b3c <redzone_init+0x58>
     8b28:	e59f0010 	ldr	r0, [pc, #16]	@ 8b40 <redzone_init+0x5c>

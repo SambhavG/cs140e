@@ -3,7 +3,6 @@
  * do not modify this file!   will be pushing changes.
  */
 #include "mbr.h"
-#include "rpi.h"
 
 void mbr_check(struct mbr *mbr) {
   assert(mbr->sigval == 0xAA55);

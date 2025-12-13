@@ -176,7 +176,7 @@ Disassembly of section .text:
     825c:	eaffffe7 	b	8200 <notmain+0x11c>
     8260:	e59f3354 	ldr	r3, [pc, #852]	@ 85bc <notmain+0x4d8>
     8264:	e58d3000 	str	r3, [sp]
-    8268:	e3a03039 	mov	r3, #57	@ 0x39
+    8268:	e3a03038 	mov	r3, #56	@ 0x38
     826c:	e1a02005 	mov	r2, r5
     8270:	e59f1348 	ldr	r1, [pc, #840]	@ 85c0 <notmain+0x4dc>
     8274:	e59f0348 	ldr	r0, [pc, #840]	@ 85c4 <notmain+0x4e0>
@@ -184,7 +184,7 @@ Disassembly of section .text:
     827c:	eb000411 	bl	92c8 <clean_reboot>
     8280:	e59f3340 	ldr	r3, [pc, #832]	@ 85c8 <notmain+0x4e4>
     8284:	e58d3000 	str	r3, [sp]
-    8288:	e3a0303a 	mov	r3, #58	@ 0x3a
+    8288:	e3a03039 	mov	r3, #57	@ 0x39
     828c:	e59f2304 	ldr	r2, [pc, #772]	@ 8598 <notmain+0x4b4>
     8290:	e59f1328 	ldr	r1, [pc, #808]	@ 85c0 <notmain+0x4dc>
     8294:	e59f0328 	ldr	r0, [pc, #808]	@ 85c4 <notmain+0x4e0>
@@ -192,7 +192,7 @@ Disassembly of section .text:
     829c:	eb000409 	bl	92c8 <clean_reboot>
     82a0:	e59f3324 	ldr	r3, [pc, #804]	@ 85cc <notmain+0x4e8>
     82a4:	e58d3000 	str	r3, [sp]
-    82a8:	e3a0303d 	mov	r3, #61	@ 0x3d
+    82a8:	e3a0303c 	mov	r3, #60	@ 0x3c
     82ac:	e59f22e4 	ldr	r2, [pc, #740]	@ 8598 <notmain+0x4b4>
     82b0:	e59f1308 	ldr	r1, [pc, #776]	@ 85c0 <notmain+0x4dc>
     82b4:	e59f0308 	ldr	r0, [pc, #776]	@ 85c4 <notmain+0x4e0>
@@ -200,7 +200,7 @@ Disassembly of section .text:
     82bc:	eb000401 	bl	92c8 <clean_reboot>
     82c0:	e59f3308 	ldr	r3, [pc, #776]	@ 85d0 <notmain+0x4ec>
     82c4:	e58d3000 	str	r3, [sp]
-    82c8:	e3a0303e 	mov	r3, #62	@ 0x3e
+    82c8:	e3a0303d 	mov	r3, #61	@ 0x3d
     82cc:	e59f22c4 	ldr	r2, [pc, #708]	@ 8598 <notmain+0x4b4>
     82d0:	e59f12e8 	ldr	r1, [pc, #744]	@ 85c0 <notmain+0x4dc>
     82d4:	e59f02e8 	ldr	r0, [pc, #744]	@ 85c4 <notmain+0x4e0>
@@ -208,7 +208,7 @@ Disassembly of section .text:
     82dc:	eb0003f9 	bl	92c8 <clean_reboot>
     82e0:	e59f32e4 	ldr	r3, [pc, #740]	@ 85cc <notmain+0x4e8>
     82e4:	e58d3000 	str	r3, [sp]
-    82e8:	e3a0303f 	mov	r3, #63	@ 0x3f
+    82e8:	e3a0303e 	mov	r3, #62	@ 0x3e
     82ec:	e59f22a4 	ldr	r2, [pc, #676]	@ 8598 <notmain+0x4b4>
     82f0:	e59f12c8 	ldr	r1, [pc, #712]	@ 85c0 <notmain+0x4dc>
     82f4:	e59f02c8 	ldr	r0, [pc, #712]	@ 85c4 <notmain+0x4e0>
@@ -216,7 +216,7 @@ Disassembly of section .text:
     82fc:	eb0003f1 	bl	92c8 <clean_reboot>
     8300:	e59f32c8 	ldr	r3, [pc, #712]	@ 85d0 <notmain+0x4ec>
     8304:	e58d3000 	str	r3, [sp]
-    8308:	e3a03040 	mov	r3, #64	@ 0x40
+    8308:	e3a0303f 	mov	r3, #63	@ 0x3f
     830c:	e59f2284 	ldr	r2, [pc, #644]	@ 8598 <notmain+0x4b4>
     8310:	e59f12a8 	ldr	r1, [pc, #680]	@ 85c0 <notmain+0x4dc>
     8314:	e59f02a8 	ldr	r0, [pc, #680]	@ 85c4 <notmain+0x4e0>
@@ -224,7 +224,7 @@ Disassembly of section .text:
     831c:	eb0003e9 	bl	92c8 <clean_reboot>
     8320:	e59f32ac 	ldr	r3, [pc, #684]	@ 85d4 <notmain+0x4f0>
     8324:	e58d3000 	str	r3, [sp]
-    8328:	e3a0304e 	mov	r3, #78	@ 0x4e
+    8328:	e3a0304d 	mov	r3, #77	@ 0x4d
     832c:	e59f2264 	ldr	r2, [pc, #612]	@ 8598 <notmain+0x4b4>
     8330:	e59f1288 	ldr	r1, [pc, #648]	@ 85c0 <notmain+0x4dc>
     8334:	e59f0288 	ldr	r0, [pc, #648]	@ 85c4 <notmain+0x4e0>
@@ -232,7 +232,7 @@ Disassembly of section .text:
     833c:	eb0003e1 	bl	92c8 <clean_reboot>
     8340:	e59f3290 	ldr	r3, [pc, #656]	@ 85d8 <notmain+0x4f4>
     8344:	e58d3000 	str	r3, [sp]
-    8348:	e3a0304f 	mov	r3, #79	@ 0x4f
+    8348:	e3a0304e 	mov	r3, #78	@ 0x4e
     834c:	e59f2244 	ldr	r2, [pc, #580]	@ 8598 <notmain+0x4b4>
     8350:	e59f1268 	ldr	r1, [pc, #616]	@ 85c0 <notmain+0x4dc>
     8354:	e59f0268 	ldr	r0, [pc, #616]	@ 85c4 <notmain+0x4e0>
@@ -334,7 +334,7 @@ Disassembly of section .text:
     84d4:	e8bd8070 	pop	{r4, r5, r6, pc}
     84d8:	e59f310c 	ldr	r3, [pc, #268]	@ 85ec <notmain+0x508>
     84dc:	e58d3000 	str	r3, [sp]
-    84e0:	e3a03057 	mov	r3, #87	@ 0x57
+    84e0:	e3a03056 	mov	r3, #86	@ 0x56
     84e4:	e59f20ac 	ldr	r2, [pc, #172]	@ 8598 <notmain+0x4b4>
     84e8:	e59f10d0 	ldr	r1, [pc, #208]	@ 85c0 <notmain+0x4dc>
     84ec:	e59f00d0 	ldr	r0, [pc, #208]	@ 85c4 <notmain+0x4e0>
@@ -342,7 +342,7 @@ Disassembly of section .text:
     84f4:	eb000373 	bl	92c8 <clean_reboot>
     84f8:	e59f30f0 	ldr	r3, [pc, #240]	@ 85f0 <notmain+0x50c>
     84fc:	e58d3000 	str	r3, [sp]
-    8500:	e3a03058 	mov	r3, #88	@ 0x58
+    8500:	e3a03057 	mov	r3, #87	@ 0x57
     8504:	e59f208c 	ldr	r2, [pc, #140]	@ 8598 <notmain+0x4b4>
     8508:	e59f10b0 	ldr	r1, [pc, #176]	@ 85c0 <notmain+0x4dc>
     850c:	e59f00b0 	ldr	r0, [pc, #176]	@ 85c4 <notmain+0x4e0>
@@ -350,7 +350,7 @@ Disassembly of section .text:
     8514:	eb00036b 	bl	92c8 <clean_reboot>
     8518:	e59f30d4 	ldr	r3, [pc, #212]	@ 85f4 <notmain+0x510>
     851c:	e58d3000 	str	r3, [sp]
-    8520:	e3a0306a 	mov	r3, #106	@ 0x6a
+    8520:	e3a03068 	mov	r3, #104	@ 0x68
     8524:	e1a02004 	mov	r2, r4
     8528:	e59f1090 	ldr	r1, [pc, #144]	@ 85c0 <notmain+0x4dc>
     852c:	e59f0090 	ldr	r0, [pc, #144]	@ 85c4 <notmain+0x4e0>
@@ -358,7 +358,7 @@ Disassembly of section .text:
     8534:	eb000363 	bl	92c8 <clean_reboot>
     8538:	e59f30b8 	ldr	r3, [pc, #184]	@ 85f8 <notmain+0x514>
     853c:	e58d3000 	str	r3, [sp]
-    8540:	e3a0306b 	mov	r3, #107	@ 0x6b
+    8540:	e3a03069 	mov	r3, #105	@ 0x69
     8544:	e59f204c 	ldr	r2, [pc, #76]	@ 8598 <notmain+0x4b4>
     8548:	e59f1070 	ldr	r1, [pc, #112]	@ 85c0 <notmain+0x4dc>
     854c:	e59f0070 	ldr	r0, [pc, #112]	@ 85c4 <notmain+0x4e0>
@@ -366,7 +366,7 @@ Disassembly of section .text:
     8554:	eb00035b 	bl	92c8 <clean_reboot>
     8558:	e59f3094 	ldr	r3, [pc, #148]	@ 85f4 <notmain+0x510>
     855c:	e58d3000 	str	r3, [sp]
-    8560:	e3a03070 	mov	r3, #112	@ 0x70
+    8560:	e3a0306e 	mov	r3, #110	@ 0x6e
     8564:	e59f202c 	ldr	r2, [pc, #44]	@ 8598 <notmain+0x4b4>
     8568:	e59f1050 	ldr	r1, [pc, #80]	@ 85c0 <notmain+0x4dc>
     856c:	e59f0050 	ldr	r0, [pc, #80]	@ 85c4 <notmain+0x4e0>
@@ -374,7 +374,7 @@ Disassembly of section .text:
     8574:	eb000353 	bl	92c8 <clean_reboot>
     8578:	e59f3078 	ldr	r3, [pc, #120]	@ 85f8 <notmain+0x514>
     857c:	e58d3000 	str	r3, [sp]
-    8580:	e3a03071 	mov	r3, #113	@ 0x71
+    8580:	e3a0306f 	mov	r3, #111	@ 0x6f
     8584:	e59f200c 	ldr	r2, [pc, #12]	@ 8598 <notmain+0x4b4>
     8588:	e59f1030 	ldr	r1, [pc, #48]	@ 85c0 <notmain+0x4dc>
     858c:	e59f0030 	ldr	r0, [pc, #48]	@ 85c4 <notmain+0x4e0>
@@ -677,7 +677,7 @@ Disassembly of section .text:
     8974:	e8bd8030 	pop	{r4, r5, pc}
     8978:	e59f303c 	ldr	r3, [pc, #60]	@ 89bc <pi_random_seed+0xa8>
     897c:	e58d3000 	str	r3, [sp]
-    8980:	e3a03011 	mov	r3, #17
+    8980:	e3a0300e 	mov	r3, #14
     8984:	e59f2034 	ldr	r2, [pc, #52]	@ 89c0 <pi_random_seed+0xac>
     8988:	e59f1034 	ldr	r1, [pc, #52]	@ 89c4 <pi_random_seed+0xb0>
     898c:	e59f0034 	ldr	r0, [pc, #52]	@ 89c8 <pi_random_seed+0xb4>
@@ -685,7 +685,7 @@ Disassembly of section .text:
     8994:	eb00024b 	bl	92c8 <clean_reboot>
     8998:	e59f301c 	ldr	r3, [pc, #28]	@ 89bc <pi_random_seed+0xa8>
     899c:	e58d3000 	str	r3, [sp]
-    89a0:	e3a03013 	mov	r3, #19
+    89a0:	e3a03010 	mov	r3, #16
     89a4:	e59f2014 	ldr	r2, [pc, #20]	@ 89c0 <pi_random_seed+0xac>
     89a8:	e59f1014 	ldr	r1, [pc, #20]	@ 89c4 <pi_random_seed+0xb0>
     89ac:	e59f0014 	ldr	r0, [pc, #20]	@ 89c8 <pi_random_seed+0xb4>
@@ -719,7 +719,7 @@ Disassembly of section .text:
     8a14:	eafffff2 	b	89e4 <pi_random+0x18>
     8a18:	e59f301c 	ldr	r3, [pc, #28]	@ 8a3c <pi_random+0x70>
     8a1c:	e58d3000 	str	r3, [sp]
-    8a20:	e3a0302b 	mov	r3, #43	@ 0x2b
+    8a20:	e3a03028 	mov	r3, #40	@ 0x28
     8a24:	e59f2014 	ldr	r2, [pc, #20]	@ 8a40 <pi_random+0x74>
     8a28:	e59f1014 	ldr	r1, [pc, #20]	@ 8a44 <pi_random+0x78>
     8a2c:	e59f0014 	ldr	r0, [pc, #20]	@ 8a48 <pi_random+0x7c>
@@ -748,7 +748,7 @@ Disassembly of section .text:
     8a80:	e49df004 	pop	{pc}		@ (ldr pc, [sp], #4)
     8a84:	e59f3040 	ldr	r3, [pc, #64]	@ 8acc <pi_random_init+0x80>
     8a88:	e58d3000 	str	r3, [sp]
-    8a8c:	e3a03019 	mov	r3, #25
+    8a8c:	e3a03016 	mov	r3, #22
     8a90:	e59f2038 	ldr	r2, [pc, #56]	@ 8ad0 <pi_random_init+0x84>
     8a94:	e59f1038 	ldr	r1, [pc, #56]	@ 8ad4 <pi_random_init+0x88>
     8a98:	e59f0038 	ldr	r0, [pc, #56]	@ 8ad8 <pi_random_init+0x8c>
@@ -756,7 +756,7 @@ Disassembly of section .text:
     8aa0:	eb000208 	bl	92c8 <clean_reboot>
     8aa4:	e59f3030 	ldr	r3, [pc, #48]	@ 8adc <pi_random_init+0x90>
     8aa8:	e58d3000 	str	r3, [sp]
-    8aac:	e3a0301d 	mov	r3, #29
+    8aac:	e3a0301a 	mov	r3, #26
     8ab0:	e59f2018 	ldr	r2, [pc, #24]	@ 8ad0 <pi_random_init+0x84>
     8ab4:	e59f1018 	ldr	r1, [pc, #24]	@ 8ad4 <pi_random_init+0x88>
     8ab8:	e59f0018 	ldr	r0, [pc, #24]	@ 8ad8 <pi_random_init+0x8c>
@@ -1341,7 +1341,7 @@ Disassembly of section .text:
     934c:	e28dd00c 	add	sp, sp, #12
     9350:	e8bd8030 	pop	{r4, r5, pc}
     9354:	e58d5000 	str	r5, [sp]
-    9358:	e3a0301b 	mov	r3, #27
+    9358:	e3a0301f 	mov	r3, #31
     935c:	e59f2014 	ldr	r2, [pc, #20]	@ 9378 <redzone_check+0x90>
     9360:	e59f1014 	ldr	r1, [pc, #20]	@ 937c <redzone_check+0x94>
     9364:	e59f0014 	ldr	r0, [pc, #20]	@ 9380 <redzone_check+0x98>
@@ -1368,7 +1368,7 @@ Disassembly of section .text:
     93b0:	e49df004 	pop	{pc}		@ (ldr pc, [sp], #4)
     93b4:	e59f3018 	ldr	r3, [pc, #24]	@ 93d4 <redzone_init+0x50>
     93b8:	e58d3000 	str	r3, [sp]
-    93bc:	e3a03022 	mov	r3, #34	@ 0x22
+    93bc:	e3a03026 	mov	r3, #38	@ 0x26
     93c0:	e59f2010 	ldr	r2, [pc, #16]	@ 93d8 <redzone_init+0x54>
     93c4:	e59f1010 	ldr	r1, [pc, #16]	@ 93dc <redzone_init+0x58>
     93c8:	e59f0010 	ldr	r0, [pc, #16]	@ 93e0 <redzone_init+0x5c>

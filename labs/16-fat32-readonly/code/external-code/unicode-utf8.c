@@ -7,7 +7,6 @@
 #include <assert.h>
 #include <stdio.h>
 #else
-#include "rpi.h"
 #define printf printk
 #endif
 
@@ -107,7 +106,7 @@ int test_main(void) {
     assert(utf8);
     uint32_t codepoint = to_cp(utf8);
 
-    printf("%s          U+%x", utf8, codepoint);
+    printf("%s          U+%x", utf8, (unsigned)codepoint);
     for (int i = 0; utf8[i] && i < 4; ++i)
       printf("%x ", utf8[i]);
     printf("\n");

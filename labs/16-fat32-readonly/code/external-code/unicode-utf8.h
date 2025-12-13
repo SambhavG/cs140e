@@ -1,6 +1,5 @@
-#include "rpi.h"
-#include <assert.h>
 #include <stdio.h>
+#include "rpi.h"
 
 /* All lengths are in bytes */
 int codepoint_len(const uint32_t cp); /* len of associated utf-8 char */

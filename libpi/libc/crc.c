@@ -1,5 +1,5 @@
+#include "crc.h"
 #include <stdint.h>
-
 /* ***********************************************************************
  * Simple public domain implementation of the standard CRC32 checksum.
  * http://home.thep.lu.se/~bjorn/crc/crc32_simple.c
