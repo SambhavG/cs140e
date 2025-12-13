@@ -2,8 +2,7 @@
 #define __PI_BITSUPPORT_H__
 // some simple bit manipulation functions: helps make code clearer.
 
-#include <stdint.h>
-#include <assert.h>
+#include "demand.h"
 
 // set x[bit]=0 (leave the rest unaltered) and return the value
 static inline uint32_t 

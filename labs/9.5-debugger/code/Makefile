@@ -19,7 +19,7 @@ BOOTLOADER = my-install
 BOOTLOADER = ./my-install-debug
 
 # set to 0 if you don't want it to run
-RUN=1
+RUN=0
 
 # we have a special start: check it out!
 START_ASM = staff-start.S

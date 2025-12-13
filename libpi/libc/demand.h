@@ -6,6 +6,7 @@
 #   error "should not get here"
 #endif
 #endif
+#include "printk.h"
 
 // debug: no lineno etc 
 #define debug_output(msg...) output("DEBUG:" msg)
@@ -24,14 +25,14 @@
 } while(0)
 
 // if assertion failed, die and reboot.
-#ifndef assert
+// #ifndef assert
 #define assert(bool) do {                                   \
     if((bool) == 0) {                                       \
         debug("ERROR: Assertion `%s` failed.\n", #bool);      \
 	    clean_reboot();							            \
     }                                                       \
 } while(0)
-#endif
+// #endif
 
 // stringify argument
 #define _XSTRING(x) #x

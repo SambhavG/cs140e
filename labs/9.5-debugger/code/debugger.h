@@ -7,7 +7,6 @@
 #include "mini-step.h"
 #include "armv6-debug-impl.h"
 #include "memmap.h"
-#include <assert.h>
 static unsigned hist_n, pc_min, pc_max;
 static volatile unsigned *hist;
 
