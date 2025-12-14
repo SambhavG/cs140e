@@ -1,0 +1,16 @@
+CompileFlags:
+  Add:
+    - -I/Users/sambhav/Documents/vscode_projects/cs140e/libpi/include
+    - -I/Users/sambhav/Documents/vscode_projects/cs140e/libpi
+    - -I/Users/sambhav/Documents/vscode_projects/cs140e/libpi/src
+    - -I/Users/sambhav/Documents/vscode_projects/cs140e/libpi/libc
+    - -I/Users/sambhav/Documents/vscode_projects/cs140e/libpi/staff-private
+    - -I/Users/sambhav/Documents/vscode_projects/cs140e/labs/os/code
+    - -I/Users/sambhav/Documents/vscode_projects/cs140e/labs/os/code/tests
+    - -I/Users/sambhav/Documents/vscode_projects/cs140e/labs/17-vm-page-table/code
+    - -I/Users/sambhav/Documents/vscode_projects/cs140e/labs/13-pinned-vm/code
+    - -D__RPI__
+    - -std=gnu99
+    - -Wno-pointer-sign
+    - -Wno-unused-function
+    - -Wno-unused-variable

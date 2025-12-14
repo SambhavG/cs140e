@@ -13,16 +13,16 @@
 # PROGS += tests/1-nop10-test.c
 
 # very simple tests. start here.
-PROGS += tests/0-nop1-test.c
-PROGS += tests/0-small1-test.c
-PROGS += tests/0-nop10-test.c
-PROGS += tests/0-mov-test.c
+# PROGS += tests/0-nop1-test.c
+# PROGS += tests/0-small1-test.c
+# PROGS += tests/0-nop10-test.c
+# PROGS += tests/0-mov-test.c
 
 # this is fun to run.
 
-PROGS = tests/4-cool-test.c
+# PROGS = tests/4-cool-test.c
 PROGS = tests/5-user-prog.c
-PROGS := $(sort $(wildcard tests/[01234]-*test.c))
+# PROGS := $(sort $(wildcard tests/[01234]-*test.c))
 
 VM_DIR = ../../17-vm-page-table/code
 PIN_DIR = ../../13-pinned-vm/code/

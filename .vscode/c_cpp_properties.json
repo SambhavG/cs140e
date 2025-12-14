@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/libpi/include",
+                "${workspaceFolder}/libpi",
+                "${workspaceFolder}/libpi/src",
+                "${workspaceFolder}/libpi/libc",
+                "${workspaceFolder}/libpi/staff-private",
+                "${workspaceFolder}/labs/os/code",
+                "${workspaceFolder}/labs/17-vm-page-table/code",
+                "${workspaceFolder}/labs/13-pinned-vm/code"
+            ],
+            "defines": [
+                "__RPI__"
+            ],
+            "macFrameworkPath": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "gnu99",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-x64"
+        }
+    ],
+    "version": 4
+}

@@ -3,6 +3,13 @@
 
 #include "rpi.h"
 #include "eqx-threads.h"
+#include "breakpoint.h"
+#include "full-except.h"
+#include "fast-hash32.h"
+#include "eqx-syscalls.h"
+#include "cpsr-util.h"
+#include "eqx-internal.h"
+#include "queue-ext-T.h"
 
 // bundle all the configuration stuff in one
 // structure

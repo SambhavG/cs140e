@@ -1,0 +1,7 @@
+DEBUG:done with options: dev name=</dev/cu.usbserial-210>, pi-prog=<./tests/0-mov-test.bin>, trace=0
+opened tty port </dev/cu.usbserial-210>.
+DEBUG:my-install: tty-usb=</dev/cu.usbserial-210> program=<./tests/0-mov-test.bin>: about to boot
+TRACE:simple_boot: sending 34204 bytes, crc32=40f12f9b
+BOOT:waiting for a start
+my-install: tty-USB read() returned 0 bytes.  r/pi not responding [reboot it?]
+Num entries: 1

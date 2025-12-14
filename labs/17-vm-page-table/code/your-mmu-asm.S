@@ -28,10 +28,12 @@
 @    armv6-coprocessor-asm.h
 @ and the other armv6-*.h files
 
+.weak cp15_ctrl_reg1_rd
 MK_FN(cp15_ctrl_reg1_rd)
     CONTROL_REG1_RD(r0)
     bx lr
 
+.weak cp15_ctrl_reg1_wr
 MK_FN(cp15_ctrl_reg1_wr)
     CONTROL_REG1_WR(r0)
     mov r1, #0
