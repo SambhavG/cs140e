@@ -6,7 +6,7 @@
 #include "libc/bit-support.h"
 #include "mem-attr.h"
 #include "mmu.h"
-#include "procmap.h"
+// #include "procmap.h"
 #include "rpi.h"
 #include "vector-base.h"
 

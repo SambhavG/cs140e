@@ -693,7 +693,7 @@ eqx_th_t *eqx_exec_internal(struct prog *prog, uint32_t expected_hash) {
     debug("about to alloc\n");
     data = sec_to_addr(sec_alloc());
     code = sec_to_addr(sec_alloc());
-    debug("about to alloc\n");
+    debug("done alloc\n");
 
     pin_t user_attr = pin_mk_user(dom_user, ASID, perm_rw_user, MEM_uncached);
     p->data_pin = map_mk(s.data_addr, data, user_attr);

@@ -3,6 +3,8 @@
 
 // the symbols
 #include "memmap.h"
+#include "mem-attr.h"
+#include "pinned-vm.h"
 
 // we put all the default address space enums here:
 // - kernel domain
