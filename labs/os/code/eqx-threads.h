@@ -53,10 +53,9 @@ uint32_t eqx_run_threads(void);
 
 void eqx_refork(eqx_th_t *th);
 
-eqx_th_t * eqx_fork(void (*fn)(void*), void *arg, uint32_t hash);
-eqx_th_t * eqx_fork_nostack(void (*fn)(void*), void *arg, uint32_t hash) ;
-eqx_th_t * eqx_fork_stack(void (*fn)(void*), void *arg,
-    uint32_t expected_hash, void *stack, uint32_t nbytes);
+eqx_th_t * eqx_fork(void (*fn)(void*), void *arg);
+eqx_th_t * eqx_fork_nostack(void (*fn)(void*), void *arg);
+eqx_th_t * eqx_fork_stack(void (*fn)(void*), void *arg, void *stack, uint32_t nbytes);
 
 // 1 = chatty, 0 = quiet
 // note: should have more levels so can be precise about

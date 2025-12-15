@@ -10,6 +10,9 @@
 #include "cpsr-util.h"
 #include "eqx-internal.h"
 #include "queue-ext-T.h"
+#include "memmap-default.h"
+#include "small-prog.h"
+
 
 // bundle all the configuration stuff in one
 // structure
@@ -65,8 +68,12 @@ typedef struct {
 extern eqx_config_t eqx_config;
 void eqx_init_config(eqx_config_t c);
 
-#include "small-prog.h"
-eqx_th_t* eqx_exec_internal(struct prog *prog, uint32_t expected_hash);
+eqx_th_t* eqx_exec_internal(struct prog *prog);
 
+static long sec_alloc(void);
+static inline uint32_t sec_to_addr(uint32_t sec);
 
+static void vm_off(void);
+static void vm_on(void);
+static void vm_switch(eqx_th_t *th);
 #endif

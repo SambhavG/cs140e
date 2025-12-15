@@ -1,31 +1,8 @@
-// we extend lab 12's single-step pre-emptive threads
-// package to be a simple-minded single-step OS that
-// use mismatching to compute a running hash of each
-// process's execution trace.  great for detecting errors.
-//
-// once this works, you should be able to tweak / add
-// functionality and it will detect if anything went wrong.
-//
-//
-// most the of the code you've seen before in different
-// labs:
-//  - setting up and handling a single step exception
-//  - doing system calls
-//  - setting up threads using <reg_t>
-//  - yielding from one thread to another.
-//  - about 1/3 should be new.
-//  - pinned vm.
-//
-// revisit:
-//  - does it make sense to keep referring to the global
-//    <cur_thread> pointer or should remove all of those?
-//  - rethink the scheduling a bit.
-//  - maybe use function pointers to switch between options.
 #include "eqx-os.h"
 
 // check for initialization bugs.
 static int eqx_init_p = 0;
-
+static unsigned ntids = 1;
 int eqx_verbose_p = 1;
 
 // simple thread queue.
@@ -36,7 +13,6 @@ typedef struct rq {
 
 // will define eqx_pop, eqx_push, eqx_append, etc
 gen_queue_T(eqx_th, rq_t, head, tail, eqx_th_t, next) static rq_t eqx_runq;
-static uint32_t exit_hash = 0;
 
 // pointer to current thread.  not null when running
 // threads, null when not.
@@ -97,22 +73,31 @@ static void eqx_regs_init(eqx_th_t *th) {
     panic("stack is out of bounds!\n");
 }
 
+// Run the given thread until it traps back (syscall/exception) OR exits.
+// In "run-to-completion" mode, the only scheduling decision is in sys_exit().
+static __attribute__((noreturn)) void eqx_run_current(void) {
+  assert(cur_thread);
+  // Ensure the pinned mappings correspond to cur_thread before executing it.
+  printk("calling vm_switch\n");
+  vm_switch(cur_thread);
+  printk("calling switchto\n");
+  switchto(&cur_thread->regs);
+  not_reached();
+}
+
 // fork <fn(arg)> as a pre-emptive thread and allow the caller
 // to allocate the stack.
-//   - <expected_hash>: if non-zero gives the expected ss hash.
 //   - <stack>: the base of the stack (8 byte aligned).
 //   - <nbytes>: the size of the stack.
-eqx_th_t *eqx_fork_stack(void (*fn)(void *), void *arg, uint32_t expected_hash,
-                         void *stack, uint32_t nbytes) {
+eqx_th_t *eqx_fork_stack(void (*fn)(void *), void *arg, void *stack,
+                         uint32_t nbytes) {
 
   eqx_th_t *th = kmalloc(sizeof *th);
   printk("kmalloc'd th=%p\n", th);
   th->fn = (uint32_t)fn;
   th->arg = (uint32_t)arg;
-  th->expected_hash = expected_hash;
 
   // we do a dumb monotonic thread id [1,2,...]
-  static unsigned ntids = 1;
   th->tid = ntids++;
 
   // stack grows down: must be 8-byte aligned.
@@ -129,91 +114,41 @@ eqx_th_t *eqx_fork_stack(void (*fn)(void *), void *arg, uint32_t expected_hash,
 }
 
 // fork + allocate a 8-byte aligned stack.
-eqx_th_t *eqx_fork(void (*fn)(void *), void *arg, uint32_t expected_hash) {
+eqx_th_t *eqx_fork(void (*fn)(void *), void *arg) {
 
   void *stack = kmalloc_aligned(eqx_stack_size, 8);
   assert((uint32_t)stack % 8 == 0);
 
-  return eqx_fork_stack(fn, arg, expected_hash, stack, eqx_stack_size);
+  return eqx_fork_stack(fn, arg, stack, eqx_stack_size);
 }
 
 // fork with no stack: this is used as a debugging
 // aid to support the easiest case of routines
 // that just do ALU operations and do not use a stack.
-eqx_th_t *eqx_fork_nostack(void (*fn)(void *), void *arg,
-                           uint32_t expected_hash) {
-  return eqx_fork_stack(fn, arg, expected_hash, 0, 0);
+eqx_th_t *eqx_fork_nostack(void (*fn)(void *), void *arg) {
+  return eqx_fork_stack(fn, arg, 0, 0);
 }
 
-// given a terminated thread <th>: reset its
-// state so it can rerun.  this is used to
-// run the same thread in different contexts
-// and make sure we get the same hash.
 void eqx_refork(eqx_th_t *th) {
-  // should be computed by sys_exit()
-  assert(th->expected_hash);
 
   eqx_regs_init(th);
 
-  // reset our counts and running hash.
   th->inst_cnt = 0;
-  th->reg_hash = 0;
 
   eqx_th_push(&eqx_runq, th);
 }
 
-// run a single instruction by setting a mismatch on the
-// on pc.  we make sure the uart can accept a character
-// so that we can guard against UART race conditions.
-//
-//  - this does not return to the caller.
-static __attribute__((noreturn)) void brkpt_run_one_inst(regs_t *r) {
-  brkpt_mismatch_set(r->regs[REGS_PC]);
-
-  // otherwise there is a race condition if we are
-  // stepping through the uart code --- note: we could
-  // just check the pc and the address range of
-  // uart.o
-  //
-  // note:
-  //  - this is the same as lab 10.
-  //  - there are other race conditions that we
-  //    ignore (e.g., anything that RMW device
-  //    memory in libpi)
-  while (!uart_can_put8())
-    ;
-
-  switchto(r);
-}
-
-// pick the next thread and run it.
-//  - this does not return to the caller.
-//
-// currently just does round robin scheduling
-// by popping the next thread off the front of
-// the run queue and appending the current
-// thread to the back.  but can do anything
-// you want: the results should not change.
-//
-// suggestion:
-//  - add some systematic randomization.
-//  - let clients override the scheduler.
-//  - should probably do a different interface,
-//    this one is kind of dumb.
-static __attribute__((noreturn)) void eqx_schedule(void) {
-  assert(cur_thread);
-
-  eqx_th_t *th = eqx_th_pop(&eqx_runq);
-  if (th) {
-    if (th->verbose_p)
-      output("switching from tid=%d,pc=%x to tid=%d,pc=%x,sp=%x\n",
-             cur_thread->tid, cur_thread->regs.regs[REGS_PC], th->tid,
-             th->regs.regs[REGS_PC], th->regs.regs[REGS_SP]);
-    // put the current thread at the end of the runqueue.
-    eqx_th_append(&eqx_runq, cur_thread);
-    cur_thread = th;
+// In run-to-completion mode, we do NOT time-slice.
+// The only "scheduler" action is to pick the next thread after exit.
+static __attribute__((noreturn)) void eqx_pick_next_and_run(void) {
+  // Choose the next runnable.
+  cur_thread = eqx_th_pop(&eqx_runq);
+  if (!cur_thread) {
+    // No runnable threads: return to kernel/start_regs.
+    switchto(&start_regs);
   }
-  brkpt_run_one_inst(&cur_thread->regs);
+  eqx_run_current();
+  not_reached();
 }
 
 /****************************************************************
@@ -221,104 +156,8 @@ static __attribute__((noreturn)) void eqx_schedule(void) {
  */
 
 static __attribute__((noreturn)) void sys_exit(eqx_th_t *th, int exitcode) {
-  eqx_trace("thread=%d exited with code=%d, hash=%x\n", th->tid, exitcode,
-            th->reg_hash);
-
-  // if we don't have a hash, add it from this run.
-  // ASSUMES: that the code is deterministic so will
-  // compute the same hash on the next run.  this
-  // obviously is a strong assumption.
-  let exp = th->expected_hash;
-  let got = th->reg_hash;
-  if (!exp) {
-    th->expected_hash = got;
-    // success: expected hash matches
-  } else if (exp == got) {
-    eqx_trace("EXIT HASH MATCH: tid=%d: hash=%x\n", th->tid, exp, got);
-    // death: bug in system, hash mismatch.
-  } else {
-    panic("MISMATCH ERROR: tid=%d: expected hash=%x, have=%x\n", th->tid, exp,
-          got);
-  }
-
-  // add hash to all the other thread hashes.
-  // commutative so that thread scheduling
-  // doesn't change result.
-  exit_hash += got;
-
-  // if no more threads on the runqueue we are done.
-  if (!(cur_thread = eqx_th_pop(&eqx_runq))) {
-    eqx_trace("done with all threads\n");
-    switchto(&start_regs);
-  }
-  // otherwise do the next one.
-  brkpt_run_one_inst(&cur_thread->regs);
-  not_reached();
-}
-
-/****************************************************************
- * exception handling code.
- */
-
-// single-step exception handler.  similar to the lab 10
-// check-interleave.c handler in that it sets breakpoints
-// and catches them.
-//
-// will detect with reasonable probability if even a single
-// register differs by a single bit at any point during a
-// thread's execution as compared to previous runs.
-//
-// is simpler than <check-interleave.c> in that it just
-// computes a
-//   - hash of all the registers <regs>;
-//   - combines this with the current thread hash <th->reg_hash>.
-// at exit: this hash will get compared to the expected hash.
-//
-static void equiv_single_step_handler(regs_t *regs) {
-  if (interrupts_on_p())
-    panic("interrupts are enabled!\n");
-
-  uint32_t pc = regs->regs[15];
-
-  // when running real processes, would check if they
-  // had a handler: if so, forward the exception
-  // to them, otherwise kill the process.
-  if (!brkpt_fault_p())
-    panic("impossible: should get no other faults: pc=%x\n", pc);
-
-  let th = cur_thread;
-  assert(th);
-
-  // copy the saved registers <regs> into thread the
-  // <th>'s register block.
-  //  - we could be more clever and save them into <th>->regs
-  //    in the first place.
-  th->regs = *regs;
-
-  // how many instructions this thread has run so far.
-  th->inst_cnt++;
-
-  // if you need to debug can drop this in to see the values of
-  // the registers.
-  // reg_dump(th->tid, th->inst_cnt, &th->regs);
-
-  // need to do so it relabels the cpsr:
-  //  if(cpsr.mode!=x)
-  //      panic()
-  //  else
-  //      cpsr.mode = USER
-  //  then the hash works and you don't have to keep around all
-  //  the different ones.
-  //
-  // have them do system calls?
-  th->reg_hash = fast_hash_inc32(&th->regs, sizeof th->regs, th->reg_hash);
-
-  // should let them turn it off.
-  if (th->verbose_p)
-    output("hash: tid=%d: cnt=%d: pc=%x, hash=%x\n", th->tid, th->inst_cnt, pc,
-           th->reg_hash);
-
-  eqx_schedule();
+  eqx_trace("thread=%d exited with code=%d\n", th->tid, exitcode);
+  eqx_pick_next_and_run();
 }
 
 // our two system calls:
@@ -347,19 +186,108 @@ static int equiv_syscall_handler(regs_t *r) {
 
   unsigned sysno = r->regs[0];
   switch (sysno) {
-  case EQX_SYS_PUTC:
-    uart_put8(r->regs[1]);
-    break;
-  case EQX_SYS_EXIT:
+
+  case EQX_SYS_EXIT: {
     sys_exit(th, r->regs[1]);
     not_reached();
-  default:
+  }
+  case EQX_SYS_PUTC: {
+    uart_put8(r->regs[1]);
+    break;
+  }
+  case EQX_SYS_FORK: {
+    eqx_th_t *child = kmalloc(sizeof(eqx_th_t));
+    *child = *th;
+    child->tid = ntids++;
+    // Code segment
+    if (th->code_pin.pa) {
+      uint32_t new_code_sec = sec_alloc();
+      uint32_t new_code_pa = sec_to_addr(new_code_sec);
+      vm_off();
+      memcpy((void *)new_code_pa, (void *)th->code_pin.pa, MB(1));
+      vm_on();
+      child->code_pin.pa = new_code_pa;
+    }
+    uint32_t stack_size = th->stack_end - th->stack_start;
+    void *new_stack_base = kmalloc_aligned(stack_size, 8);
+    uint32_t current_sp = th->regs.regs[REGS_SP];
+    uint32_t bytes_used = th->stack_end - current_sp;
+    void *dest = (void *)((uint32_t)new_stack_base + stack_size - bytes_used);
+    vm_off();
+    memcpy(dest, (void *)current_sp, bytes_used);
+    vm_on();
+
+    // Update child metadata
+    child->stack_start = (uint32_t)new_stack_base;
+    child->stack_end = (uint32_t)new_stack_base + stack_size;
+
+    // RELOCATION: The child's SP must point to the new stack location
+    child->regs.regs[REGS_SP] = (uint32_t)dest;
+
+    // --- 4. Handle Return Values ---
+    // CHILD: Returns 0
+    child->regs.regs[REGS_R0] = 0;
+
+    // PARENT: Returns Child's TID
+    th->regs.regs[REGS_R0] = child->tid;
+
+    // --- 5. Schedule ---
+    eqx_th_push(&eqx_runq, child);
+    break;
+  }
+  case EQX_SYS_EXEC: {
+    vm_off();
+    struct prog *p = (void *)r->regs[0];
+    eqx_th_t *new_th = eqx_exec_internal(p);
+    vm_on();
+    new_th->tid = th->tid;
+    cur_thread = eqx_th_pop(&eqx_runq);
+    if (!cur_thread)
+      panic("Exec error: run queue empty after loading new program?\n");
+    // IMPORTANT: ensure address space matches the thread we're about to run.
+    eqx_run_current();
+    not_reached();
+  }
+  case EQX_SYS_WAITPID: {
+    panic("waitpid not implemented\n");
+    break;
+  }
+  case EQX_SYS_SBRK: {
+    panic("sbrk not implemented\n");
+    break;
+  }
+  case EQX_SYS_ABORT: {
+    panic("abort not implemented\n");
+    break;
+  }
+  case EQX_SYS_GET_CPSR: {
+    r->regs[0] = cpsr_get();
+    break;
+  }
+  case EQX_SYS_PUT_HEX: {
+    printk("%x", r->regs[1]);
+    break;
+  }
+  case EQX_SYS_PUT_INT: {
+    printk("%d", r->regs[1]);
+    break;
+  }
+  case EQX_SYS_PUT_PID: {
+    printk("%d", th->tid);
+    break;
+  }
+  default: {
     panic("illegal system call: %d\n", sysno);
+    break;
+  }
   }
 
-  // pick what to run next.
-  eqx_schedule();
-  not_reached();
+  // Run-to-completion behavior:
+  // - For non-exit syscalls, resume the SAME thread immediately.
+  // - Make sure any register writes we made to th->regs are reflected back to
+  // *r.
+  *r = th->regs;
+  return 0;
 }
 
 void sec_alloc_init(unsigned n);
@@ -550,6 +478,10 @@ static void vm_on(void) {
 }
 
 static void vm_off(void) {
+  if (!config.vm_use_pin_p) {
+    printk("vm_off: vm_use_pin_p is off\n");
+    return;
+  }
   assert(mmu_is_enabled());
   pin_mmu_disable();
   output("mmu off\n");
@@ -568,9 +500,6 @@ uint32_t eqx_run_threads(void) {
   if (!eqx_init_p)
     panic("did not initialize eqx!\n");
 
-  // initialize the cumulative hash.
-  exit_hash = 0;
-
   // for today we don't expect an empty runqueue,
   // but you can certainly get rid of this if prefer.
   cur_thread = eqx_th_pop(&eqx_runq);
@@ -580,13 +509,13 @@ uint32_t eqx_run_threads(void) {
   // start mismatching (we are at privileged mode
   // so won't start til we switch to the first
   // thread).
-  brkpt_mismatch_start();
+  // brkpt_mismatch_start();
 
   // note: we're running the first instruction and
   // *then* getting a mismatch.  if you wanted
   // to mismatch right away use an addresss that
   // should never executed (e.g. 0).
-  brkpt_mismatch_set(cur_thread->regs.regs[15]);
+  // brkpt_mismatch_set(cur_thread->regs.regs[15]);
 
   // setup vm.
   // NOTE: we will potentially do multiple times
@@ -599,7 +528,7 @@ uint32_t eqx_run_threads(void) {
   switchto_cswitch(&start_regs, &cur_thread->regs);
 
   // ran all threads: turn off mismatching.
-  brkpt_mismatch_stop();
+  // brkpt_mismatch_stop();
 
   // turn off vm
   vm_off();
@@ -610,7 +539,7 @@ uint32_t eqx_run_threads(void) {
   assert(!eqx_runq.tail);
 
   eqx_trace("done running threads\n");
-  return exit_hash;
+  return 0;
 }
 
 // one time initialization.
@@ -637,7 +566,7 @@ void eqx_init_config(eqx_config_t c) {
   full_except_install(0);
 
   // for breakpoint handling (like lab 10)
-  full_except_set_prefetch(equiv_single_step_handler);
+  // full_except_set_prefetch(equiv_single_step_handler);
   // for system calls (like many labs)
   full_except_set_syscall(equiv_syscall_handler);
 
@@ -661,7 +590,7 @@ static inline map_t map_mk(uint32_t va, uint32_t pa, pin_t attr) {
 
 static inline uint32_t sec_to_addr(uint32_t sec) { return (sec << 20); }
 
-eqx_th_t *eqx_exec_internal(struct prog *prog, uint32_t expected_hash) {
+eqx_th_t *eqx_exec_internal(struct prog *prog) {
   assert(prog);
   output("EXEC: progname=<%s>, nbytes=%d\n", prog->name, prog->nbytes);
   small_prog_hdr_t s = small_prog_hdr_mk((void *)prog->code);
@@ -674,9 +603,8 @@ eqx_th_t *eqx_exec_internal(struct prog *prog, uint32_t expected_hash) {
   void *code_src = (void *)prog->code + s.code_offset;
   void *data_src = (void *)prog->code + s.data_offset;
 
-  uint32_t hash = 0;
-  let p = eqx_fork_stack((void *)s.code_addr, 0, expected_hash,
-                         (void *)s.data_addr, MB(1) / 2);
+  let p =
+      eqx_fork_stack((void *)s.code_addr, 0, (void *)s.data_addr, MB(1) / 2);
 
   // currently: vm not turned on, so we can copy whatever.
 
