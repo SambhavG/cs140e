@@ -22,9 +22,9 @@ int syscall_invoke_asm(uint32_t sysno, ...);
     syscall_invoke_asm(EQX_SYS_WAITPID, pid, nonblock_p)
 
 #define die(x...) do { output(x); sys_exit(1); } while(0)
-#define panic(args...) do { output(args); sys_exit(1); } while(0)
+#define libos_panic(args...) do { output(args); sys_exit(1); } while(0)
 
-#define debug(msg, args...) \
+#define libos_debug(msg, args...) \
     output("%s:%s:%d:DEBUG:" msg, __FILE__, __FUNCTION__, __LINE__, ##args)
 
 
@@ -72,7 +72,7 @@ static inline void output(const char *fmt, ...) {
             break;
         case '$':
             if(strncmp(fmt, "pid", 3) != 0)
-                panic("unknown format: <%s>\n", fmt);
+                libos_panic("unknown format: <%s>\n", fmt);
             sys_put_pid();
             fmt += 3;
             break;

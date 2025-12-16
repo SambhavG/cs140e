@@ -32,23 +32,20 @@ INC += -I$(VM_DIR)
 
 COMMON_SRC += $(CS140E_2025_PATH)/libpi/src/mmu.c  
 COMMON_SRC += pinned-vm.c  
-COMMON_SRC += $(CS140E_2025_PATH)/labs/17-vm-page-table/code/your-mmu-asm.S
-STAFF_OBJS += $(VM_DIR)/staff-mmu-asm.o 
-STAFF_OBJS += $(PIN_DIR)/staff-pinned-vm.o  
-# STAFF_OBJS += $(VM_DIR)/staff-mmu-asm.o  # Using your-mmu-asm.S instead
-STAFF_OBJS += $(VM_DIR)/staff-mmu-except.o
-STAFF_OBJS += $(CS140E_2025_PATH)/libpi/staff-objs/kmalloc.o  
-
-# we give you this code.  you can start tweaking it.
+COMMON_SRC += $(CS140E_2025_PATH)/libpi/src/your-mmu-asm.S
+COMMON_SRC += $(CS140E_2025_PATH)/libpi/libc/kmalloc.c
 COMMON_SRC += eqx-os.c
-COMMON_SRC += staff-full-except.c
 COMMON_SRC += switchto-asm.S
 COMMON_SRC += full-except-asm.S
+COMMON_SRC += staff-full-except.c
 
-STAFF_OBJS += ./staff-objs/staff-mmu.o  
-STAFF_OBJS += ./staff-objs/staff-switchto-asm.o
-STAFF_OBJS += ./staff-objs/staff-breakpoint.o
+# STAFF_OBJS += $(PIN_DIR)/staff-pinned-vm.o  
+# STAFF_OBJS += $(VM_DIR)/staff-mmu-except.o  
+# STAFF_OBJS += ./staff-objs/staff-switchto-asm.o
+# STAFF_OBJS += ./staff-objs/staff-breakpoint.o
 STAFF_OBJS += ./staff-objs/staff-full-except-asm.o
+# STAFF_OBJS += ./staff-objs/staff-mmu.o  
+# STAFF_OBJS += $(VM_DIR)/staff-mmu-asm.o 
 
 
 BOOTLOADER=my-install

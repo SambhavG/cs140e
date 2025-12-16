@@ -10,9 +10,14 @@ CompileFlags:
     - -I/Users/sambhav/Documents/vscode_projects/cs140e/labs/os/code/tests
     - -I/Users/sambhav/Documents/vscode_projects/cs140e/labs/17-vm-page-table/code
     - -I/Users/sambhav/Documents/vscode_projects/cs140e/labs/13-pinned-vm/code
+    - -I/Users/sambhav/Documents/vscode_projects/cs140e/labs/16-fat32-readonly/code
+    - -I/Users/sambhav/Documents/vscode_projects/cs140e/labs/16-fat32-readonly/code/external-code
     - -D__RPI__
-    - -std=gnu99
     - -Wno-pointer-sign
     - -Wno-unused-function
     - -Wno-unused-variable
+  If:
+    Language: C
+    Add:
+      - -std=gnu99
 

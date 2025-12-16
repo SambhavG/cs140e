@@ -61,7 +61,7 @@ void pin_mmu_sec(unsigned idx, uint32_t va, uint32_t pa, pin_t e) {
   demand(bits_get(va, 0, 19) == 0, only handling 1MB sections);
   demand(bits_get(pa, 0, 19) == 0, only handling 1MB sections);
 
-  debug("about to map %x->%x\n", va, pa);
+  // debug("about to map %x->%x\n", va, pa);
 
   // these will hold the values you assign for the tlb entries.
   uint32_t x, va_ent = 0, pa_ent = 0, attr = 0;

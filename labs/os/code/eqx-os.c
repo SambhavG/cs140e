@@ -1,5 +1,26 @@
 #include "eqx-os.h"
 
+// Cache and TLB maintenance functions for fork()
+// Clean and invalidate data cache - ensures all dirty data is written to RAM
+static inline void clean_dcache(void) {
+  uint32_t r = 0;
+  // Clean and invalidate entire data cache (mcr p15, 0, r, c7, c14, 0)
+  asm volatile("mcr p15, 0, %0, c7, c14, 0" ::"r"(r));
+  // Data synchronization barrier - ensures cache operation completes
+  asm volatile("mcr p15, 0, %0, c7, c10, 4" ::"r"(r));
+}
+
+// Flush entire TLB - invalidate all TLB entries
+static inline void tlb_flush_all(void) {
+  uint32_t r = 0;
+  // Invalidate entire unified TLB (mcr p15, 0, r, c8, c7, 0)
+  asm volatile("mcr p15, 0, %0, c8, c7, 0" ::"r"(r));
+  // Data synchronization barrier - ensures TLB operation completes
+  asm volatile("mcr p15, 0, %0, c7, c10, 4" ::"r"(r));
+  // Prefetch flush - ensures TLB changes are visible to instruction fetch
+  prefetch_flush();
+}
+
 // check for initialization bugs.
 static int eqx_init_p = 0;
 static unsigned ntids = 1;
@@ -78,9 +99,8 @@ static void eqx_regs_init(eqx_th_t *th) {
 static __attribute__((noreturn)) void eqx_run_current(void) {
   assert(cur_thread);
   // Ensure the pinned mappings correspond to cur_thread before executing it.
-  printk("calling vm_switch\n");
   vm_switch(cur_thread);
-  printk("calling switchto\n");
+  prefetch_flush();
   switchto(&cur_thread->regs);
   not_reached();
 }
@@ -93,7 +113,7 @@ eqx_th_t *eqx_fork_stack(void (*fn)(void *), void *arg, void *stack,
                          uint32_t nbytes) {
 
   eqx_th_t *th = kmalloc(sizeof *th);
-  printk("kmalloc'd th=%p\n", th);
+  // printk("kmalloc'd th=%p\n", th);
   th->fn = (uint32_t)fn;
   th->arg = (uint32_t)arg;
 
@@ -129,15 +149,6 @@ eqx_th_t *eqx_fork_nostack(void (*fn)(void *), void *arg) {
   return eqx_fork_stack(fn, arg, 0, 0);
 }
 
-void eqx_refork(eqx_th_t *th) {
-
-  eqx_regs_init(th);
-
-  th->inst_cnt = 0;
-
-  eqx_th_push(&eqx_runq, th);
-}
-
 // In run-to-completion mode, we do NOT time-slice.
 // The only "scheduler" action is to pick the next thread after exit.
 static __attribute__((noreturn)) void eqx_pick_next_and_run(void) {
@@ -156,7 +167,7 @@ static __attribute__((noreturn)) void eqx_pick_next_and_run(void) {
  */
 
 static __attribute__((noreturn)) void sys_exit(eqx_th_t *th, int exitcode) {
-  eqx_trace("thread=%d exited with code=%d\n", th->tid, exitcode);
+  // eqx_trace("thread=%d exited with code=%d\n", th->tid, exitcode);
   eqx_pick_next_and_run();
 }
 
@@ -196,43 +207,44 @@ static int equiv_syscall_handler(regs_t *r) {
     break;
   }
   case EQX_SYS_FORK: {
+    clean_dcache();
+
+    vm_off();
     eqx_th_t *child = kmalloc(sizeof(eqx_th_t));
-    *child = *th;
+    memcpy(child, th, sizeof(eqx_th_t));
     child->tid = ntids++;
-    // Code segment
+
+    uint32_t new_code_pa = 0, new_data_pa = 0;
     if (th->code_pin.pa) {
-      uint32_t new_code_sec = sec_alloc();
-      uint32_t new_code_pa = sec_to_addr(new_code_sec);
-      vm_off();
+      new_code_pa = sec_to_addr(sec_alloc());
+    }
+    if (th->data_pin.pa) {
+      new_data_pa = sec_to_addr(sec_alloc());
+    }
+
+    if (th->code_pin.pa) {
       memcpy((void *)new_code_pa, (void *)th->code_pin.pa, MB(1));
-      vm_on();
       child->code_pin.pa = new_code_pa;
     }
-    uint32_t stack_size = th->stack_end - th->stack_start;
-    void *new_stack_base = kmalloc_aligned(stack_size, 8);
-    uint32_t current_sp = th->regs.regs[REGS_SP];
-    uint32_t bytes_used = th->stack_end - current_sp;
-    void *dest = (void *)((uint32_t)new_stack_base + stack_size - bytes_used);
-    vm_off();
-    memcpy(dest, (void *)current_sp, bytes_used);
+    if (th->data_pin.pa) {
+      memcpy((void *)new_data_pa, (void *)th->data_pin.pa, MB(1));
+      child->data_pin.pa = new_data_pa;
+    }
+
+    clean_dcache();
+    prefetch_flush();
+
     vm_on();
 
-    // Update child metadata
-    child->stack_start = (uint32_t)new_stack_base;
-    child->stack_end = (uint32_t)new_stack_base + stack_size;
+    vm_switch(th);
 
-    // RELOCATION: The child's SP must point to the new stack location
-    child->regs.regs[REGS_SP] = (uint32_t)dest;
+    tlb_flush_all();
 
-    // --- 4. Handle Return Values ---
-    // CHILD: Returns 0
     child->regs.regs[REGS_R0] = 0;
-
-    // PARENT: Returns Child's TID
     th->regs.regs[REGS_R0] = child->tid;
 
-    // --- 5. Schedule ---
     eqx_th_push(&eqx_runq, child);
+    return child->tid;
     break;
   }
   case EQX_SYS_EXEC: {
@@ -317,7 +329,7 @@ static int sec_alloc_exact(uint32_t s) {
   assert(sec_is_legal(s));
   if (sections[s])
     return 0;
-  debug("allocating sec=%d\n", s);
+  // debug("allocating sec=%d\n", s);
   sections[s] = 1;
   return 1;
 }
@@ -341,7 +353,7 @@ static int sec_is_alloced(uint32_t pa) {
 static long sec_alloc(void) {
   for (uint32_t i = 0; i < nsec; i++) {
     if (!sections[i]) {
-      debug("allocating sec=%d\n", i);
+      // debug("allocating sec=%d\n", i);
       sections[i] = 1;
       return i;
     }
@@ -363,15 +375,10 @@ static long sec_free(uint32_t s) {
  * vm code.
  */
 
-#include "eqx-os.h"
-#include "memmap-default.h"
-#include "mmu.h"
-#include "pinned-vm.h"
-
 // hack to handle linking error.
-__attribute__((weak)) cp15_ctrl_reg1_t cp15_ctrl_reg1_rd(void) {
-  return staff_cp15_ctrl_reg1_rd();
-}
+// __attribute__((weak)) cp15_ctrl_reg1_t cp15_ctrl_reg1_rd(void) {
+//   return cp15_ctrl_reg1_rd();
+// }
 
 // default asid.
 enum { ASID = 1 };
@@ -401,6 +408,8 @@ static void vm_switch(eqx_th_t *th) {
   // extend as needed.
   if (!config.vm_use_pin_p)
     return;
+
+  tlb_flush_all();
 
   // right now don't have any pinning: just running an
   // idenity map.
@@ -474,7 +483,7 @@ static void vm_on(void) {
   assert(!mmu_is_enabled());
   pin_mmu_enable();
   assert(mmu_is_enabled());
-  output("mmu on\n");
+  // output("mmu on\n");
 }
 
 static void vm_off(void) {
@@ -484,7 +493,7 @@ static void vm_off(void) {
   }
   assert(mmu_is_enabled());
   pin_mmu_disable();
-  output("mmu off\n");
+  // output("mmu off\n");
 }
 
 /*****************************************************************
@@ -603,8 +612,8 @@ eqx_th_t *eqx_exec_internal(struct prog *prog) {
   void *code_src = (void *)prog->code + s.code_offset;
   void *data_src = (void *)prog->code + s.data_offset;
 
-  let p =
-      eqx_fork_stack((void *)s.code_addr, 0, (void *)s.data_addr, MB(1) / 2);
+  let p = eqx_fork_stack((void *)s.code_addr, 0, (void *)s.data_addr,
+                         eqx_stack_size);
 
   // currently: vm not turned on, so we can copy whatever.
 
@@ -618,10 +627,8 @@ eqx_th_t *eqx_exec_internal(struct prog *prog) {
     panic("what\n");
   } else {
     // we don't care which sectors we use.
-    debug("about to alloc\n");
     data = sec_to_addr(sec_alloc());
     code = sec_to_addr(sec_alloc());
-    debug("done alloc\n");
 
     pin_t user_attr = pin_mk_user(dom_user, ASID, perm_rw_user, MEM_uncached);
     p->data_pin = map_mk(s.data_addr, data, user_attr);

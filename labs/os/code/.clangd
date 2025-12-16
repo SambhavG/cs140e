@@ -10,7 +10,10 @@ CompileFlags:
     - -I/Users/sambhav/Documents/vscode_projects/cs140e/labs/17-vm-page-table/code
     - -I/Users/sambhav/Documents/vscode_projects/cs140e/labs/13-pinned-vm/code
     - -D__RPI__
-    - -std=gnu99
     - -Wno-pointer-sign
     - -Wno-unused-function
     - -Wno-unused-variable
+  If:
+    Language: C
+    Add:
+      - -std=gnu99

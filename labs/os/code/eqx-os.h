@@ -12,6 +12,9 @@
 #include "queue-ext-T.h"
 #include "memmap-default.h"
 #include "small-prog.h"
+#include "asm-helpers.h"
+#include "mmu.h"
+#include "pinned-vm.h"
 
 
 // bundle all the configuration stuff in one

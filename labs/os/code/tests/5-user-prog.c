@@ -21,9 +21,9 @@ void notmain(void) {
   output("about to run\n");
   eqx_run_threads();
 
-  eqx_exec_internal(p);
-  eqx_exec_internal(p);
-  eqx_exec_internal(p);
-  eqx_exec_internal(p);
-  eqx_run_threads();
+  //   eqx_exec_internal(p);
+  //   eqx_exec_internal(p);
+  //   eqx_exec_internal(p);
+  //   eqx_exec_internal(p);
+  //   eqx_run_threads();
 }
