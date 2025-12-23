@@ -16,7 +16,7 @@
 #define EQX_SYS_WRITE 9
 // #define EQX_SYS_DUP         10
 
-#define EQX_SYS_ABORT 1
+#define EQX_SYS_ABORT 11
 
 #define EQX_SYS_GET_PID 15
 
