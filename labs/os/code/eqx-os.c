@@ -443,7 +443,7 @@ static void vm_switch(eqx_th_t *th) {
   if (!config.vm_use_pin_p)
     return;
 
-  tlb_flush_all();
+  // tlb_flush_all();
 
   // right now don't have any pinning: just running an
   // idenity map.
