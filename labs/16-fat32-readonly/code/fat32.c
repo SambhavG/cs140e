@@ -129,7 +129,18 @@ static uint32_t get_cluster_chain_length(fat32_fs_t *fs,
     if (entry_type == USED_CLUSTER) {
       length++;
       start_cluster = entry & 0xfffffff;
+    } else if (entry_type == FREE_CLUSTER) {
+      // Free cluster in chain means the chain is broken
+      printk("entry: %x\n", entry);
+      printk("entry_type: FREE_CLUSTER\n");
+      panic("Broken cluster chain: encountered free cluster!\n");
+    } else if (entry_type == BAD_CLUSTER) {
+      // Bad cluster in chain
+      printk("entry: %x\n", entry);
+      printk("entry_type: BAD_CLUSTER\n");
+      panic("Broken cluster chain: encountered bad cluster!\n");
     } else {
+      // Any other unexpected type
       printk("entry: %x\n", entry);
       printk("entry_type: %x\n", entry_type);
       panic("Invalid entry found in cluster chain!\n");
@@ -166,6 +177,10 @@ static void read_cluster_chain(fat32_fs_t *fs, uint32_t start_cluster,
     if (entry_type == USED_CLUSTER) {
       current_cluster = entry & 0xfffffff;
       offset++;
+    } else if (entry_type == FREE_CLUSTER) {
+      panic("Broken cluster chain: encountered free cluster!\n");
+    } else if (entry_type == BAD_CLUSTER) {
+      panic("Broken cluster chain: encountered bad cluster!\n");
     } else {
       panic("Invalid entry found in cluster chain!\n");
     }
@@ -296,20 +311,21 @@ pi_file_t *fat32_read(fat32_fs_t *fs, pi_dirent_t *directory, char *filename) {
   // TODO: read the dirents of the provided directory and look for one matching
   // the provided name
   pi_dirent_t *dirent = fat32_stat(fs, directory, filename);
+  if (!dirent->nbytes) {
+    return NULL;
+  }
 
-  // TODO: figure out the length of the cluster chain
+  // figure out the length of the cluster chain
   uint32_t num_clusters = get_cluster_chain_length(fs, dirent->cluster_id);
 
-  // TODO: allocate a buffer large enough to hold the whole file
+  // allocate a buffer large enough to hold the whole file
   uint8_t *buf = kmalloc(num_clusters * fs->sectors_per_cluster *
                          boot_sector.bytes_per_sec);
 
-  // TODO: read in the whole file (if it's not empty)
-  if (dirent->nbytes) {
-    read_cluster_chain(fs, dirent->cluster_id, buf);
-  }
+  // read in the whole file (if it's not empty)
+  read_cluster_chain(fs, dirent->cluster_id, buf);
 
-  // TODO: fill the pi_file_t
+  // fill the pi_file_t
   pi_file_t *file = kmalloc(sizeof(pi_file_t));
   *file = (pi_file_t){
       .data = buf,

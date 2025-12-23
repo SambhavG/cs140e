@@ -238,7 +238,7 @@ static int equiv_syscall_handler(regs_t *r) {
 
     vm_switch(th);
 
-    tlb_flush_all();
+    // tlb_flush_all();
 
     child->regs.regs[REGS_R0] = 0;
     th->regs.regs[REGS_R0] = child->tid;
@@ -288,6 +288,10 @@ static int equiv_syscall_handler(regs_t *r) {
     printk("%d", th->tid);
     break;
   }
+  case EQX_SYS_GET_PID: {
+    return th->tid;
+    break;
+  }
   default: {
     panic("illegal system call: %d\n", sysno);
     break;
@@ -301,8 +305,6 @@ static int equiv_syscall_handler(regs_t *r) {
   *r = th->regs;
   return 0;
 }
-
-void sec_alloc_init(unsigned n);
 
 //******************************************************
 // simple 1MB allocation/deallocation.

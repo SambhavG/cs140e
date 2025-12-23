@@ -25,11 +25,25 @@ PROGS = tests/5-user-prog.c
 # PROGS := $(sort $(wildcard tests/[01234]-*test.c))
 
 VM_DIR = ../../17-vm-page-table/code
-PIN_DIR = ../../13-pinned-vm/code/
+# PIN_DIR = ../../13-pinned-vm/code
+FS_DIR = $(CS140E_2025_PATH)/labs/16-fat32-readonly/code
 
 # INC += -I$(PIN_DIR)
 INC += -I$(VM_DIR)
-
+INC += -I$(FS_DIR)
+INC += -I$(FS_DIR)/external-code
+COMMON_SRC += $(CS140E_2025_PATH)/libpi/src/fat32.h
+COMMON_SRC += $(FS_DIR)/fat32.c
+COMMON_SRC += $(FS_DIR)/mbr.c
+COMMON_SRC += $(FS_DIR)/pi-sd.c
+COMMON_SRC += $(FS_DIR)/mbr-helpers.c
+COMMON_SRC += $(FS_DIR)/fat32-helpers.c
+COMMON_SRC += $(FS_DIR)/fat32-lfn-helpers.c
+COMMON_SRC += $(FS_DIR)/external-code/unicode-utf8.c
+COMMON_SRC += $(FS_DIR)/external-code/emmc.c
+COMMON_SRC += $(FS_DIR)/fat32.h
+COMMON_SRC += $(FS_DIR)/mbr.h
+COMMON_SRC += $(FS_DIR)/pi-sd.h
 COMMON_SRC += $(CS140E_2025_PATH)/libpi/src/mmu.c  
 COMMON_SRC += pinned-vm.c  
 COMMON_SRC += $(CS140E_2025_PATH)/libpi/src/your-mmu-asm.S
