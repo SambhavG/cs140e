@@ -252,8 +252,6 @@ static int equiv_syscall_handler(regs_t *r) {
     clean_dcache();
     prefetch_flush();
 
-    tlb_flush_all();
-
     child->regs.regs[REGS_R0] = 0;
     th->regs.regs[REGS_R0] = child->tid;
 
