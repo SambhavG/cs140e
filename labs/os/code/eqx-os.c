@@ -21,6 +21,19 @@ static inline void tlb_flush_all(void) {
   prefetch_flush();
 }
 
+static inline void tlb_flush_asid(uint32_t asid) {
+  uint32_t r = 0;
+  // Invalidate ALL entries in the unified TLB that match the ASID
+  // mcr p15, 0, <asid>, c8, c7, 2
+  asm volatile("mcr p15, 0, %0, c8, c7, 2" ::"r"(asid));
+
+  // DSB (Data Synchronization Barrier)
+  // ARM1176 uses c7, c10, 4 for this.
+  asm volatile("mcr p15, 0, %0, c7, c10, 4" ::"r"(r));
+
+  // Prefetch flush (ISB)
+  prefetch_flush();
+}
 // check for initialization bugs.
 static int eqx_init_p = 0;
 static unsigned ntids = 1;
@@ -168,6 +181,8 @@ static __attribute__((noreturn)) void eqx_pick_next_and_run(void) {
 
 static __attribute__((noreturn)) void sys_exit(eqx_th_t *th, int exitcode) {
   // eqx_trace("thread=%d exited with code=%d\n", th->tid, exitcode);
+  free_asid(th->code_pin.attr.asid);
+  tlb_flush_asid(th->code_pin.attr.asid);
   eqx_pick_next_and_run();
 }
 
@@ -230,20 +245,21 @@ static int equiv_syscall_handler(regs_t *r) {
       memcpy((void *)new_data_pa, (void *)th->data_pin.pa, MB(1));
       child->data_pin.pa = new_data_pa;
     }
+    uint32_t child_asid = get_free_asid();
+    child->code_pin.attr.asid = child_asid;
+    child->data_pin.attr.asid = child_asid;
 
     clean_dcache();
     prefetch_flush();
 
-    vm_on();
-
-    vm_switch(th);
-
-    // tlb_flush_all();
+    tlb_flush_all();
 
     child->regs.regs[REGS_R0] = 0;
     th->regs.regs[REGS_R0] = child->tid;
 
     eqx_th_push(&eqx_runq, child);
+    vm_on(child_asid);
+    vm_switch(th);
     return child->tid;
     break;
   }
@@ -251,7 +267,7 @@ static int equiv_syscall_handler(regs_t *r) {
     vm_off();
     struct prog *p = (void *)r->regs[0];
     eqx_th_t *new_th = eqx_exec_internal(p);
-    vm_on();
+    vm_on(new_th->code_pin.attr.asid);
     new_th->tid = th->tid;
     cur_thread = eqx_th_pop(&eqx_runq);
     if (!cur_thread)
@@ -383,7 +399,23 @@ static long sec_free(uint32_t s) {
 // }
 
 // default asid.
-enum { ASID = 1 };
+// enum { ASID = 1 };
+uint32_t asid_map[256] = {0};
+
+static void init_asid_map(void) { memset(asid_map, 0, sizeof(asid_map)); }
+
+static uint32_t get_free_asid(void) {
+  for (int i = 0; i < 256; i++) {
+    if (asid_map[i] == 0) {
+      asid_map[i] = 1;
+      return i + 1;
+    }
+  }
+  panic("No free ASID found\n");
+}
+
+static void free_asid(uint32_t asid) { asid_map[asid - 1] = 0; }
+
 // free index
 static int pin_idx;
 
@@ -393,6 +425,8 @@ static eqx_config_t config = {.ramMB = 256};
 static void pin_map(unsigned idx, uint32_t va, uint32_t pa, pin_t attr) {
   assert(sec_is_alloced(pa));
   assert(idx < 8);
+  printk("[PIN_MAP] Called for idx=%d, va=%x, pa=%x, attr=%x\n", idx, va, pa,
+         attr);
   pin_mmu_sec(idx, va, pa, attr);
 }
 
@@ -423,11 +457,14 @@ static void vm_switch(eqx_th_t *th) {
   pin_map(pin_idx, p->va, p->pa, p->attr);
   p = &th->data_pin;
   pin_map(pin_idx + 1, p->va, p->pa, p->attr);
-  pin_set_context(ASID);
+  printk("[VM_SWITCH] Called for asid=%d\n", th->code_pin.attr.asid);
+  pin_set_context(th->code_pin.attr.asid);
 }
 
 // one time initialization to <th>
 static void vm_init(void) {
+  init_asid_map();
+
   // extend as needed.
   if (!config.vm_use_pin_p)
     return;
@@ -478,10 +515,11 @@ static void vm_init(void) {
 #endif
 }
 
-static void vm_on(void) {
+static void vm_on(uint32_t asid) {
   if (!config.vm_use_pin_p)
     return;
-  pin_set_context(ASID);
+  printk("[VM_ON] Called for asid=%d\n", asid);
+  pin_set_context(asid);
   assert(!mmu_is_enabled());
   pin_mmu_enable();
   assert(mmu_is_enabled());
@@ -531,7 +569,7 @@ uint32_t eqx_run_threads(void) {
   // setup vm.
   // NOTE: we will potentially do multiple times
   // so need to make sure works in that case.
-  vm_on();
+  vm_on(cur_thread->code_pin.attr.asid);
   vm_switch(cur_thread);
 
   // we use <cswitch> so can come back here.
@@ -632,9 +670,13 @@ eqx_th_t *eqx_exec_internal(struct prog *prog) {
     data = sec_to_addr(sec_alloc());
     code = sec_to_addr(sec_alloc());
 
-    pin_t user_attr = pin_mk_user(dom_user, ASID, perm_rw_user, MEM_uncached);
+    uint32_t asid = get_free_asid();
+
+    pin_t user_attr = pin_mk_user(dom_user, asid, perm_rw_user, MEM_uncached);
     p->data_pin = map_mk(s.data_addr, data, user_attr);
     p->code_pin = map_mk(s.code_addr, code, user_attr);
+    p->code_pin.attr.asid = asid;
+    p->data_pin.attr.asid = asid;
   }
 
   unsigned offset = s.bss_addr - s.data_addr;

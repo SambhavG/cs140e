@@ -65,7 +65,7 @@ typedef struct {
             ;
     unsigned ramMB;           // default is 128MB
 
-    unsigned user_idx;
+    // unsigned user_idx;
 } eqx_config_t;
 
 extern eqx_config_t eqx_config;
@@ -76,7 +76,11 @@ eqx_th_t* eqx_exec_internal(struct prog *prog);
 static long sec_alloc(void);
 static inline uint32_t sec_to_addr(uint32_t sec);
 
+static void init_asid_map(void);
+static uint32_t get_free_asid(void);
+static void free_asid(uint32_t asid);
+
 static void vm_off(void);
-static void vm_on(void);
+static void vm_on(uint32_t asid);
 static void vm_switch(eqx_th_t *th);
 #endif
