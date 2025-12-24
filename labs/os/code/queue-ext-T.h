@@ -60,6 +60,20 @@
                                                                         \
     static inline void pfx ## _init(Q_T *q) {                           \
         q->head = q->tail = 0;                                          \
+    }                                                                   \
+                                                                        \
+    /* compute length by iterating through the list */                 \
+    static inline unsigned pfx ## _len(Q_T *q) {                        \
+        unsigned n = 0;                                                 \
+        for(E_T *e = q->head; e; e = e->next)                            \
+            n++;                                                        \
+        return n;                                                       \
+    }                                                                   \
+                                                                        \
+    /* return top element without removing it */                       \
+    static inline E_T *pfx ## _top(Q_T *q) {                            \
+        demand(q, bad input);                                           \
+        return q->head;                                                 \
     }                                                                  
 
 #endif

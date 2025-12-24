@@ -118,6 +118,22 @@ syscall_full:
     bl syscall_full_except
     asm_not_reached();
 
+@ NOTE: 
+@  - save registers assuming we come from user mode.
+@  - the pc in <regs> should point to the instruction that
+@    faulted.
+interrupt_full:
+    sub   lr, lr, #4
+    mov   sp, #INT_STACK_ADDR
+    sub   sp, sp, #68
+    stmia sp, {r0-r14}^             @ r0-r14 (user)
+    str   lr, [sp, #15*4]           @ pc
+    mrs   r1, spsr
+    str   r1, [sp, #16*4]           @ cpsr
+    mov   r0, sp
+    bl    interrupt_full_except
+    asm_not_reached()
+
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @ do not have to modify
 @
@@ -134,7 +150,7 @@ full_except_ints:
     b prefetch_handler_full @ 3, full
     b data_abort_full       @ 4, full
     b reset                 @ 5, generic
-    b interrupt             @ 6, generic
+    b interrupt_full        @ 6, full
     b bad_exception
 
 bad_exception:

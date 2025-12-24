@@ -1,4 +1,5 @@
 #include "eqx-os.h"
+#include "rpi-interrupts.h"
 
 // Cache and TLB maintenance functions for fork()
 // Clean and invalidate data cache - ensures all dirty data is written to RAM
@@ -39,6 +40,22 @@ static int eqx_init_p = 0;
 static unsigned ntids = 1;
 int eqx_verbose_p = 1;
 
+static __attribute__((noreturn)) void eqx_pick_next_and_run(void);
+
+// registers for ARM timer
+// bcm 14.2 p 196
+enum {
+  ARM_Timer_Base = 0x2000B400,
+  ARM_Timer_Load = ARM_Timer_Base + 0x00,
+  ARM_Timer_Control = ARM_Timer_Base + 0x08,
+  ARM_Timer_IRQ_Clear = ARM_Timer_Base + 0x0c,
+};
+
+// 4ms interval with prescale 256.
+// ARM timer freq = 250MHz / 256 = 976562.5 Hz
+// 4ms = 3906 cycles.
+#define TIMER_4MS_LOAD 30 // 3906
+
 // simple thread queue.
 //  - should make so you can delete from the middle.
 typedef struct rq {
@@ -51,6 +68,29 @@ gen_queue_T(eqx_th, rq_t, head, tail, eqx_th_t, next) static rq_t eqx_runq;
 // pointer to current thread.  not null when running
 // threads, null when not.
 static eqx_th_t *volatile cur_thread;
+
+void interrupt_full_except(regs_t *r) {
+  dev_barrier();
+  unsigned pending = GET32(IRQ_basic_pending);
+
+  if (!pending)
+    return;
+
+  if (!ARM_Timer_IRQ)
+    return;
+
+  PUT32(ARM_Timer_IRQ_Clear, 1);
+  dev_barrier();
+
+  if (!cur_thread)
+    return;
+
+  cur_thread->regs = *r;
+  printk("[INTERRUPT] switching from tid=%d to tid=%d, runq len=%d\n",
+         cur_thread->tid, eqx_th_top(&eqx_runq)->tid, eqx_th_len(&eqx_runq));
+  eqx_th_append(&eqx_runq, cur_thread);
+  eqx_pick_next_and_run();
+}
 
 // just like in the interleave lab (10): where we switch back to.
 static regs_t start_regs;
@@ -96,7 +136,7 @@ static void eqx_regs_init(eqx_th_t *th) {
       // stack pointer register
       .regs[REGS_SP] = (uint32_t)th->stack_end,
       // the cpsr to use
-      .regs[REGS_CPSR] = cpsr,
+      .regs[REGS_CPSR] = cpsr & ~(1 << 7), // ENABLE INTERRUPTS
 
       // where to jump to if the code returns.
       .regs[REGS_LR] = (uint32_t)sys_equiv_exit,
@@ -577,13 +617,11 @@ uint32_t eqx_run_threads(void) {
   // start mismatching (we are at privileged mode
   // so won't start til we switch to the first
   // thread).
-  // brkpt_mismatch_start();
 
   // note: we're running the first instruction and
   // *then* getting a mismatch.  if you wanted
   // to mismatch right away use an addresss that
   // should never executed (e.g. 0).
-  // brkpt_mismatch_set(cur_thread->regs.regs[15]);
 
   // setup vm.
   // NOTE: we will potentially do multiple times
@@ -591,15 +629,29 @@ uint32_t eqx_run_threads(void) {
   vm_on(cur_thread->code_pin.attr.asid);
   vm_switch(cur_thread);
 
+  // Initialize and start timer interrupts.
+  PUT32(IRQ_Disable_Basic, ARM_Timer_IRQ);
+  dev_barrier();
+  PUT32(ARM_Timer_Load, TIMER_4MS_LOAD);
+  // 32-bit timer, interrupt enabled, timer enabled, prescale 256
+  PUT32(ARM_Timer_Control, (1 << 1) | (1 << 5) | (1 << 7) | (2 << 2));
+  PUT32(IRQ_Enable_Basic, ARM_Timer_IRQ);
+  dev_barrier();
+
+  // Enable global interrupts so they fire once we switch to user mode.
+  enable_interrupts();
+
   // we use <cswitch> so can come back here.
   // NOTE: nothing else better use our current stack!
   switchto_cswitch(&start_regs, &cur_thread->regs);
 
-  // ran all threads: turn off mismatching.
-  // brkpt_mismatch_stop();
-
   // turn off vm
   vm_off();
+
+  // disable timer and interrupts when done.
+  disable_interrupts();
+  PUT32(IRQ_Disable_Basic, ARM_Timer_IRQ);
+  PUT32(ARM_Timer_Control, 0);
 
   // check that runqueue empty.
   assert(!cur_thread);

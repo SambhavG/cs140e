@@ -79,11 +79,11 @@ void notmain(void) {
   memcpy(p, &hello_prog, sizeof(struct prog));
   memcpy(p->code, hello_file->data, hello_file->n_data);
 
-  // struct prog *p2 = &bytes_0_printk_hello;
+  struct prog *p2 = &bytes_0_printk_hello;
 
-  output("about to load: <%s>\n", p->name);
+  output("about to load: <%s>\n", p2->name);
 
-  let th = eqx_exec_internal(p);
+  let th = eqx_exec_internal(p2);
 
   output("about to run\n");
   eqx_run_threads();

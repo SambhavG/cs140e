@@ -5,16 +5,26 @@
 #include "libos.h"
 
 void notmain(void) {
-  output("[hello] first hello from pid=$pid\n");
+  // output("[hello] first hello from pid=$pid\n");
 
-  for (int i = 0; i < 4; i++) {
+  // for (int i = 0; i < 4; i++) {
+  //   int fork_val = sys_fork();
+  //   output("[hello] Got a fork value of %d\n", fork_val);
+  //   if (fork_val == 0) {
+  //     output("[hello] child hello from pid=$pid\n");
+  //   } else {
+  //     output("[hello] parent hello from pid=$pid\n");
+  //   }
+  // }
+  for (int i = 0; i < 10; i++) {
     int fork_val = sys_fork();
-    output("[hello] Got a fork value of %d\n", fork_val);
     if (fork_val == 0) {
-      output("[hello] child hello from pid=$pid\n");
-    } else {
-      output("[hello] parent hello from pid=$pid\n");
+      continue;
     }
+
+    output("[he $pid llo] parent hello from pid=$pid\n");
+    sys_exit(0);
   }
+
   sys_exit(0);
 }
