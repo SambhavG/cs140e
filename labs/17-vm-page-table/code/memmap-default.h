@@ -59,7 +59,7 @@ enum {
   // as with previous labs, we initialize
   // our kernel heap to start at the first
   // MB. it's 1MB, so fits in a segment.
-  SEG_HEAP = MB(1),
+  SEG_HEAP = MB(16),
 
   // if you look in <staff-start.S>, our default
   // stack is at STACK_ADDR, so subtract 1MB to get

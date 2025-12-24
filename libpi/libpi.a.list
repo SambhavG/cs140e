@@ -189,13 +189,13 @@ Disassembly of section .debug_info:
  114:	58000000 	stmdapl	r0, {}	@ <UNPREDICTABLE>
  118:	00202000 	eoreq	r2, r0, r0
  11c:	00005312 	andeq	r5, r0, r2, lsl r3
- 120:	06a50400 	strteq	r0, [r5], r0, lsl #8
+ 120:	06a60400 	strteq	r0, [r6], r0, lsl #8
  124:	00000133 	andeq	r0, r0, r3, lsr r1
  128:	00002d0b 	andeq	r2, r0, fp, lsl #26
  12c:	002d0b00 	eoreq	r0, sp, r0, lsl #22
  130:	13000000 	tstne	r0, #0
  134:	00000063 	andeq	r0, r0, r3, rrx
- 138:	2d0aa904 			@ <UNDEFINED> instruction: 0x2d0aa904
+ 138:	2d0aaa04 	vstrcs	s20, [sl, #-16]
  13c:	49000000 	stmdbmi	r0, {}	@ <UNPREDICTABLE>
  140:	0b000001 	bleq	14c <.debug_info+0x14c>
  144:	0000002d 	andeq	r0, r0, sp, lsr #32
@@ -403,10 +403,10 @@ Disassembly of section .debug_info:
  46c:	51010100 	mrspl	r0, (UNDEF: 17)
  470:	00003101 	andeq	r3, r0, r1, lsl #2
  474:	00003a17 	andeq	r3, r0, r7, lsl sl
- 478:	18d10400 	ldmne	r1, {sl}^
+ 478:	18d20400 	ldmne	r2, {sl}^
  47c:	00000065 	andeq	r0, r0, r5, rrx
  480:	00781803 	rsbseq	r1, r8, r3, lsl #16
- 484:	652bd104 	strvs	sp, [fp, #-260]!	@ 0xfffffefc
+ 484:	652bd204 	strvs	sp, [fp, #-516]!	@ 0xfffffdfc
  488:	00000000 	andeq	r0, r0, r0
 	...
 
@@ -1339,14 +1339,14 @@ Disassembly of section .debug_info:
  1c8:	68000002 	stmdavs	r0, {r1}
  1cc:	00202150 	eoreq	r2, r0, r0, asr r1
  1d0:	0001500f 	andeq	r5, r1, pc
- 1d4:	4c17e400 	ldcmi	4, cr14, [r7], {-0}
+ 1d4:	4c17e500 	ldcmi	5, cr14, [r7], {-0}
  1d8:	02000002 	andeq	r0, r0, #2
- 1dc:	002d0aa9 	eoreq	r0, sp, r9, lsr #21
+ 1dc:	002d0aaa 	eoreq	r0, sp, sl, lsr #21
  1e0:	01ec0000 	mvneq	r0, r0
  1e4:	2d090000 	stccs	0, cr0, [r9, #-0]
  1e8:	00000000 	andeq	r0, r0, r0
  1ec:	0003c110 	andeq	ip, r3, r0, lsl r1
- 1f0:	02a50200 	adceq	r0, r5, #0, 4
+ 1f0:	02a60200 	adceq	r0, r6, #0, 4
  1f4:	09000002 	stmdbeq	r0, {r1}
  1f8:	0000002d 	andeq	r0, r0, sp, lsr #32
  1fc:	00002d09 	andeq	r2, r0, r9, lsl #26
@@ -1541,21 +1541,21 @@ Disassembly of section .debug_info:
  4f0:	02180000 	andseq	r0, r8, #0
  4f4:	18000000 	stmdane	r0, {}	@ <UNPREDICTABLE>
  4f8:	000002bf 			@ <UNDEFINED> instruction: 0x000002bf
- 4fc:	6a18b102 	bvs	62c90c <uart_disable+0x62c768>
+ 4fc:	6a18b202 	bvs	62cd0c <uart_disable+0x62cb68>
  500:	00000000 	andeq	r0, r0, r0
  504:	28000000 	stmdacs	r0, {}	@ <UNPREDICTABLE>
  508:	01000000 	mrseq	r0, (UNDEF: 0)
  50c:	00de199c 	smullseq	r1, lr, ip, r9
- 510:	b1020000 	mrslt	r0, (UNDEF: 2)
+ 510:	b2020000 	andlt	r0, r2, #0
  514:	00006a26 	andeq	r6, r0, r6, lsr #20
  518:	00002300 	andeq	r2, r0, r0, lsl #6
  51c:	00001f00 	andeq	r1, r0, r0, lsl #30
  520:	00781100 	rsbseq	r1, r8, r0, lsl #2
- 524:	6a35b102 	bvs	d6c934 <uart_disable+0xd6c790>
+ 524:	6a35b202 	bvs	d6cd34 <uart_disable+0xd6cb90>
  528:	34000000 	strcc	r0, [r0], #-0
  52c:	2e000000 	cdpcs	0, 0, cr0, cr0, cr0, {0}
  530:	1a000000 	bne	538 <.debug_info+0x538>
- 534:	b2020076 	andlt	r0, r2, #118	@ 0x76
+ 534:	b3020076 	tstlt	r2, #118	@ 0x76
  538:	00006a0c 	andeq	r6, r0, ip, lsl #20
  53c:	00005100 	andeq	r5, r0, r0, lsl #2
  540:	00004d00 	andeq	r4, r0, r0, lsl #26
@@ -1790,7 +1790,7 @@ Disassembly of section .debug_line:
   f4:	38050204 	stmdacc	r5, {r2, r9}
   f8:	00020500 	andeq	r0, r2, r0, lsl #10
   fc:	03000000 	tsteq	r0, #0
- 100:	060101b0 			@ <UNDEFINED> instruction: 0x060101b0
+ 100:	060101b1 			@ <UNDEFINED> instruction: 0x060101b1
  104:	06030501 	streq	r0, [r3], -r1, lsl #10
  108:	06100567 	ldreq	r0, [r0], -r7, ror #10
  10c:	06030501 	streq	r0, [r3], -r1, lsl #10
@@ -1799,7 +1799,7 @@ Disassembly of section .debug_line:
  118:	0105672f 	tsteq	r5, pc, lsr #14
  11c:	01041306 	tsteq	r4, r6, lsl #6
  120:	03061605 	tsteq	r6, #5242880	@ 0x500000
- 124:	03054a4b 	tsteq	r5, #307200	@ 0x4b000
+ 124:	03054a4a 	tsteq	r5, #303104	@ 0x4a000
  128:	302e0f03 	eorcc	r0, lr, r3, lsl #30
  12c:	68316968 	ldmdavs	r1!, {r3, r5, r6, r8, fp, sp, lr}
  130:	68688530 	stmdavs	r8!, {r4, r5, r8, sl, pc}^
@@ -19450,7 +19450,7 @@ Disassembly of section .debug_info:
  120:	09000000 	stmdbeq	r0, {}	@ <UNPREDICTABLE>
  124:	420b0676 	andmi	r0, fp, #123731968	@ 0x7600000
  128:	09000000 	stmdbeq	r0, {}	@ <UNPREDICTABLE>
- 12c:	580b06e0 	stmdapl	fp, {r5, r6, r7, r9, sl}
+ 12c:	580b06e1 	stmdapl	fp, {r0, r5, r6, r7, r9, sl}
  130:	09000000 	stmdbeq	r0, {}	@ <UNPREDICTABLE>
  134:	b919063d 	ldmdblt	r9, {r0, r2, r3, r4, r5, r9, sl}
  138:	01000000 	mrseq	r0, (UNDEF: 0)
@@ -24341,7 +24341,7 @@ Disassembly of section .debug_info:
   98:	00940600 	addseq	r0, r4, r0, lsl #12
   9c:	8f0e0000 	svchi	0x000e0000
   a0:	02000000 	andeq	r0, r0, #0
-  a4:	00b506a6 	adcseq	r0, r5, r6, lsr #13
+  a4:	00b506a7 	adcseq	r0, r5, r7, lsr #13
   a8:	b5040000 	strlt	r0, [r4, #-0]
   ac:	04000000 	streq	r0, [r0], #-0
   b0:	0000002d 	andeq	r0, r0, sp, lsr #32
@@ -24349,7 +24349,7 @@ Disassembly of section .debug_info:
   b8:	060f0000 	streq	r0, [pc], -r0
   bc:	000000ba 	strheq	r0, [r0], -sl
   c0:	0000ba10 	andeq	fp, r0, r0, lsl sl
-  c4:	0aaa0200 	beq	fea808cc <hw_uart_disable+0xfea808ac>
+  c4:	0aab0200 	beq	feac08cc <hw_uart_disable+0xfeac08ac>
   c8:	0000002d 	andeq	r0, r0, sp, lsr #32
   cc:	000000d6 	ldrdeq	r0, [r0], -r6
   d0:	0000d604 	andeq	sp, r0, r4, lsl #12
@@ -24886,7 +24886,7 @@ Disassembly of section .debug_info:
   7c:	08010100 	stmdaeq	r1, {r8}
   80:	00000082 	andeq	r0, r0, r2, lsl #1
   84:	00006e05 	andeq	r6, r0, r5, lsl #28
-  88:	0099a500 	addseq	sl, r9, r0, lsl #10
+  88:	0099a600 	addseq	sl, r9, r0, lsl #12
   8c:	32030000 	andcc	r0, r3, #0
   90:	03000000 	tsteq	r0, #0
   94:	00000032 	andeq	r0, r0, r2, lsr r0
@@ -25525,7 +25525,7 @@ Disassembly of section .debug_info:
   80:	0000001b 	andeq	r0, r0, fp, lsl r0
   84:	0c068403 	stceq	4, cr8, [r6], {3}
   88:	00000092 	muleq	r0, r2, r0
-  8c:	2d0aa903 			@ <UNDEFINED> instruction: 0x2d0aa903
+  8c:	2d0aaa03 	vstrcs	s20, [sl, #-12]
   90:	9d000000 	stcls	0, cr0, [r0, #-0]
   94:	0d000000 	stceq	0, cr0, [r0, #-0]
   98:	0000002d 	andeq	r0, r0, sp, lsr #32

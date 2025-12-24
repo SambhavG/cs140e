@@ -146,7 +146,8 @@ void kmalloc_init_set_start(void *addr, unsigned max_nbytes);
 // use the default start: specify how many MB heap is.
 static inline void kmalloc_init(unsigned mb) {
   unsigned long MB = 1024 * 1024;
-  kmalloc_init_set_start((void *)MB, mb * MB);
+  unsigned long mb16 = 16 * MB;
+  kmalloc_init_set_start((void *)mb16, mb * MB);
 }
 
 // return pointer to the first free byte.  used for

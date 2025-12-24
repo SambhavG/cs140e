@@ -183,6 +183,10 @@ static __attribute__((noreturn)) void sys_exit(eqx_th_t *th, int exitcode) {
   // eqx_trace("thread=%d exited with code=%d\n", th->tid, exitcode);
   free_asid(th->code_pin.attr.asid);
   tlb_flush_asid(th->code_pin.attr.asid);
+  if (th->code_pin.pa)
+    sec_free(th->code_pin.pa >> 20);
+  if (th->data_pin.pa)
+    sec_free(th->data_pin.pa >> 20);
   eqx_pick_next_and_run();
 }
 
@@ -331,7 +335,7 @@ static uint32_t nsec;
 // need to use the mbox to read the
 // the amount of actual memory avail.
 void sec_alloc_init(unsigned n) {
-  assert(n > 0 && n < MAX_SECS);
+  assert(n > 0 && n <= MAX_SECS);
   nsec = n;
   memset(sections, 0, sizeof sections);
 }
@@ -341,12 +345,22 @@ static int sec_is_legal(uint32_t s) { return s < nsec; }
 
 // allocate 1mb section <s> --- currently
 // panic if not free.
-static int sec_alloc_exact(uint32_t s) {
+static int sec_alloc_exact_1mb(uint32_t s) {
   assert(sec_is_legal(s));
   if (sections[s])
     return 0;
   // debug("allocating sec=%d\n", s);
   sections[s] = 1;
+  return 1;
+}
+
+static int sec_alloc_exact_16mb(uint32_t s) {
+  for (int i = 0; i < 16; i++) {
+    assert(sec_is_legal(s));
+  }
+  for (int i = 0; i < 16; i++) {
+    sections[s + i] = 1;
+  }
   return 1;
 }
 
@@ -423,18 +437,29 @@ static eqx_config_t config = {.ramMB = 256};
 static void pin_map(unsigned idx, uint32_t va, uint32_t pa, pin_t attr) {
   assert(sec_is_alloced(pa));
   assert(idx < 8);
-  printk("[PIN_MAP] Called for idx=%d, va=%x, pa=%x, attr=%x\n", idx, va, pa,
-         attr);
+  // printk("[PIN_MAP] Called for idx=%d, va=%x, pa=%x, attr=%x\n", idx, va, pa,
+  //  attr);
   pin_mmu_sec(idx, va, pa, attr);
 }
 
 // we pin right away.
 void pin_ident(unsigned idx, uint32_t addr, pin_t attr) {
   uint32_t secn = addr >> 20;
-  assert(sec_is_legal(secn));
-  if (!sec_alloc_exact(secn))
-    panic("can't allocate sec=%d\n", secn);
-  pin_map(idx, addr, addr, attr);
+  if (attr.pagesize == PAGE_16MB) {
+    assert(sec_is_legal(secn + 15));
+    assert(sec_alloc_exact_16mb(secn));
+    pin_map(idx, addr, addr, attr);
+    return;
+  }
+
+  if (attr.pagesize == PAGE_1MB) {
+    assert(sec_is_legal(secn));
+    assert(sec_alloc_exact_1mb(secn));
+    pin_map(idx, addr, addr, attr);
+    return;
+  }
+
+  panic("invalid pagesize\n");
 }
 
 // switch address spaces to <th>
@@ -442,8 +467,6 @@ static void vm_switch(eqx_th_t *th) {
   // extend as needed.
   if (!config.vm_use_pin_p)
     return;
-
-  // tlb_flush_all();
 
   // right now don't have any pinning: just running an
   // idenity map.
@@ -455,7 +478,6 @@ static void vm_switch(eqx_th_t *th) {
   pin_map(pin_idx, p->va, p->pa, p->attr);
   p = &th->data_pin;
   pin_map(pin_idx + 1, p->va, p->pa, p->attr);
-  printk("[VM_SWITCH] Called for asid=%d\n", th->code_pin.attr.asid);
   pin_set_context(th->code_pin.attr.asid);
 }
 
@@ -487,7 +509,7 @@ static void vm_init(void) {
   unsigned idx = 0;
   pin_t kern = pin_mk_global(dom_kern, perm, MEM_uncached);
   pin_ident(idx++, SEG_CODE, kern);
-  pin_ident(idx++, SEG_HEAP, kern);
+  pin_ident(idx++, SEG_HEAP, pin_16mb(kern));
   pin_ident(idx++, SEG_STACK, kern);
   pin_ident(idx++, SEG_INT_STACK, kern);
 
@@ -516,7 +538,6 @@ static void vm_init(void) {
 static void vm_on(uint32_t asid) {
   if (!config.vm_use_pin_p)
     return;
-  printk("[VM_ON] Called for asid=%d\n", asid);
   pin_set_context(asid);
   assert(!mmu_is_enabled());
   pin_mmu_enable();
@@ -607,7 +628,7 @@ void eqx_init_config(eqx_config_t c) {
 
   // initialize the kernel heap if it hasn't been.
   if (!kmalloc_heap_start())
-    kmalloc_init(1);
+    kmalloc_init(16);
 
   // install is idempotent if already there.
   full_except_install(0);

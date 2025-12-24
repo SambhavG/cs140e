@@ -83,4 +83,6 @@ static void free_asid(uint32_t asid);
 static void vm_off(void);
 static void vm_on(uint32_t asid);
 static void vm_switch(eqx_th_t *th);
+
+static long sec_free(uint32_t s);
 #endif

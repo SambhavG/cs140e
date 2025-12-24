@@ -41,7 +41,7 @@ int pi_sd_read(void *data, uint32_t lba, uint32_t nsec) {
 // your kmalloc better work!
 void *pi_sec_read(uint32_t lba, uint32_t nsec) {
   demand(init_p, "SD card not initialized!\n");
-  // output("about to allocate %d\n", nsec * 512);
+  output("about to allocate %d\n", nsec * 512);
   uint8_t *data = kmalloc(nsec * 512);
   if (!pi_sd_read(data, lba, nsec))
     panic("could not read from sd card\n");
