@@ -5,7 +5,7 @@
 #include "bzt-sd.h"
 #else
 // zach's driver
-#include "emmc.h"
+#include "external-code/emmc.h"
 #endif
 
 static int trace_p = 0;

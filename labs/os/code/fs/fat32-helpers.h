@@ -1,6 +1,7 @@
 #ifndef __RPI_FAT32_HELPERS_H__
 #define __RPI_FAT32_HELPERS_H__
 #include "rpi.h"
+// #include "fat32.h"
 /*
  * engler, cs140e: useful structures for dealing with fat32 and sd cards.
  * the definitive source is the microsoft specification (which actually

@@ -1,37 +1,11 @@
-# "make checkoff" should run a bunch of tests.
-#
-# note: 
-#  - these won't work with make check
-#  - but they should pass their internal checks.
-# PROGS = tests/4-cool-test.c
-# PROGS = tests/3-stack-test.c
-#
-# PROGS = tests/2-no-stack-test.c
-# 
-# PROGS += tests/1-mov-test.c
-# PROGS += tests/1-nop1-test.c
-# PROGS += tests/1-nop10-test.c
 
-# very simple tests. start here.
-# PROGS += tests/0-nop1-test.c
-# PROGS += tests/0-small1-test.c
-# PROGS += tests/0-nop10-test.c
-# PROGS += tests/0-mov-test.c
-
-# this is fun to run.
-
-# PROGS = tests/4-cool-test.c
 PROGS = tests/5-user-prog.c
-# PROGS := $(sort $(wildcard tests/[01234]-*test.c))
 
 VM_DIR = $(CS140E_2025_PATH)/labs/os/code/vm
-# PIN_DIR = ../../13-pinned-vm/code
 FS_DIR = $(CS140E_2025_PATH)/labs/os/code/fs
 
-# INC += -I$(PIN_DIR)
 INC += -I$(VM_DIR)
 INC += -I$(FS_DIR)
-INC += -I$(FS_DIR)/external-code
 COMMON_SRC += $(FS_DIR)/fat32.c
 COMMON_SRC += $(FS_DIR)/mbr.c
 COMMON_SRC += $(FS_DIR)/pi-sd.c
@@ -40,14 +14,11 @@ COMMON_SRC += $(FS_DIR)/fat32-helpers.c
 COMMON_SRC += $(FS_DIR)/fat32-lfn-helpers.c
 COMMON_SRC += $(FS_DIR)/external-code/unicode-utf8.c
 COMMON_SRC += $(FS_DIR)/external-code/emmc.c
-COMMON_SRC += $(FS_DIR)/fat32.h
-COMMON_SRC += $(FS_DIR)/mbr.h
-COMMON_SRC += $(FS_DIR)/pi-sd.h
-COMMON_SRC += $(CS140E_2025_PATH)/libpi/src/fat32.h
-COMMON_SRC += $(CS140E_2025_PATH)/libpi/src/mmu.c  
-COMMON_SRC += $(VM_DIR)/your-mmu-asm.S
 COMMON_SRC += $(CS140E_2025_PATH)/libpi/libc/kmalloc.c
-COMMON_SRC += $(VM_DIR)/pinned-vm.c  
+COMMON_SRC += $(VM_DIR)/mmu.c  
+COMMON_SRC += $(VM_DIR)/pinned-vm.h
+COMMON_SRC += $(VM_DIR)/pinned-vm.c
+COMMON_SRC += $(VM_DIR)/your-mmu-asm.S
 COMMON_SRC += eqx-os.c
 COMMON_SRC += switchto-asm.S
 COMMON_SRC += full-except-asm.S

@@ -1,6 +1,7 @@
 /****************************************************************************************
  * engler, cs140e: long file name helpers.  based on wikipedia's writeup.
  */
+#include "external-code/unicode-utf8.h"
 #include "fat32-helpers.h"
 #include "fat32.h"
 #include "rpi.h"
@@ -49,8 +50,6 @@ void lfn_print_ent(lfn_dir_t *l, uint8_t cksum) {
   }
   printk("\tcksum=%x (expected=%x)\n", l->cksum, cksum);
 }
-
-#include "unicode-utf8.h"
 
 static inline int lfn_terminator(uint8_t *x) {
   if (x[0] == 0 && x[1] == 0)
@@ -107,78 +106,78 @@ void lfn_print(lfn_dir_t *s, int cnt, uint8_t cksum, int print_ent_p) {
 // reconstruct file name, return pointer to the dir-entry.
 fat32_dirent_t *fat32_dir_filename(char *name, fat32_dirent_t *d,
                                    fat32_dirent_t *end) {
-  assert(!fat32_dirent_free(d));
+    assert(!fat32_dirent_free(d));
 
-  uint32_t x = d->attr;
+    uint32_t x = d->attr;
 
-  if (x == FAT32_LONG_FILE_NAME) {
-    int cnt = 1, n = end - d;
-    for (; cnt < n; cnt++)
-      if (d[cnt].attr != FAT32_LONG_FILE_NAME)
-        break;
-    assert(cnt < n);
-    assert(is_attr(d[cnt].attr, FAT32_DIR) ||
-           is_attr(d[cnt].attr, FAT32_ARCHIVE));
-    strcpy(name, lfn_get_name((void *)d, cnt));
-    return d + cnt;
-  } else {
-    assert(is_attr(x, FAT32_DIR) || is_attr(x, FAT32_ARCHIVE) ||
-           is_attr(x, FAT32_VOLUME_LABEL));
-    int i = 0, j = 0, lower_case_p = 0;
+    if (x == FAT32_LONG_FILE_NAME) {
+      int cnt = 1, n = end - d;
+      for (; cnt < n; cnt++)
+        if (d[cnt].attr != FAT32_LONG_FILE_NAME)
+          break;
+      assert(cnt < n);
+      assert(is_attr(d[cnt].attr, FAT32_DIR) ||
+             is_attr(d[cnt].attr, FAT32_ARCHIVE));
+      strcpy(name, lfn_get_name((void *)d, cnt));
+      return d + cnt;
+    } else {
+      assert(is_attr(x, FAT32_DIR) || is_attr(x, FAT32_ARCHIVE) ||
+             is_attr(x, FAT32_VOLUME_LABEL));
+      int i = 0, j = 0, lower_case_p = 0;
 
-    // macos?
-    if (d->reserved0 == 0x18)
-      lower_case_p = 1;
+      // macos?
+      if (d->reserved0 == 0x18)
+        lower_case_p = 1;
 
-    for (; i < 8; i++) {
-      char c = d->filename[i];
-      // skip spaces.
-      if (c == ' ')
-        continue;
-      if (lower_case_p && c >= 'A' && c <= 'Z')
-        c += 32;
-      name[j++] = c;
+      for (; i < 8; i++) {
+        char c = d->filename[i];
+        // skip spaces.
+        if (c == ' ')
+          continue;
+        if (lower_case_p && c >= 'A' && c <= 'Z')
+          c += 32;
+        name[j++] = c;
+      }
+      // implied b/n bytes 7 and 8
+      name[j++] = '.';
+      for (; i < 11; i++) {
+        char c = d->filename[i];
+        if (lower_case_p && c >= 'A' && c <= 'Z')
+          c += 32;
+        name[j++] = c;
+      }
+      name[j] = 0;
+      return d;
     }
-    // implied b/n bytes 7 and 8
-    name[j++] = '.';
-    for (; i < 11; i++) {
-      char c = d->filename[i];
-      if (lower_case_p && c >= 'A' && c <= 'Z')
-        c += 32;
-      name[j++] = c;
-    }
-    name[j] = 0;
-    return d;
-  }
 }
 
 // returns number of entries to advance forward.
 int fat32_lfn_print(const char *msg, fat32_dirent_t *d, int left) {
 
-  if (d->attr != FAT32_LONG_FILE_NAME) {
-    fat32_dirent_print(msg, d);
-    return 1;
-  }
-  printk("%s: ", msg);
+    if (d->attr != FAT32_LONG_FILE_NAME) {
+      fat32_dirent_print(msg, d);
+      return 1;
+    }
+    printk("%s: ", msg);
 
-  int cnt;
-  for (cnt = 0; cnt < left; cnt++)
-    if (d[cnt].attr != FAT32_LONG_FILE_NAME)
-      break;
+    int cnt;
+    for (cnt = 0; cnt < left; cnt++)
+      if (d[cnt].attr != FAT32_LONG_FILE_NAME)
+        break;
 
-  assert(cnt < left);
-  assert(is_attr(d[cnt].attr, FAT32_DIR) ||
-         is_attr(d[cnt].attr, FAT32_ARCHIVE));
-  printk("\n");
-  lfn_print((void *)d, cnt, lfn_checksum(d[cnt].filename), 0);
+    assert(cnt < left);
+    assert(is_attr(d[cnt].attr, FAT32_DIR) ||
+           is_attr(d[cnt].attr, FAT32_ARCHIVE));
+    printk("\n");
+    lfn_print((void *)d, cnt, lfn_checksum(d[cnt].filename), 0);
 
-  char *name = lfn_get_name((void *)d, cnt);
-  printk("\treconstructed filename = <%s>\n\t", name);
+    char *name = lfn_get_name((void *)d, cnt);
+    printk("\treconstructed filename = <%s>\n\t", name);
 
-  d = &d[cnt];
-  cnt++;
+    d = &d[cnt];
+    cnt++;
 
-  // print the rest.
-  fat32_dirent_print_helper(d);
-  return cnt;
+    // print the rest.
+    fat32_dirent_print_helper(d);
+    return cnt;
 }
