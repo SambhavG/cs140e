@@ -4,9 +4,9 @@ PROGS := 0-hello.c 1-fork.c 0-printk-hello.c 1-fork-waitpid.c
 # the headers we compile them to.
 PROG_HEADERS := $(patsubst %.c, byte-array-%.h, $(PROGS))
 
-COMMON_SRC := libos-cstart.c 
+COMMON_SRC := libos-cstart.c
 CFLAGS += -I..
-START = libos-asm.o
+START = ./objs/libos-asm.o
 
 TTYUSB = 
 BOOTLOADER = my-install
