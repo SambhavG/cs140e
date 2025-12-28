@@ -1,6 +1,8 @@
 #ifndef __EQX_INTERNAL_H__
 #define __EQX_INTERNAL_H__
 
+#include "eqx-threads.h"
+
 #define eqx_trace(args...) do {                                 \
     if(eqx_verbose_p) {                                         \
         printk("TRACE:%s:", __FUNCTION__); printk(args);    \

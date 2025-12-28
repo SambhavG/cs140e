@@ -1,8 +1,5 @@
 // run threads all at once: should see their pids smeared.
-#include "expected-hashes.h"
-#include "fs/fat32.h"
-#include "fs/mbr.h"
-#include "fs/pi-sd.h"
+#include "fs/fs.h"
 #include "os.h"
 
 #include "rpi.h"

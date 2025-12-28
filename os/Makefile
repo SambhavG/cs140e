@@ -5,6 +5,7 @@ FS_DIR = ./fs
 
 INC += -I$(VM_DIR)
 INC += -I$(FS_DIR)
+COMMON_SRC += $(FS_DIR)/fs.h
 COMMON_SRC += $(FS_DIR)/fat32.c
 COMMON_SRC += $(FS_DIR)/mbr.c
 COMMON_SRC += $(FS_DIR)/pi-sd.c
