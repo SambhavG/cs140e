@@ -1,6 +1,8 @@
 #ifndef __BREAKPOINT_H__
 #define __BREAKPOINT_H__
 
+#include "rpi.h"
+
 // these will be very close or identical to your
 // <mini-step.c> implementations.  we have renamed
 // them b/c there was some variations in how people

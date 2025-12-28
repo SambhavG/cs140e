@@ -1,22 +1,27 @@
 #ifndef __EQX_OS_H__
 #define __EQX_OS_H__
 
+
+//libpi
 #include "rpi.h"
-#include "eqx-threads.h"
-#include "breakpoint.h"
 #include "full-except.h"
-#include "fast-hash32.h"
-#include "eqx-syscalls.h"
+#include "breakpoint.h"
 #include "cpsr-util.h"
-#include "eqx-internal.h"
-#include "queue-ext-T.h"
-#include "vm/memmap-default.h"
-#include "small-prog.h"
 #include "asm-helpers.h"
-#include "vm/mmu.h"
-#include "vm/pinned-vm.h"
+
+//os
+#include "eqx-threads.h"
+#include "eqx-internal.h"
+#include "eqx-syscalls.h"
+#include "queue-ext-T.h"
+#include "small-prog.h"
 #include "timer-int.h"
 #include "armv6-coprocessor-asm.h"
+
+//vm
+#include "vm/memmap-default.h"
+
+
 // #include "rpi-interrupts.h"
 
 // bundle all the configuration stuff in one

@@ -2,6 +2,8 @@
 #define __MEMMAP_DEFAULT_H__
 
 // the symbols
+#include "mem-attr.h"
+#include "pinned-vm.h"
 #include "memmap.h"
 
 // we put all the default address space enums here:
@@ -84,11 +86,11 @@ enum {
 
 // default kernel attributes
 static inline pin_t dev_attr_default(void) {
-  return pin_mk_global(dom_kern, no_user, MEM_device);
+  return pin_mk_global(dom_kern, perm_rw_priv, MEM_device);
 }
 // default kernel attributes
 static inline pin_t kern_attr_default(void) {
-  return pin_mk_global(dom_kern, no_user, MEM_uncached);
+  return pin_mk_global(dom_kern, perm_rw_priv, MEM_uncached);
 }
 
 // do default identity mapping: should use 16MB
