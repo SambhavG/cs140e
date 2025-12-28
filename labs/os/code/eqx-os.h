@@ -73,21 +73,38 @@ typedef struct {
 extern eqx_config_t eqx_config;
 void eqx_init_config(eqx_config_t c);
 
-eqx_th_t* eqx_exec_internal(struct prog *prog);
-
+static inline void clean_dcache(void);
+static inline void tlb_flush_asid(uint32_t asid);
+void interrupt_full_except(regs_t *r);
+static int eqx_check_sp(eqx_th_t *th);
+static void eqx_regs_init(eqx_th_t *th);
+static __attribute__((noreturn)) void eqx_run_current(void);
+eqx_th_t *eqx_fork_stack(void (*fn)(void *), void *arg, void *stack, uint32_t nbytes);
+eqx_th_t *eqx_fork(void (*fn)(void *), void *arg);
+eqx_th_t *eqx_fork_nostack(void (*fn)(void *), void *arg);
+static __attribute__((noreturn)) void eqx_pick_next_and_run(void);
+static __attribute__((noreturn)) void sys_exit(eqx_th_t *th, int exitcode);
+static int equiv_syscall_handler(regs_t *r);
+void sec_alloc_init(unsigned n);
+static int sec_is_legal(uint32_t s);
+static int sec_alloc_exact_1mb(uint32_t s);
+static int sec_alloc_exact_16mb(uint32_t s);
+static int sec_is_alloced(uint32_t pa);
 static long sec_alloc(void);
-static inline uint32_t sec_to_addr(uint32_t sec);
-
+static long sec_free(uint32_t s);
 static void init_asid_map(void);
 static uint32_t get_free_asid(void);
 static void free_asid(uint32_t asid);
-
-static void vm_off(void);
-static void vm_on(uint32_t asid);
+static void pin_map(unsigned idx, uint32_t va, uint32_t pa, pin_t attr);
+void pin_ident(unsigned idx, uint32_t addr, pin_t attr);
 static void vm_switch(eqx_th_t *th);
-
-static long sec_free(uint32_t s);
-
-
-static __attribute__((noreturn)) void eqx_pick_next_and_run(void);
+static void vm_init(void);
+static void vm_on(uint32_t asid);
+static void vm_off(void);
+uint32_t eqx_run_threads(void);
+void eqx_init_config(eqx_config_t c);
+void eqx_init(void);
+static inline map_t map_mk(uint32_t va, uint32_t pa, pin_t attr);
+static inline uint32_t sec_to_addr(uint32_t sec);
+eqx_th_t* eqx_exec_internal(struct prog *prog);
 #endif
