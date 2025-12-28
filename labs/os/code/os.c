@@ -1,4 +1,4 @@
-#include "eqx-os.h"
+#include "os.h"
 
 // Cache and TLB maintenance functions for fork()
 // Clean and invalidate data cache - ensures all dirty data is written to RAM

@@ -1,9 +1,9 @@
 // run threads all at once: should see their pids smeared.
-#include "eqx-os.h"
 #include "expected-hashes.h"
-#include "fat32.h"
-#include "mbr.h"
-#include "pi-sd.h"
+#include "fs/fat32.h"
+#include "fs/mbr.h"
+#include "fs/pi-sd.h"
+#include "os.h"
 
 #include "rpi.h"
 #include "user-progs/byte-array-0-printk-hello.h"

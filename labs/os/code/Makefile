@@ -1,4 +1,4 @@
-PROGS = 5-user-prog.c
+PROGS = kernel_entry.c
 
 VM_DIR = $(CS140E_2025_PATH)/labs/os/code/vm
 FS_DIR = $(CS140E_2025_PATH)/labs/os/code/fs

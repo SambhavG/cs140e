@@ -6,7 +6,7 @@
 
 #include "switchto.h" // needed for <regs_t>
 
-#include "pinned-vm.h"
+#include "vm/pinned-vm.h"
 typedef struct {
   uint32_t va, pa;
   pin_t attr;
