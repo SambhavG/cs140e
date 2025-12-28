@@ -1,5 +1,0 @@
-TRACE: out file for <0-uart-getc>
-TRACE:0: calling pi code
-TRACE:1: GET32(0x20215064) = 0x216231b
-TRACE:2: GET32(0x20215040) = 0x625558ec
-TRACE: pi exited cleanly: 21 calls to random

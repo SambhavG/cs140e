@@ -1,1 +1,0 @@
-logic-analyzer.c:notmain:74:DEBUG:ERROR: Assertion `gpio_read(in_pin) == 1` failed.

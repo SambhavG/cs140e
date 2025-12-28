@@ -25,5 +25,3 @@ void cp15_tlbs_inv(void);
 
 void staff_mmu_reset(void);
 void mmu_reset(void);
-
-#include "mmu.h"

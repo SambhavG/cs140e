@@ -1,5 +1,0 @@
-TRACE: out file for <0-uart-putc>
-TRACE:0: calling pi code
-TRACE:1: GET32(0x20215064) = 0x216231b
-TRACE:2: UART: PUT32(0x20215040) = 0x68 
-TRACE: pi exited cleanly: 21 calls to random

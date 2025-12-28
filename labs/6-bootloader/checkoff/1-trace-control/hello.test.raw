@@ -1,4 +1,0 @@
-DEBUG:done with options: dev name=</dev/cu.usbserial-210>, pi-prog=<./hello.bin>, trace=1
-opened tty port </dev/cu.usbserial-210>.
-set-tty-8n1.c:set_tty_to_8n1:62:PANIC:tcsetattr failed
-Num entries: 1

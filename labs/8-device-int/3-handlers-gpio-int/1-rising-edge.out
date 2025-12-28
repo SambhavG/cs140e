@@ -1,3 +1,0 @@
-TRACE:notmain:test: single rising edge detection.
-TRACE:test_one_rising:test passed: got a rising edge!
-TRACE:notmain:SUCCESS: test passed!
