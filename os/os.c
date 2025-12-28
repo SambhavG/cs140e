@@ -49,21 +49,32 @@ void interrupt_full_except(regs_t *r) {
   dev_barrier();
   unsigned pending = GET32(IRQ_basic_pending);
 
-  if (!pending)
-    return;
+  if (!pending) {
+    switchto(r);
+    not_reached();
+  }
 
-  if (!ARM_Timer_IRQ)
-    return;
+  if (!ARM_Timer_IRQ) {
+    switchto(r);
+    not_reached();
+  }
 
   PUT32(ARM_Timer_IRQ_Clear, 1);
   dev_barrier();
 
-  if (!cur_thread)
-    return;
+  if (!cur_thread) {
+    switchto(r);
+    not_reached();
+  }
 
   cur_thread->regs = *r;
-  printk("[INTERRUPT] switching from tid=%d to tid=%d, runq len=%d\n",
-         cur_thread->tid, eqx_th_top(&eqx_runq)->tid, eqx_th_len(&eqx_runq));
+
+  uint32_t this_thread_pid = cur_thread->tid;
+  uint32_t next_thread_pid = cur_thread->tid;
+  if (eqx_th_len(&eqx_runq) > 0)
+    next_thread_pid = eqx_th_top(&eqx_runq)->tid;
+  printk("[INTERRUPT %d -> %d, |runq|=%d]", this_thread_pid, next_thread_pid,
+         eqx_th_len(&eqx_runq));
   eqx_th_append(&eqx_runq, cur_thread);
   eqx_pick_next_and_run();
 }
@@ -203,6 +214,15 @@ static __attribute__((noreturn)) void sys_exit(eqx_th_t *th, int exitcode) {
     sec_free(th->code_pin.pa >> 20);
   if (th->data_pin.pa)
     sec_free(th->data_pin.pa >> 20);
+
+  uint32_t this_thread_pid = th->tid;
+  uint32_t next_thread_pid = 0;
+  if (eqx_th_len(&eqx_runq) > 0)
+    next_thread_pid = eqx_th_top(&eqx_runq)->tid;
+
+  printk("[sys_exit] Thread %d exited, next thread is %d\n", this_thread_pid,
+         next_thread_pid);
+
   eqx_pick_next_and_run();
 }
 
