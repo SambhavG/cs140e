@@ -5,9 +5,6 @@
 //libpi
 #include "rpi.h"
 #include "full-except.h"
-#include "breakpoint.h"
-#include "cpsr-util.h"
-#include "asm-helpers.h"
 
 //os
 #include "eqx-threads.h"
@@ -16,7 +13,6 @@
 #include "queue-ext-T.h"
 #include "small-prog.h"
 #include "timer-int.h"
-#include "armv6-coprocessor-asm.h"
 
 //vm
 #include "vm/memmap-default.h"
