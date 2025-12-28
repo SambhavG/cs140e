@@ -1,7 +1,7 @@
 PROGS = kernel_entry.c
 
-VM_DIR = $(CS140E_2025_PATH)/labs/os/code/vm
-FS_DIR = $(CS140E_2025_PATH)/labs/os/code/fs
+VM_DIR = ./vm
+FS_DIR = ./fs
 
 INC += -I$(VM_DIR)
 INC += -I$(FS_DIR)
