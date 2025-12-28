@@ -1,4 +1,0 @@
-TRACE:sys_exit:thread=1 exited with code=1, hash=0x984d6fbf
-TRACE:sys_exit:EXIT HASH MATCH: tid=1: hash=0x984d6fbf
-TRACE:sys_exit:done with all threads
-TRACE:eqx_run_threads:done running threads

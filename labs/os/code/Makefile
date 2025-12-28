@@ -1,5 +1,4 @@
-
-PROGS = tests/5-user-prog.c
+PROGS = 5-user-prog.c
 
 VM_DIR = $(CS140E_2025_PATH)/labs/os/code/vm
 FS_DIR = $(CS140E_2025_PATH)/labs/os/code/fs
