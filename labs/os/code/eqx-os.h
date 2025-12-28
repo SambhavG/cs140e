@@ -15,7 +15,9 @@
 #include "asm-helpers.h"
 #include "mmu.h"
 #include "pinned-vm.h"
-
+#include "timer-int.h"
+#include "armv6-coprocessor-asm.h"
+// #include "rpi-interrupts.h"
 
 // bundle all the configuration stuff in one
 // structure
@@ -85,4 +87,7 @@ static void vm_on(uint32_t asid);
 static void vm_switch(eqx_th_t *th);
 
 static long sec_free(uint32_t s);
+
+
+static __attribute__((noreturn)) void eqx_pick_next_and_run(void);
 #endif

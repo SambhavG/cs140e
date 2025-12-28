@@ -1,25 +1,14 @@
 #include "eqx-os.h"
-#include "rpi-interrupts.h"
 
 // Cache and TLB maintenance functions for fork()
 // Clean and invalidate data cache - ensures all dirty data is written to RAM
 static inline void clean_dcache(void) {
   uint32_t r = 0;
   // Clean and invalidate entire data cache (mcr p15, 0, r, c7, c14, 0)
+  // CLEAN_INV_DCACHE(r);
   asm volatile("mcr p15, 0, %0, c7, c14, 0" ::"r"(r));
   // Data synchronization barrier - ensures cache operation completes
   asm volatile("mcr p15, 0, %0, c7, c10, 4" ::"r"(r));
-}
-
-// Flush entire TLB - invalidate all TLB entries
-static inline void tlb_flush_all(void) {
-  uint32_t r = 0;
-  // Invalidate entire unified TLB (mcr p15, 0, r, c8, c7, 0)
-  asm volatile("mcr p15, 0, %0, c8, c7, 0" ::"r"(r));
-  // Data synchronization barrier - ensures TLB operation completes
-  asm volatile("mcr p15, 0, %0, c7, c10, 4" ::"r"(r));
-  // Prefetch flush - ensures TLB changes are visible to instruction fetch
-  prefetch_flush();
 }
 
 static inline void tlb_flush_asid(uint32_t asid) {
@@ -35,26 +24,13 @@ static inline void tlb_flush_asid(uint32_t asid) {
   // Prefetch flush (ISB)
   prefetch_flush();
 }
+
 // check for initialization bugs.
 static int eqx_init_p = 0;
 static unsigned ntids = 1;
 int eqx_verbose_p = 1;
 
-static __attribute__((noreturn)) void eqx_pick_next_and_run(void);
-
-// registers for ARM timer
-// bcm 14.2 p 196
-enum {
-  ARM_Timer_Base = 0x2000B400,
-  ARM_Timer_Load = ARM_Timer_Base + 0x00,
-  ARM_Timer_Control = ARM_Timer_Base + 0x08,
-  ARM_Timer_IRQ_Clear = ARM_Timer_Base + 0x0c,
-};
-
-// 4ms interval with prescale 256.
-// ARM timer freq = 250MHz / 256 = 976562.5 Hz
-// 4ms = 3906 cycles.
-#define TIMER_4MS_LOAD 30 // 3906
+#define TIMER_4MS_LOAD 30
 
 // simple thread queue.
 //  - should make so you can delete from the middle.
