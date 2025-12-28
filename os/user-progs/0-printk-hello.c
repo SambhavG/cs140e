@@ -21,8 +21,9 @@ void notmain(void) {
     if (fork_val == 0) {
       continue;
     }
+    uint32_t pid = sys_get_pid();
 
-    output("[he $pid llo] parent hello from pid=$pid\n");
+    output("Hello from pid=%d!\n", pid);
     sys_exit(0);
   }
 

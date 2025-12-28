@@ -2,7 +2,7 @@
 #define __LIBOS_H__
 #include <stdint.h>
 #include <stdarg.h>
-#include "eqx-syscalls.h"
+#include "../eqx-syscalls.h"
 
 // libos-asm.S: trampoline to call systemcalls: <sysno> is the 
 // number (see syscalls.h) and there are optional arguments.
@@ -16,6 +16,7 @@ int syscall_invoke_asm(uint32_t sysno, ...);
 #define sys_put_pid()       syscall_invoke_asm(EQX_SYS_PUT_PID)
 #define sys_get_cpsr()      syscall_invoke_asm(EQX_SYS_GET_CPSR)
 #define sys_get_mode()      (sys_get_cpsr() & 0b11111)
+#define sys_get_pid()       syscall_invoke_asm(EQX_SYS_GET_PID)
 #define sys_exit(x)         syscall_invoke_asm(EQX_SYS_EXIT, x)
 #define sys_fork()          syscall_invoke_asm(EQX_SYS_FORK)
 #define sys_waitpid(pid,nonblock_p) \
@@ -34,7 +35,7 @@ typedef unsigned size_t;
 // https://clc-wiki.net/wiki/strncmp#Implementation
 static inline int 
 strncmp(const char* _s1, const char* _s2, size_t n) {
-    const unsigned char *s1 = (void*)_s1, *s2 = (void*)_s2;
+    const unsigned char *s1 = (const unsigned char*)(void*)_s1, *s2 = (const unsigned char*)(void*)_s2;
     while(n--) {
         if(*s1++!=*s2++)
             return s1[-1] - s2[-1];
