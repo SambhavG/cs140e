@@ -20,3 +20,6 @@ staff
 *.out
 *.DS_Store
 *.a
+
+.vscode
+.DS_Store
