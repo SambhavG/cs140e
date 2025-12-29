@@ -7,22 +7,10 @@
 #include "switchto.h" // needed for <regs_t>
 
 #include "vm/pinned-vm.h"
-
 typedef struct {
   uint32_t va, pa;
   pin_t attr;
 } map_t;
-
-// Memory region structure for 4KB page-based VM
-typedef struct proc_mem_region {
-  uint32_t va_start;
-  uint32_t va_end;
-  uint32_t *pa_list;
-  uint32_t num_pages;
-  mem_perm_t perm;
-  mem_attr_t mem_attr;
-  uint32_t dom;
-} proc_mem_region_t;
 
 typedef struct eqx_th {
   // thread's registers.
@@ -42,17 +30,6 @@ typedef struct eqx_th {
   // if we do pinned.
   map_t data_pin;
   map_t code_pin;
-
-  // Memory regions for paged VM (4KB pages)
-  proc_mem_region_t code_region;
-  proc_mem_region_t stack_region;
-  proc_mem_region_t heap_region;
-
-  // Page table pointer (first-level)
-  void *pt;
-
-  // ASID for this process
-  uint32_t asid;
 
   uint32_t fn;
   uint32_t arg;

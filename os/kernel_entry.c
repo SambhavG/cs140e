@@ -8,7 +8,7 @@
 void notmain(void) {
   eqx_verbose(1);
 
-  eqx_config_t c = {.ramMB = 256, .vm_use_pin_p = 1, .vm_use_pt_p = 1};
+  eqx_config_t c = {.ramMB = 512, .vm_use_pin_p = 1};
   eqx_init_config(c);
 
   pi_sd_init();

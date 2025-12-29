@@ -13,14 +13,6 @@
 
 #define MB(x) ((x) * 1024 * 1024)
 
-// Stack and interrupt stack addresses (from rpi-constants.h)
-#ifndef INT_STACK_ADDR
-#define INT_STACK_ADDR 0x9000000
-#endif
-#ifndef STACK_ADDR
-#define STACK_ADDR 0x8000000
-#endif
-
 // default domains for kernel and user.  not required.
 enum {
   dom_kern = 1, // domain id for kernel

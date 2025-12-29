@@ -71,19 +71,19 @@
 
 typedef struct first_level_descriptor {
     unsigned
-        tag:2,      // 0-1:2    should be 0b10 (section) or 0b01 (coarse pt)
+        tag:2,      // 0-1:2    should be 0b10
         B:1,        // 2:1      just like pinned.
         C:1,        // 3:1      just like pinned
         XN:1,       // 4:1      1 = execute never, 0 = can execute
                     // needs to have XP=1 in ctrl-1.
 
         domain:4,   // 5-8:4    b4-10: 0b11 = manager, 0b01 checked perms
-        IMP:1,      // 9:1      should be set to 0 unless imp-defined
+        IMP:1,      // 9:1      should be set to 0 unless imp-defined 
                     //          functionality is needed.
 
         AP:2,       // 10-11:2  permissions, see b4-8/9
         TEX:3,      // 12-14:3
-        APX:1,      // 15:1
+        APX:1,      // 15:1     
         S:1,        // 16:1     set=0, deprecated.
         nG:1,       // 17:1     nG=0 ==> global mapping, =1 ==> process specific
         super:1,    // 18:1     selects between section (0) and supersection (1)
@@ -91,44 +91,6 @@ typedef struct first_level_descriptor {
         sec_base_addr:12; // 20-31.  must be aligned.
 } fld_t;
 _Static_assert(sizeof(fld_t) == 4, "invalid size for fld_t!");
-
-// First level descriptor for coarse page table (ARMv6)
-// See ARM ARM B4-27: coarse page table descriptor
-// Bits [31:10] = coarse page table base address (1KB aligned)
-// Bits [9] = implementation defined
-// Bits [8:5] = domain
-// Bits [4:2] = SBZ
-// Bits [1:0] = 0b01 (coarse page table)
-typedef struct coarse_pt_descriptor {
-    unsigned
-        tag:2,              // 0-1:     0b01 for coarse page table
-        sbz0:3,             // 2-4:     should be zero
-        domain:4,           // 5-8:     domain (same position as section)
-        IMP:1,              // 9:       implementation defined
-        pt_base_addr:22;    // 10-31:   base address of 2nd level PT (1KB aligned)
-} coarse_pt_desc_t;
-_Static_assert(sizeof(coarse_pt_desc_t) == 4, "invalid size for coarse_pt_desc_t!");
-
-// Second level descriptor for small page (4KB) - ARMv6
-// See ARM ARM B4-28: small page descriptor
-// bits [1:0] = 0b1x where x is XN (execute never)
-//   - 0b10 = small page (XN=0, executable)
-//   - 0b11 = small page (XN=1, not executable)
-// Bits [31:12] = page base address (4KB aligned)
-typedef struct small_page_desc {
-    unsigned
-        XN:1,            // 0:        execute never (combined with bit 1 forms tag)
-        tag1:1,          // 1:        always 1 for small page
-        B:1,             // 2:        bufferable
-        C:1,             // 3:        cacheable
-        AP0:2,           // 4-5:      access permissions [1:0]
-        TEX:3,           // 6-8:      type extension
-        AP2:1,           // 9:        access permission bit 2 (APX)
-        S:1,             // 10:       shareable
-        nG:1,            // 11:       not global (process-specific)
-        base_addr:20;    // 12-31:    page base address (4KB aligned)
-} small_page_desc_t;
-_Static_assert(sizeof(small_page_desc_t) == 4, "invalid size for small_page_desc_t!");
 
 // B4-9: AP field:  no/access=0b00, r/o=0b10, rw=0b11
 enum {
@@ -139,9 +101,6 @@ enum {
     // privileged: read only.
     AP_rd_only = 0b10
 };
-
-enum { PAGE_SIZE = 4096 };
-enum { PT_LEVEL2_N = 256 };
 
 #if 0
 // b4-10
