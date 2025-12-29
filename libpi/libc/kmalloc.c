@@ -117,6 +117,7 @@ static void *kmalloc_notzero(size_t size) {
 // Public kmalloc: size must be nonzero; allocates and zeroes exactly `size`
 // bytes.
 void *kmalloc(size_t size) {
+  printk("Kmalloc received request for size %d\n", size);
   if (size == 0) {
     printk("kmalloc:%d: size == 0\n", 0x54);
     clean_reboot();

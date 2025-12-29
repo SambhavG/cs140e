@@ -7,6 +7,7 @@ COMMON_SRC += mmu-helpers.c
 COMMON_SRC += your-mmu-asm.S
 COMMON_SRC += mmu.c
 COMMON_SRC += mmu.h
+COMMON_SRC += pt-vm.c
 
 
 # YOUR_VM = $(CS140E_2025_PATH)/labs/15-vm-coherence/code.staff/

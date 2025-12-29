@@ -16,7 +16,7 @@ void notmain(void) {
   //     output("[hello] parent hello from pid=$pid\n");
   //   }
   // }
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 1000; i++) {
     int fork_val = sys_fork();
     if (fork_val == 0) {
       continue;

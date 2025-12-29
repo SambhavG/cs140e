@@ -76,9 +76,44 @@ vm_pt_t *staff_vm_map_kernel(procmap_t *p, int enable_p);
 // arm-vm-helpers: print <f>
 void vm_pte_print(vm_pt_t *pt, vm_pte_t *pte);
 
-// set the <AP> permissions in <pt> for the range [va, va+1MB*<nsec>) in 
+// set the <AP> permissions in <pt> for the range [va, va+1MB*<nsec>) in
 // page table <pt> to <perm>
 void vm_mprotect(vm_pt_t *pt, unsigned va, unsigned nsec, pin_t perm);
+
+// Map a 4KB page at virtual address <va> to physical address <pa>
+// global_p: 1 = global mapping (nG=0), 0 = process-specific (nG=1)
+void vm_map_page(vm_pt_t *l1_pt, uint32_t va, uint32_t pa,
+                mem_perm_t perm, mem_attr_t attr, uint32_t dom, int global_p);
+
+// Map a contiguous range of virtual addresses to physical addresses
+// using 4KB pages
+void vm_map_pages(vm_pt_t *pt, uint32_t va_start, uint32_t pa_start,
+                  uint32_t nbytes, mem_perm_t perm, mem_attr_t attr, 
+                  uint32_t dom, int global_p);
+
+// Free a page table and all its second-level tables
+void vm_pt_free(vm_pt_t *pt);
+
+// Get kernel page table pointer
+vm_pt_t *vm_get_kernel_pt(void);
+
+// Set kernel page table pointer
+void vm_set_kernel_pt(vm_pt_t *pt);
+
+// Create a user page table that inherits kernel mappings
+vm_pt_t *vm_user_pt_create(void);
+
+// Initialize the 4KB page allocator
+void vm_page_alloc_init(uint32_t start_mb, uint32_t size_mb);
+
+// Allocate a 4KB physical page
+uint32_t vm_page_alloc(void);
+
+// Allocate n contiguous 4KB physical pages
+uint32_t vm_pages_alloc(uint32_t n);
+
+// Look up the physical address for a virtual address in a page table
+uint32_t vm_get_pa_from_pt(vm_pt_t *pt, uint32_t va);
 
 
 #define mem_attr_TEX(m) bits_get(m,2,4)

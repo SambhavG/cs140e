@@ -30,6 +30,9 @@ static int eqx_init_p = 0;
 static unsigned ntids = 1;
 int eqx_verbose_p = 1;
 
+// Forward declaration of config (defined later)
+static eqx_config_t config;
+
 #define TIMER_4MS_LOAD 30
 
 // simple thread queue.
@@ -153,7 +156,6 @@ eqx_th_t *eqx_fork_stack(void (*fn)(void *), void *arg, void *stack,
                          uint32_t nbytes) {
 
   eqx_th_t *th = kmalloc(sizeof *th);
-  // printk("kmalloc'd th=%p\n", th);
   th->fn = (uint32_t)fn;
   th->arg = (uint32_t)arg;
 
@@ -208,12 +210,22 @@ static __attribute__((noreturn)) void eqx_pick_next_and_run(void) {
 
 static __attribute__((noreturn)) void sys_exit(eqx_th_t *th, int exitcode) {
   // eqx_trace("thread=%d exited with code=%d\n", th->tid, exitcode);
-  free_asid(th->code_pin.attr.asid);
-  tlb_flush_asid(th->code_pin.attr.asid);
-  if (th->code_pin.pa)
-    sec_free(th->code_pin.pa >> 20);
-  if (th->data_pin.pa)
-    sec_free(th->data_pin.pa >> 20);
+
+  if (config.vm_use_pt_p) {
+    // Page table VM: free ASID and flush TLB
+    free_asid(th->asid);
+    tlb_flush_asid(th->asid);
+    // Note: we can't free pages with kmalloc, so page table and pages leak
+    // In a real system, we'd free the page table and physical pages here
+  } else {
+    // Pinned VM path
+    free_asid(th->code_pin.attr.asid);
+    tlb_flush_asid(th->code_pin.attr.asid);
+    if (th->code_pin.pa)
+      sec_free(th->code_pin.pa >> 20);
+    if (th->data_pin.pa)
+      sec_free(th->data_pin.pa >> 20);
+  }
 
   uint32_t this_thread_pid = th->tid;
   uint32_t next_thread_pid = 0;
@@ -263,12 +275,80 @@ static int equiv_syscall_handler(regs_t *r) {
   }
   case EQX_SYS_FORK: {
     clean_dcache();
-
     vm_off();
+
     eqx_th_t *child = kmalloc(sizeof(eqx_th_t));
+    printk("kmalloc'd child=%p of size %d\n", child, sizeof(eqx_th_t));
     memcpy(child, th, sizeof(eqx_th_t));
     child->tid = ntids++;
 
+    if (config.vm_use_pt_p) {
+      // Page table mode: use 4KB pages
+      uint32_t child_asid = get_free_asid();
+      child->asid = child_asid;
+
+      // Create a new page table for the child
+      vm_pt_t *child_pt = vm_user_pt_create();
+      child->pt = child_pt;
+
+      // Copy code pages
+      if (th->code_region.num_pages > 0) {
+        uint32_t code_npages = th->code_region.num_pages;
+        uint32_t new_code_pa = vm_pages_alloc(code_npages);
+
+        // Get parent's code physical address from page table
+        // Walk parent's page table to find the physical pages
+        uint32_t parent_code_pa =
+            vm_get_pa_from_pt(th->pt, th->code_region.va_start);
+
+        // Copy the code
+        memcpy((void *)new_code_pa, (void *)parent_code_pa, code_npages * 4096);
+
+        // Map in child's page table
+        vm_map_pages(child_pt, th->code_region.va_start, new_code_pa,
+                     code_npages * 4096, perm_rw_user, MEM_uncached, dom_user,
+                     0);
+
+        child->code_region.va_start = th->code_region.va_start;
+        child->code_region.va_end = th->code_region.va_end;
+        child->code_region.num_pages = code_npages;
+      }
+
+      // Copy stack/data pages
+      if (th->stack_region.num_pages > 0) {
+        uint32_t data_npages = th->stack_region.num_pages;
+        uint32_t new_data_pa = vm_pages_alloc(data_npages);
+
+        // Get parent's data physical address from page table
+        uint32_t parent_data_pa =
+            vm_get_pa_from_pt(th->pt, th->stack_region.va_start);
+
+        // Copy the data/stack
+        memcpy((void *)new_data_pa, (void *)parent_data_pa, data_npages * 4096);
+
+        // Map in child's page table
+        vm_map_pages(child_pt, th->stack_region.va_start, new_data_pa,
+                     data_npages * 4096, perm_rw_user, MEM_uncached, dom_user,
+                     0);
+
+        child->stack_region.va_start = th->stack_region.va_start;
+        child->stack_region.va_end = th->stack_region.va_end;
+        child->stack_region.num_pages = data_npages;
+      }
+
+      clean_dcache();
+      prefetch_flush();
+
+      child->regs.regs[REGS_R0] = 0;
+      th->regs.regs[REGS_R0] = child->tid;
+
+      eqx_th_push(&eqx_runq, child);
+      vm_on(th->asid);
+      vm_switch(th);
+      return child->tid;
+    }
+
+    // Pinned VM mode: use 1MB sections
     uint32_t new_code_pa = 0, new_data_pa = 0;
     if (th->code_pin.pa) {
       new_code_pa = sec_to_addr(sec_alloc());
@@ -305,7 +385,11 @@ static int equiv_syscall_handler(regs_t *r) {
     vm_off();
     struct prog *p = (void *)r->regs[0];
     eqx_th_t *new_th = eqx_exec_internal(p);
-    vm_on(new_th->code_pin.attr.asid);
+    if (config.vm_use_pt_p) {
+      vm_on(new_th->asid);
+    } else {
+      vm_on(new_th->code_pin.attr.asid);
+    }
     new_th->tid = th->tid;
     cur_thread = eqx_th_pop(&eqx_runq);
     if (!cur_thread)
@@ -467,7 +551,7 @@ static void free_asid(uint32_t asid) { asid_map[asid - 1] = 0; }
 // free index
 static int pin_idx;
 
-static eqx_config_t config = {.ramMB = 256};
+// config is forward-declared at top of file
 
 // what is asid?
 static void pin_map(unsigned idx, uint32_t va, uint32_t pa, pin_t attr) {
@@ -489,6 +573,7 @@ void pin_ident(unsigned idx, uint32_t addr, pin_t attr) {
   }
 
   if (attr.pagesize == PAGE_1MB) {
+    printk("pin_ident: addr=%x, secn=%d\n", addr, secn);
     assert(sec_is_legal(secn));
     assert(sec_alloc_exact_1mb(secn));
     pin_map(idx, addr, addr, attr);
@@ -500,7 +585,16 @@ void pin_ident(unsigned idx, uint32_t addr, pin_t attr) {
 
 // switch address spaces to <th>
 static void vm_switch(eqx_th_t *th) {
-  // extend as needed.
+  // Page table-based VM: switch to the process's page table
+  if (config.vm_use_pt_p) {
+    if (!th->pt)
+      return;
+    // Switch to the process's page table and ASID
+    mmu_set_ctx(th->tid, th->asid, th->pt);
+    return;
+  }
+
+  // Pinned VM path
   if (!config.vm_use_pin_p)
     return;
 
@@ -521,7 +615,53 @@ static void vm_switch(eqx_th_t *th) {
 static void vm_init(void) {
   init_asid_map();
 
-  // extend as needed.
+  // Page table-based VM initialization
+  if (config.vm_use_pt_p) {
+    sec_alloc_init(config.ramMB);
+
+    // Initialize the domain register
+    domain_access_ctrl_set(dom_bits);
+    mmu_init();
+
+    // Create kernel page table with 1MB section mappings
+    // The kernel uses identity-mapped 1MB sections
+    vm_pt_t *kpt = vm_pt_alloc(PT_LEVEL1_N);
+
+    uint32_t perm = config.no_user_access_p ? no_user : user_access;
+    pin_t kern = pin_mk_global(dom_kern, perm, MEM_uncached);
+
+    // Map kernel code (first MB)
+    vm_map_sec(kpt, SEG_CODE, SEG_CODE, kern);
+
+    // Map kernel heap (16MB starting at 16MB)
+    pin_t kern_16mb = pin_16mb(kern);
+    for (uint32_t i = 0; i < 16; i++) {
+      vm_map_sec(kpt, SEG_HEAP + MB(i), SEG_HEAP + MB(i), kern);
+    }
+
+    // Map kernel stack
+    vm_map_sec(kpt, SEG_STACK, SEG_STACK, kern);
+
+    // Map interrupt stack
+    vm_map_sec(kpt, SEG_INT_STACK, SEG_INT_STACK, kern);
+
+    // Map device memory (16MB at 0x20000000)
+    pin_t dev = pin_mk_global(dom_kern, no_user, MEM_device);
+    for (uint32_t i = 0; i < 16; i++) {
+      vm_map_sec(kpt, SEG_BCM_0 + MB(i), SEG_BCM_0 + MB(i), dev);
+    }
+
+    // Store kernel page table
+    vm_set_kernel_pt(kpt);
+
+    // Initialize 4KB page allocator
+    // Use memory after 64MB for user pages (leave space for kernel heap)
+    vm_page_alloc_init(64, config.ramMB - 64);
+
+    return;
+  }
+
+  // Pinned VM path (existing implementation)
   if (!config.vm_use_pin_p)
     return;
 
@@ -555,23 +695,16 @@ static void vm_init(void) {
 
   // next index avail
   pin_idx = idx;
-
-#if 0
-    enum { ASID1 = 1, ASID2 = 2 };
-    // do a non-ident map
-    enum {
-        user_addr = MB(16),
-        phys_addr1 = user_addr+MB(1),
-        phys_addr2 = user_addr+MB(2)
-    };
-    pin_t user1 = pin_mk_user(dom_kern, ASID1, no_user, MEM_uncached);
-    pin_t user2 = pin_mk_user(dom_kern, ASID2, no_user, MEM_uncached);
-    pin_mmu_sec(idx++, user_addr, phys_addr1, user1);
-    pin_mmu_sec(idx++, user_addr, phys_addr2, user2);
-#endif
 }
 
 static void vm_on(uint32_t asid) {
+  if (config.vm_use_pt_p) {
+    assert(!mmu_is_enabled());
+    mmu_enable();
+    assert(mmu_is_enabled());
+    return;
+  }
+
   if (!config.vm_use_pin_p)
     return;
   pin_set_context(asid);
@@ -582,6 +715,12 @@ static void vm_on(uint32_t asid) {
 }
 
 static void vm_off(void) {
+  if (config.vm_use_pt_p) {
+    assert(mmu_is_enabled());
+    mmu_disable();
+    return;
+  }
+
   if (!config.vm_use_pin_p) {
     printk("vm_off: vm_use_pin_p is off\n");
     return;
@@ -622,8 +761,14 @@ uint32_t eqx_run_threads(void) {
   // setup vm.
   // NOTE: we will potentially do multiple times
   // so need to make sure works in that case.
-  vm_on(cur_thread->code_pin.attr.asid);
-  vm_switch(cur_thread);
+  if (config.vm_use_pt_p) {
+    // For page table VM, switch to the process's page table first
+    vm_switch(cur_thread);
+    vm_on(cur_thread->asid);
+  } else {
+    vm_on(cur_thread->code_pin.attr.asid);
+    vm_switch(cur_thread);
+  }
 
   // Initialize and start timer interrupts.
   PUT32(IRQ_Disable_Basic, ARM_Timer_IRQ);
@@ -710,14 +855,80 @@ eqx_th_t *eqx_exec_internal(struct prog *prog) {
   assert(prog);
   output("EXEC: progname=<%s>, nbytes=%d\n", prog->name, prog->nbytes);
   small_prog_hdr_t s = small_prog_hdr_mk((void *)prog->code);
-  // ensure that code and data are aligned to 1MB.
-  assert(s.data_addr % MB(1) == 0);
-  assert(s.code_addr % MB(1) == 0);
 
   // small_prog_hdr_print(s);
 
   void *code_src = (void *)prog->code + s.code_offset;
   void *data_src = (void *)prog->code + s.data_offset;
+
+  // Page table-based VM with 4KB pages
+  if (config.vm_use_pt_p) {
+    // For 4KB pages, we only require 4KB alignment
+    assert(s.code_addr % 4096 == 0);
+    assert(s.data_addr % 4096 == 0);
+
+    let p = eqx_fork_stack((void *)s.code_addr, 0, (void *)s.data_addr,
+                           eqx_stack_size);
+
+    // Allocate ASID for this process
+    uint32_t asid = get_free_asid();
+    p->asid = asid;
+
+    // Create a user page table that inherits kernel mappings
+    vm_pt_t *pt = vm_user_pt_create();
+    p->pt = pt;
+
+    // Allocate physical pages for code
+    uint32_t code_npages = (s.code_nbytes + 4095) / 4096;
+    uint32_t code_pa = vm_pages_alloc(code_npages);
+
+    // Allocate physical pages for data (stack + heap)
+    // For simplicity, allocate space for: data + bss + stack
+    uint32_t data_size = s.data_nbytes + s.bss_nbytes + eqx_stack_size;
+    uint32_t data_npages = (data_size + 4095) / 4096;
+    uint32_t data_pa = vm_pages_alloc(data_npages);
+
+    // Map code pages (read-only/execute for user)
+    // For now, use RW so we can copy the code
+    vm_map_pages(pt, s.code_addr, code_pa, code_npages * 4096, perm_rw_user,
+                 MEM_uncached, dom_user, 0);
+
+    // Map data pages (read-write for user)
+    vm_map_pages(pt, s.data_addr, data_pa, data_npages * 4096, perm_rw_user,
+                 MEM_uncached, dom_user, 0);
+
+    // Store region info in thread structure
+    p->code_region.va_start = s.code_addr;
+    p->code_region.va_end = s.code_addr + code_npages * 4096;
+    p->code_region.num_pages = code_npages;
+
+    p->stack_region.va_start = s.data_addr;
+    p->stack_region.va_end = s.data_addr + data_npages * 4096;
+    p->stack_region.num_pages = data_npages;
+
+    // Copy code and data while MMU is off
+    assert(!mmu_is_enabled());
+    gcc_mb();
+    memcpy((void *)code_pa, code_src, s.code_nbytes);
+    memcpy((void *)data_pa, data_src, s.data_nbytes);
+
+    // Zero BSS
+    uint32_t bss_offset = s.bss_addr - s.data_addr;
+    memset((void *)(data_pa + bss_offset), 0, s.bss_nbytes);
+    gcc_mb();
+
+    output("PT EXEC: code VA=0x%x PA=0x%x (%d pages), data VA=0x%x PA=0x%x (%d "
+           "pages)\n",
+           s.code_addr, code_pa, code_npages, s.data_addr, data_pa,
+           data_npages);
+
+    return p;
+  }
+
+  // Pinned VM path (existing 1MB section-based implementation)
+  // ensure that code and data are aligned to 1MB.
+  assert(s.data_addr % MB(1) == 0);
+  assert(s.code_addr % MB(1) == 0);
 
   let p = eqx_fork_stack((void *)s.code_addr, 0, (void *)s.data_addr,
                          eqx_stack_size);
